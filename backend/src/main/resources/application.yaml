@@ -1,0 +1,11 @@
+server:
+  port: ${CODELOOM_PORT:8080}
+
+spring:
+  application:
+    name: backend
+  datasource:
+    url: ${CODELOOM_DB_URL}
+    username: ${CODELOOM_DB_USER}
+    password: ${CODELOOM_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver

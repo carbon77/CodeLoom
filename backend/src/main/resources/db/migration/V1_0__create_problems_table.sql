@@ -5,9 +5,12 @@ CREATE TABLE IF NOT EXISTS "problems"
     "problem_id"  UUID       NOT NULL UNIQUE DEFAULT gen_random_uuid(),
     "text"        TEXT       NOT NULL,
     "name"        TEXT       NOT NULL,
-    "difficulty"  INTEGER    NOT NULL,
+    "difficulty"  TEXT       NOT NULL,
     "constraints" TEXT ARRAY NOT NULL,
     "hints"       TEXT ARRAY NOT NULL,
+    created_at    TIMESTAMP  NOT NULL        DEFAULT now(),
+    updated_at    TIMESTAMP  NOT NULL        DEFAULT now(),
+    published_at  TIMESTAMP,
     PRIMARY KEY ("problem_id")
 );
 

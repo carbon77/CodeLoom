@@ -1,5 +1,7 @@
 server:
   port: ${CODELOOM_PORT:8080}
+  error:
+    include-stacktrace: never
 
 spring:
   application:

@@ -1,24 +1,20 @@
 <script setup lang="ts">
-import type ProblemsForm from '@/components/ProblemsForm.vue'
-import { useProblemsStore } from '@/stores/problems'
+import { ref } from 'vue'
 
-const problemsStore = useProblemsStore()
-const problems = problemsStore.problems
+const menuItems = ref([{ label: 'Problems', to: '/admin/problems' }])
 </script>
 
 <template>
-  <div class="flex gap-5">
-    <DataTable class="w-1/2" stripedRows showGridlines :value="problems">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <span class="text-bold">Problems</span>
-        </div>
+  <div class="flex items-start gap-3">
+    <Menu :model="menuItems">
+      <template #item="{ item }">
+        <RouterLink class="flex items-center gap-2 px-3 py-1" :to="item.to">
+          <span>{{ item.label }}</span>
+        </RouterLink>
       </template>
-      <Column field="title" header="Title" />
-      <Column field="difficulty" header="Difficulty" />
-    </DataTable>
-    <div>
-      <ProblemsForm />
+    </Menu>
+    <div class="flex-auto">
+      <router-view />
     </div>
   </div>
 </template>

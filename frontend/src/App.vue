@@ -9,7 +9,7 @@ const navbarItems = ref([
   },
   {
     label: 'Admin',
-    icon: 'pi pi-home',
+    icon: 'pi pi-user',
     to: '/admin',
   },
 ])

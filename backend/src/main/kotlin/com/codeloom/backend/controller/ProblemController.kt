@@ -16,16 +16,24 @@ import java.util.*
 @RestController
 @RequestMapping("/v1/problems")
 @Tag(name = "Problems API")
+@CrossOrigin(origins = ["*"])
 class ProblemController(
     private val problemService: ProblemService,
 ) {
+
+    @Operation(summary = "Get all problem items")
+    @GetMapping("items")
+    fun findAllItems(
+        @RequestParam("difficulties", required = false) difficulties: List<ProblemDifficulty>?,
+    ): Iterable<ProblemListItem> {
+        return problemService.findItemsByFilters(difficulties)
+    }
 
     @Operation(summary = "Get all problems")
     @GetMapping
     fun findAll(
         @RequestParam("difficulties", required = false) difficulties: List<ProblemDifficulty>?,
-    ): Iterable<ProblemListItem> {
-        print(difficulties)
+    ): Iterable<Problem> {
         return problemService.findByFilters(difficulties)
     }
 

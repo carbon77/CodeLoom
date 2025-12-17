@@ -4,8 +4,8 @@ import com.codeloom.backend.dto.CreateProblemRequest
 import com.codeloom.backend.dto.ProblemListItem
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.model.ProblemDifficulty
-import com.codeloom.backend.model.dao.ProblemFilterRepository
-import com.codeloom.backend.model.dao.ProblemRepository
+import com.codeloom.backend.dao.ProblemFilterRepository
+import com.codeloom.backend.dao.ProblemRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -17,9 +17,16 @@ class ProblemService(
     private val problemFilterRepository: ProblemFilterRepository
 ) {
     @Transactional(readOnly = true)
-    fun findByFilters(
+    fun findItemsByFilters(
         difficulties: List<ProblemDifficulty>? = null,
     ): Iterable<ProblemListItem> {
+        return problemFilterRepository.findItemsByFilters(difficulties)
+    }
+
+    @Transactional(readOnly = true)
+    fun findByFilters(
+        difficulties: List<ProblemDifficulty>? = null,
+    ): Iterable<Problem> {
         return problemFilterRepository.findByFilters(difficulties)
     }
 

@@ -35,11 +35,11 @@ class ProblemControllerTest : BaseControllerTest() {
     }
 
     @Nested
-    inner class FindAll {
+    inner class FindAllItems {
         @Test
         fun `test without filters should return all problems `() {
-            `when`(problemService.findByFilters()).thenReturn(problemItems)
-            mockMvc.get("/v1/problems")
+            `when`(problemService.findItemsByFilters()).thenReturn(problemItems)
+            mockMvc.get("/v1/problems/items")
                 .andExpect {
                     status { isOk() }
                     content { contentType(MediaType.APPLICATION_JSON) }
@@ -53,16 +53,16 @@ class ProblemControllerTest : BaseControllerTest() {
                     jsonPath("$[1].name", equalTo("Longest common subsequence"))
                 }
 
-            verify(problemService).findByFilters()
+            verify(problemService).findItemsByFilters()
         }
 
         @Test
         fun `test with one filter should return 1 problem`() {
             val difficulties = listOf(ProblemDifficulty.EASY)
-            `when`(problemService.findByFilters(difficulties))
+            `when`(problemService.findItemsByFilters(difficulties))
                 .thenReturn(listOf(problemItems[0]))
             mockMvc
-                .get("/v1/problems") {
+                .get("/v1/problems/items") {
                     param("difficulties", "EASY")
                 }
                 .andExpect {
@@ -74,22 +74,22 @@ class ProblemControllerTest : BaseControllerTest() {
                     jsonPath("$[0].name", equalTo("Two Sum"))
                 }
 
-            verify(problemService).findByFilters(difficulties)
+            verify(problemService).findItemsByFilters(difficulties)
         }
 
         @Test
         fun `test with no problems should return empty array`() {
-            `when`(problemService.findByFilters())
+            `when`(problemService.findItemsByFilters())
                 .thenReturn(listOf())
             mockMvc
-                .get("/v1/problems")
+                .get("/v1/problems/items")
                 .andExpect {
                     status { isOk() }
                     content { contentType(MediaType.APPLICATION_JSON) }
                     jsonPath("$.length()", equalTo(0))
                 }
 
-            verify(problemService).findByFilters()
+            verify(problemService).findItemsByFilters()
         }
     }
 

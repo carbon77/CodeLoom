@@ -1,4 +1,4 @@
-package com.codeloom.backend.model.dao
+package com.codeloom.backend.dao
 
 import com.codeloom.backend.model.Problem
 import org.springframework.data.repository.CrudRepository

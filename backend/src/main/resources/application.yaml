@@ -11,8 +11,18 @@ spring:
     username: ${CODELOOM_DB_USER}
     password: ${CODELOOM_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/codeloom
 springdoc:
   api-docs:
     path: /docs/api
   swagger-ui:
     path: /docs/swagger.html
+
+logging:
+  level:
+    org.springframework.security: TRACE

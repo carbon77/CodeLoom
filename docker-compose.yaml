@@ -1,0 +1,41 @@
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.7
+    command:
+    - start-dev
+    ports:
+    - 8080:8080
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    depends_on:
+    - db
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: password
+      KC_HTTP_PORT: 8080
+      KC_DB: postgres
+      KC_DB_URL_HOST: db
+      KC_DB_URL_PORT: 5432
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: zakat
+      KC_DB_PASSWORD: zakat_pwd
+  
+  db:
+    image: postgres:18.1-alpine3.23
+    ports:
+    - 5433:5432
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: zakat
+      POSTGRES_PASSWORD: zakat_pwd
+  
+  adminer:
+    image: adminer
+    ports:
+    - 8088:8080
+
+volumes:
+  db:
+  keycloak_data:

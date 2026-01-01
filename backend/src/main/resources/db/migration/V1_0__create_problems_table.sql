@@ -14,14 +14,13 @@ CREATE TABLE IF NOT EXISTS "problems"
     PRIMARY KEY ("problem_id")
 );
 
-
-
 CREATE TABLE IF NOT EXISTS "examples"
 (
     "example_id"  UUID    NOT NULL UNIQUE DEFAULT gen_random_uuid(),
     "input"       TEXT    NOT NULL,
     "output"      TEXT    NOT NULL,
     "explanation" TEXT,
-    "problem_id"  INTEGER NOT NULL,
-    PRIMARY KEY ("example_id")
+    "problem_id"  UUID NOT NULL,
+    PRIMARY KEY ("example_id"),
+    FOREIGN KEY ("problem_id") REFERENCES problems(problem_id)
 );

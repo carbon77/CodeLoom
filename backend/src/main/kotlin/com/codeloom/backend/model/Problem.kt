@@ -1,6 +1,8 @@
 package com.codeloom.backend.model
 
+import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import java.time.Instant
@@ -24,10 +26,15 @@ data class Problem(
     val examples: ProblemExamples? = null,
     @Column("hints")
     val hints: Array<String> = arrayOf(),
+
+    @CreatedDate
     @Column("created_at")
     val createdAt: Instant = Instant.now(),
+
+    @LastModifiedDate
     @Column("updated_at")
     val updatedAt: Instant = Instant.now(),
+
     @Column("published_at")
     val publishedAt: Instant? = null,
 )

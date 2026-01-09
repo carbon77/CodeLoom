@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS "test_cases"
     "problem_id"      INTEGER NOT NULL,
     "input"           TEXT    NOT NULL,
     "expected_output" TEXT    NOT NULL,
-    "is_hidden"       BOOLEAN NOT NULL,
+    "is_public"       BOOLEAN NOT NULL,
 
     FOREIGN KEY ("problem_id") REFERENCES problems ("problem_id")
 );

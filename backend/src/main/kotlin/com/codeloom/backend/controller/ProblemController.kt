@@ -5,7 +5,7 @@ import com.codeloom.backend.dto.ProblemFilters
 import com.codeloom.backend.dto.ProblemListItem
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.model.ProblemDifficulty
-import com.codeloom.backend.services.ProblemService
+import com.codeloom.backend.service.ProblemService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid

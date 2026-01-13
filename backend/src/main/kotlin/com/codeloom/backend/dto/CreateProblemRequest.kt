@@ -6,5 +6,5 @@ import jakarta.validation.constraints.NotNull
  * DTO for [com.codeloom.backend.model.Problem]
  */
 data class CreateProblemRequest(
-    @field:NotNull(message = "Name is mandatory") val name: String
+    @field:NotNull(message = "Title is mandatory") val title: String
 )

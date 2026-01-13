@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS "test_cases"
     "expected_output" TEXT    NOT NULL,
     "is_public"       BOOLEAN NOT NULL,
 
-    FOREIGN KEY ("problem_id") REFERENCES problems ("problem_id")
+    FOREIGN KEY ("problem_id") REFERENCES problems ("problem_id") ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS "topics"
@@ -41,8 +41,8 @@ CREATE TABLE IF NOT EXISTS "problem_topics"
     "topic_id"   UUID    NOT NULL,
     "problem_id" INTEGER NOT NULL,
     PRIMARY KEY ("topic_id", "problem_id"),
-    FOREIGN KEY ("topic_id") REFERENCES topics ("topic_id"),
-    FOREIGN KEY ("problem_id") REFERENCES problems ("problem_id")
+    FOREIGN KEY ("topic_id") REFERENCES topics ("topic_id") ON DELETE CASCADE,
+    FOREIGN KEY ("problem_id") REFERENCES problems ("problem_id") ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS "submissions"

@@ -4,7 +4,7 @@ import com.codeloom.backend.model.ProblemDifficulty
 import java.sql.ResultSet
 import java.time.Instant
 
-data class ProblemListItem(
+data class ProblemListDto(
     val id: Long,
     val title: String,
     val slug: String,
@@ -12,8 +12,8 @@ data class ProblemListItem(
     val publishedAt: Instant? = null,
 )
 
-fun ResultSet.toProblemListItem() =
-    ProblemListItem(
+fun ResultSet.toProblemDto() =
+    ProblemListDto(
         id = getLong("problem_id"),
         slug = getString("slug"),
         title = getString("title"),

@@ -1,11 +1,13 @@
 package com.codeloom.backend.controller
 
 import com.codeloom.backend.dto.CreateProblemRequest
+import com.codeloom.backend.dto.ProblemDto
 import com.codeloom.backend.dto.ProblemFilters
-import com.codeloom.backend.dto.ProblemListItem
+import com.codeloom.backend.dto.ProblemListDto
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.model.ProblemDifficulty
 import com.codeloom.backend.service.ProblemService
+import com.fasterxml.jackson.databind.JsonNode
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -27,7 +29,7 @@ class ProblemController(
     fun findAllItems(
         @RequestParam(required = false) difficulties: Set<ProblemDifficulty>?,
         @RequestParam(defaultValue = "true") publishedOnly: Boolean,
-    ): List<ProblemListItem> {
+    ): List<ProblemListDto> {
         return problemService.findItemsByFilters(
             filters = ProblemFilters(
                 difficulties = difficulties,
@@ -42,11 +44,10 @@ class ProblemController(
         return problemService.findById(problemId)
     }
 
-    @Operation(summary = "Get problem by slug")
+    @Operation(summary = "Get problem dto by slug")
     @GetMapping("slug/{problemSlug}")
-    fun findBySlug(@PathVariable("problemSlug") problemSlug: String): Problem {
-        return problemService.findBySlug(problemSlug)
-    }
+    fun findDtoBySlug(@PathVariable("problemSlug") problemSlug: String): ProblemDto =
+        problemService.findDtoBySlug(problemSlug)
 
     @Operation(summary = "Delete problem by id")
     @DeleteMapping("{problemId}")
@@ -66,7 +67,7 @@ class ProblemController(
 
     @Operation(summary = "Update problem")
     @PutMapping("/{problemId}")
-    fun update(@PathVariable problemId: Long, @RequestBody updated: Problem): Problem {
+    fun update(@PathVariable problemId: Long, @RequestBody updated: JsonNode): Problem {
         return problemService.update(problemId, updated)
     }
 

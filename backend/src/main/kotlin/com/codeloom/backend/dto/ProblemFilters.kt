@@ -5,4 +5,5 @@ import com.codeloom.backend.model.ProblemDifficulty
 data class ProblemFilters(
     val difficulties: Set<ProblemDifficulty>? = null,
     val publishedOnly: Boolean = true,
+    val topics: Set<String>? = null,
 )

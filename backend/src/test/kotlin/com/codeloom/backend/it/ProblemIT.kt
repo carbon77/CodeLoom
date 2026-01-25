@@ -1,6 +1,5 @@
 package com.codeloom.backend.it
 
-import com.codeloom.backend.BaseTest
 import com.codeloom.backend.dao.ProblemRepository
 import com.codeloom.backend.dao.ProblemTopicRepository
 import com.codeloom.backend.dao.TopicRepository
@@ -13,14 +12,19 @@ import org.junit.jupiter.api.assertNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.servlet.*
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.postgresql.PostgreSQLContainer
 import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Testcontainers
 @AutoConfigureMockMvc(addFilters = false)
 @Sql(
     statements =
@@ -31,7 +35,17 @@ import kotlin.test.assertNotEquals
         ],
     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
 )
-class ProblemIT : BaseTest() {
+class ProblemIT {
+    companion object {
+        @JvmStatic
+        @Container
+        @ServiceConnection
+        val postgresContainer = PostgreSQLContainer("postgres:18.1-alpine3.23").apply {
+            withDatabaseName("testdb")
+            withUsername("testuser")
+            withPassword("test")
+        }
+    }
 
     @Autowired
     private lateinit var problemTopicRepository: ProblemTopicRepository

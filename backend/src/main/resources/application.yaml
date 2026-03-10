@@ -17,6 +17,11 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/realms/codeloom
+  kafka:
+    consumer:
+      group-id: codeloom
+    bootstrap-servers: localhost:29092
+
 springdoc:
   api-docs:
     path: /docs/api
@@ -26,3 +31,7 @@ springdoc:
 logging:
   level:
     org.springframework.security: TRACE
+
+codeloom:
+  kafka:
+    submission-topic: submissions

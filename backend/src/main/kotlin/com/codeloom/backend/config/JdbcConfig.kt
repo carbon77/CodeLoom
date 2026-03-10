@@ -5,6 +5,7 @@ import com.codeloom.backend.converter.AbstractJsonWritingConverter
 import com.codeloom.backend.model.ProblemConstraints
 import com.codeloom.backend.model.ProblemDifficulty
 import com.codeloom.backend.model.ProblemExamples
+import com.codeloom.backend.model.SubmissionStatus
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.converter.Converter
@@ -39,6 +40,11 @@ class JdbcConfig(
             @WritingConverter
             object : Converter<ProblemDifficulty, JdbcValue> {
                 override fun convert(source: ProblemDifficulty) = JdbcValue.of(source, JDBCType.OTHER)
+            },
+
+            @WritingConverter
+            object : Converter<SubmissionStatus, JdbcValue> {
+                override fun convert(source: SubmissionStatus) = JdbcValue.of(source, JDBCType.OTHER)
             },
         )
     }

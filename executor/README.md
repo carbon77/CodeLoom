@@ -1,7 +1,7 @@
 # Code executor
 
 Microservice that:
-1. Consumes submission events from Kafka (`submission_events` by default).
+1. Consumes submission events from Kafka (`submissions` by default).
 2. Loads test cases from PostgreSQL by `problem_id`.
 3. Executes code in Docker for Java, C++, Python, and Go.
 4. Publishes processing statuses to Kafka (`submission_changed` by default).
@@ -10,14 +10,12 @@ Microservice that:
 
 - `CodeExecutionService` is an isolated, reusable code execution API.
 - `DockerCodeExecutionService` is the Docker-backed implementation.
-- `SubmissionEvaluationService` handles only submission workflow orchestration.
+- `SubmissionProcessingService` handles only submission workflow orchestration.
 - Spring MVC stack is used (`spring-boot-starter-web`) with JDBC (`JdbcTemplate`) for database access.
-
-This split allows adding user sandbox endpoints later without coupling them to submission processing.
 
 ## Event contract
 
-### Incoming (`submission_events`)
+### Incoming (`submissions`)
 ```json
 {
   "submissionId": "uuid",

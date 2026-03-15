@@ -6,6 +6,7 @@ import com.codeloom.backend.dao.SubmissionRepository
 import com.codeloom.backend.event.SubmissionEvent
 import com.codeloom.backend.model.Submission
 import com.codeloom.backend.model.SubmissionStatus
+import com.codeloom.backend.userId
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -13,7 +14,6 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.security.Principal
-import java.util.*
 
 @Service
 class SubmissionService(
@@ -26,7 +26,7 @@ class SubmissionService(
 ) {
     fun findSubmissions(problemId: Long, principal: Principal): Collection<Submission> {
         return submissionRepository.findByUserIdAndProblemId(
-            userId = UUID.fromString(principal.name),
+            userId = principal.userId,
             problemId = problemId,
         )
     }
@@ -38,7 +38,7 @@ class SubmissionService(
 
         val submission = submissionRepository.save(
             Submission(
-                userId = UUID.fromString(principal.name),
+                userId = principal.userId,
                 problemId = request.problemId,
                 language = request.language,
                 code = request.code,

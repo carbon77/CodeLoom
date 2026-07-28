@@ -1,4 +1,4 @@
-package com.codeloom.executor.service
+package com.codeloom.executor.service.executor.callbacks
 
 import com.github.dockerjava.api.async.ResultCallbackTemplate
 import com.github.dockerjava.api.model.Frame

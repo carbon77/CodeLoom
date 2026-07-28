@@ -9,7 +9,7 @@ Microservice that:
 ## Architecture
 
 - `CodeExecutionService` is an isolated, reusable code execution API.
-- `DockerCodeExecutionService` is the Docker-backed implementation.
+- `DockerClientCodeExecutorService` is the Docker-backed implementation.
 - `SubmissionProcessingService` handles only submission workflow orchestration.
 - Spring MVC stack is used (`spring-boot-starter-web`) with JDBC (`JdbcTemplate`) for database access.
 
@@ -22,11 +22,12 @@ Microservice that:
   "problemId": 1,
   "userId": "uuid",
   "language": "java|cpp|python|go",
-  "code": "..."
+  "code": "...",
+  "timeLimitMs": 10000,
+  "memoryLimitMb": 5
 }
 ```
 
 ### Outgoing (`submission_changed`)
 `RUNNING`, then final one of `ACCEPTED`, `WRONG_ANSWER`, `RUNTIME_ERROR`, `TIME_LIMIT_EXCEEDED`, `SYSTEM_ERROR`.
 
-Each test-case result includes execution time and memory used (`bytesUsed`) when available from the runtime container.

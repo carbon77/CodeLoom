@@ -3,6 +3,7 @@ package com.codeloom.executor.service
 import com.codeloom.executor.dto.CodeExecutionRequest
 import com.codeloom.executor.event.SubmissionEvent
 import com.codeloom.executor.repository.TestCaseRepository
+import com.codeloom.executor.service.executor.CodeExecutorService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -26,9 +27,11 @@ class SubmissionProcessingService(
                 code = event.code,
                 language = event.language,
                 input = testCase.input,
+                timeLimitMs = event.timeLimitMs,
+                memoryLimitMb = event.memoryLimitMb?.toLong(),
             )
             val result = codeExecutorService.run(request)
-            if (result.exitCode != 0) {
+            if (result.exitCode != 0L) {
                 logger.error("Submission failed: exitCode={}, stderr={}", result.exitCode, result.stderr)
                 break
             }

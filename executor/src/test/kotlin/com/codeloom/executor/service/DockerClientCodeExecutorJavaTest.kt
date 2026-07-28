@@ -139,7 +139,7 @@ class DockerClientCodeExecutorJavaTest : BaseDockerCodeExecutorTest() {
                 }
             """.trimIndent(),
             language = "java",
-            memoryLimitMb = 32,
+            memoryUsageLimitBytes = 32,
             input = ""
         )
 

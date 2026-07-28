@@ -134,7 +134,7 @@ class DockerClientCodeExecutorCppTest : BaseDockerCodeExecutorTest() {
                 }
             """.trimIndent(),
             language = "cpp",
-            memoryLimitMb = 32,
+            memoryUsageLimitBytes = 32,
             input = ""
         )
 

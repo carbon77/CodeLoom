@@ -8,6 +8,6 @@ data class SubmissionEvent(
     val problemId: Long,
     val code: String,
     val language: String,
-    val timeLimitMs: Int? = null,
-    val memoryLimitMb: Int? = null,
+    val executionTimeLimitMs: Long? = null,
+    val memoryUsageLimitBytes: Long? = null,
 )

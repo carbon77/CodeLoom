@@ -102,7 +102,7 @@ ZeroDivisionError: division by zero
             code = "big_list = list(range(10_000_000))",
             language = "python",
             input = "",
-            memoryLimitMb = 6L,
+            memoryUsageLimitBytes = 6L,
         )
 
         val result = service.run(req)

@@ -3,7 +3,6 @@ package com.codeloom.backend.controller
 import com.codeloom.backend.dao.SendSubmissionRequest
 import com.codeloom.backend.model.Submission
 import com.codeloom.backend.service.SubmissionService
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 

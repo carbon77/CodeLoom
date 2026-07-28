@@ -16,6 +16,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.servlet.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.postgresql.PostgreSQLContainer
@@ -219,8 +220,8 @@ class ProblemIT {
                             ]
                         },
                         "constraints": {
-                            "timeLimitMs": 3000,
-                            "memoryLimitMb": 8
+                            "executionTimeLimitMs": 3000,
+                            "memoryUsageLimitBytes": 4
                         }
                     }
                 """.trimIndent()
@@ -253,8 +254,8 @@ class ProblemIT {
                         "$.examples.examples[0].explanation",
                         Matchers.equalTo("These triplets sum to zero")
                     )
-                    jsonPath("$.constraints.timeLimitMs", Matchers.equalTo(3000))
-                    jsonPath("$.constraints.memoryLimitMb", Matchers.equalTo(8))
+                    jsonPath("$.constraints.executionTimeLimitMs", Matchers.equalTo(3000L), Long::class.java)
+                    jsonPath("$.constraints.memoryUsageLimitBytes", Matchers.equalTo(8L), Long::class.java)
                     jsonPath("$.createdAt", Matchers.notNullValue())
                     jsonPath("$.updatedAt", Matchers.notNullValue())
                 }
@@ -404,8 +405,8 @@ class ProblemIT {
                     ),
                 constraints =
                     ProblemConstraints(
-                        timeLimitMs = 2000,
-                        memoryLimitMb = 4,
+                        executionTimeLimitMs = 2000,
+                        memoryUsageLimitBytes = 4,
                     )
             )
         )
@@ -460,8 +461,16 @@ class ProblemIT {
         }
 
         problem.constraints?.let {
-            jsonPath("$.constraints.timeLimitMs", Matchers.equalTo(it.timeLimitMs))
-            jsonPath("$.constraints.memoryLimitMb", Matchers.equalTo(it.memoryLimitMb))
+            jsonPath(
+                "$.constraints.executionTimeLimitMs",
+                Matchers.equalTo(it.executionTimeLimitMs),
+                Long::class.java,
+            )
+            jsonPath(
+                "$.constraints.memoryUsageLimitBytes",
+                Matchers.equalTo(it.memoryUsageLimitBytes),
+                Long::class.java,
+            )
         }
 
         jsonPath("$.createdAt", Matchers.notNullValue())
@@ -495,8 +504,16 @@ class ProblemIT {
         }
 
         problem.constraints?.let {
-            jsonPath("$.constraints.timeLimitMs", Matchers.equalTo(it.timeLimitMs))
-            jsonPath("$.constraints.memoryLimitMb", Matchers.equalTo(it.memoryLimitMb))
+            jsonPath(
+                "$.constraints.executionTimeLimitMs",
+                Matchers.equalTo(it.executionTimeLimitMs),
+                Long::class.java,
+            )
+            jsonPath(
+                "$.constraints.memoryUsageLimitBytes",
+                Matchers.equalTo(it.memoryUsageLimitBytes),
+                Long::class.java,
+            )
         }
     }
 }

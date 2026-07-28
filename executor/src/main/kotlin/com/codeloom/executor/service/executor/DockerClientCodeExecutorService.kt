@@ -34,7 +34,7 @@ class DockerClientCodeExecutorService(
 
         val tempDir = Files.createTempDirectory("submission")
         val peakMemoryUsageCallback = PeakMemoryUsageCallback()
-        val memoryUsageLimitBytes = request.memoryLimitMb?.times(1024L * 1024L)
+        val memoryUsageLimitBytes = request.memoryUsageLimitBytes?.times(1024L * 1024L)
             ?: DEFAULT_MEMORY_LIMIT_BYTES
 
         logger.info("Starting execution: language={}", request.language)
@@ -43,7 +43,7 @@ class DockerClientCodeExecutorService(
 
             val (exitCode, executionTimeMs) = runContainerWithMeasureTime(
                 containerId = containerId,
-                executionTimeLimitMs = request.timeLimitMs ?: DEFAULT_TIMEOUT_MS,
+                executionTimeLimitMs = request.executionTimeLimitMs ?: DEFAULT_TIMEOUT_MS,
                 peakMemoryUsageCallback = peakMemoryUsageCallback,
             )
 

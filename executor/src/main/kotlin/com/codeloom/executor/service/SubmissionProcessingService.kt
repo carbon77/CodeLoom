@@ -27,8 +27,8 @@ class SubmissionProcessingService(
                 code = event.code,
                 language = event.language,
                 input = testCase.input,
-                timeLimitMs = event.timeLimitMs,
-                memoryLimitMb = event.memoryLimitMb?.toLong(),
+                executionTimeLimitMs = event.executionTimeLimitMs,
+                memoryUsageLimitBytes = event.memoryUsageLimitBytes,
             )
             val result = codeExecutorService.run(request)
             if (result.exitCode != 0L) {

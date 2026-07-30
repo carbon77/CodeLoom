@@ -1,6 +1,7 @@
 package com.codeloom.executor.service
 
-import com.codeloom.executor.service.executor.DockerClientCodeExecutorService
+import com.codeloom.executor.engine.DockerJudgeEngine
+import com.codeloom.executor.engine.DockerVolumeFileIO
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientBuilder
@@ -8,13 +9,18 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
 import java.time.Duration
 
 @TestConfiguration
-class DockerTestConfiguration{
+@Import(
+    DockerVolumeFileIO::class,
+    DockerJudgeEngine::class,
+)
+class DockerTestConfiguration {
     @Bean
     fun dockerClient(
-        @Value("\${codeloom.docker.host}")
+        @Value("\${codeloom.docker.host:tcp://localhost:2375}")
         dockerHost: String,
     ): DockerClient {
         val config = DefaultDockerClientConfig.createDefaultConfigBuilder()
@@ -32,10 +38,5 @@ class DockerTestConfiguration{
             .getInstance(config)
             .withDockerHttpClient(dockerClient)
             .build()
-    }
-
-    @Bean
-    fun service(dockerClient: DockerClient): DockerClientCodeExecutorService {
-        return DockerClientCodeExecutorService(dockerClient)
     }
 }

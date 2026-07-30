@@ -3,15 +3,33 @@
 Microservice that:
 1. Consumes submission events from Kafka (`submissions` by default).
 2. Loads test cases from PostgreSQL by `problem_id`.
-3. Executes code in Docker for Java, C++, Python, and Go.
-4. Publishes processing statuses to Kafka (`submission_changed` by default).
+3. Process submission via state machine
+4. Publishes processing statuses to Kafka (`submission_changed` by default)
 
-## Architecture
+## Judge engine
+Service uses [docker-java](https://github.com/docker-java/docker-java) for compiling and executing code in secured environments
 
-- `CodeExecutionService` is an isolated, reusable code execution API.
-- `DockerClientCodeExecutorService` is the Docker-backed implementation.
-- `SubmissionProcessingService` handles only submission workflow orchestration.
-- Spring MVC stack is used (`spring-boot-starter-web`) with JDBC (`JdbcTemplate`) for database access.
+## State Machine
+```mermaid
+stateDiagram-v2
+    [*] --> QUEUED
+    
+    QUEUED --> COMPILING
+    COMPILING --> COMPILE_ERROR
+    COMPILING --> RUNNING
+    RUNNING --> ACCEPTED
+    RUNNING --> WRONG_ANSWER
+    RUNNING --> TIME_LIMIT_EXCEEDED
+    RUNNING --> MEMORY_LIMIT_EXCEEDED
+    RUNNING --> RUNTIME_ERROR
+    
+    COMPILE_ERROR --> [*]
+    ACCEPTED --> [*]
+    WRONG_ANSWER --> [*]
+    TIME_LIMIT_EXCEEDED --> [*]
+    MEMORY_LIMIT_EXCEEDED --> [*]
+    RUNTIME_ERROR --> [*]
+```
 
 ## Event contract
 
@@ -21,7 +39,7 @@ Microservice that:
   "submissionId": "uuid",
   "problemId": 1,
   "userId": "uuid",
-  "language": "java|cpp|python|go",
+  "language": "java|cpp|python",
   "code": "...",
   "timeLimitMs": 10000,
   "memoryLimitMb": 5

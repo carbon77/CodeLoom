@@ -30,6 +30,7 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'com.github.docker-java:docker-java:3.7.1'
     implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.7.1'
+    implementation 'org.apache.commons:commons-compress:1.28.0'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jdbc-test'

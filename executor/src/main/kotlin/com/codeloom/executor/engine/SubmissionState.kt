@@ -1,7 +1,7 @@
 package com.codeloom.executor.engine
 
 enum class SubmissionState {
-    QUEUED,
+    PENDING,
 
     COMPILING,
     COMPILE_ERROR,

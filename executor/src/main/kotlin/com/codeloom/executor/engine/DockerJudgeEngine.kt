@@ -190,6 +190,12 @@ class DockerJudgeEngine(
     }
 
     fun cleanup(submissionId: UUID) {
-        dockerClient.removeVolumeCmd(volumeName(submissionId)).exec()
+        val volumeExists = dockerClient.listVolumesCmd()
+            .withFilter("name", listOf(volumeName(submissionId)))
+            .exec().volumes.isNotEmpty()
+
+        if (volumeExists) {
+            dockerClient.removeVolumeCmd(volumeName(submissionId)).exec()
+        }
     }
 }

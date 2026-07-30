@@ -4,7 +4,7 @@ Microservice that:
 1. Consumes submission events from Kafka (`submissions` by default).
 2. Loads test cases from PostgreSQL by `problem_id`.
 3. Process submission via state machine
-4. Publishes processing statuses to Kafka (`submission_changed` by default)
+4. Publishes updated submission statuses to Kafka (`submission_statuses` by default)
 
 ## Judge engine
 Service uses [docker-java](https://github.com/docker-java/docker-java) for compiling and executing code in secured environments
@@ -46,6 +46,14 @@ stateDiagram-v2
 }
 ```
 
-### Outgoing (`submission_changed`)
-`RUNNING`, then final one of `ACCEPTED`, `WRONG_ANSWER`, `RUNTIME_ERROR`, `TIME_LIMIT_EXCEEDED`, `SYSTEM_ERROR`.
+### Outgoing (`submission_statuses`)
+```json
+{
+  "submissionId": "uuid",
+  "problem_id": 1,
+  "userId": "uuid",
+  "new_status": "<submission_status>",
+  "payload": {}
+}
+```
 

@@ -5,6 +5,8 @@ import java.util.*
 
 data class SubmissionContext(
     val submissionId: UUID,
+    val userId: UUID,
+    val problemId: Long,
     val code: String,
     val language: LanguageSpec,
     val executionTimeLimitMs: Long? = null,

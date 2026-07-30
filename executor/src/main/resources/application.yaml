@@ -11,9 +11,15 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     consumer:
       group-id: codeloom-executor
-    bootstrap-servers: localhost:29092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
   web:
     error:
       include-stacktrace: never
@@ -33,5 +39,6 @@ codeloom:
     host: ${CODELOOM_EXECUTOR_DOCKER_HOST:unix:///var/run/docker.sock}
 
   kafka:
-    submission-topic: submissions
-    submission-changed-topic: submissions_changed
+    topics:
+      submission: submissions
+      submission-status: submission_statuses

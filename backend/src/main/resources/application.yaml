@@ -18,9 +18,15 @@ spring:
         jwt:
           issuer-uri: http://localhost:8080/realms/codeloom
   kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     consumer:
       group-id: codeloom
-    bootstrap-servers: localhost:29092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
 
 springdoc:
   api-docs:

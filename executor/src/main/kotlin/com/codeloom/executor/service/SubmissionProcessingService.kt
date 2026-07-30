@@ -6,70 +6,72 @@ import com.codeloom.executor.languages.LanguageSpec
 import com.codeloom.executor.repository.TestCaseRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class SubmissionProcessingService(
     private val testCaseRepository: TestCaseRepository,
     private val dockerJudgeEngine: DockerJudgeEngine,
+    private val eventService: EventService,
 ) {
     private val logger = LoggerFactory.getLogger(SubmissionProcessingService::class.java)
 
     fun process(event: SubmissionKafkaEvent) {
         val testCases = testCaseRepository.findByProblemId(event.problemId)
-        if (testCases.isEmpty()) {
-            logger.warn("Problem doesn't have any test cases: problemId={}", event.problemId)
-            changeSubmissionState(event.submissionId, SubmissionState.ACCEPTED)
-            return
-        }
-
         val context = SubmissionContext(
             submissionId = event.submissionId,
+            userId = event.userId,
+            problemId = event.problemId,
             code = event.code,
             language = LanguageSpec.fromLanguage(event.language),
             executionTimeLimitMs = event.executionTimeLimitMs,
             memoryUsageLimitBytes = event.memoryUsageLimitBytes,
         )
 
+        if (testCases.isEmpty()) {
+            logger.warn("Problem doesn't have any test cases: problemId={}", event.problemId)
+            changeSubmissionStatus(context, SubmissionStatus.ACCEPTED)
+            return
+        }
+
+
         try {
-            changeSubmissionState(event.submissionId, SubmissionState.COMPILING)
+            changeSubmissionStatus(context, SubmissionStatus.COMPILING)
             val compilationResult = dockerJudgeEngine.compile(context)
             if (!compilationResult.isSuccessful) {
-                changeSubmissionState(event.submissionId, SubmissionState.COMPILE_ERROR)
+                changeSubmissionStatus(context, SubmissionStatus.COMPILE_ERROR)
                 return
             }
 
-            changeSubmissionState(event.submissionId, SubmissionState.RUNNING)
+            changeSubmissionStatus(context, SubmissionStatus.RUNNING)
             for (testCase in testCases) {
                 val runResult = dockerJudgeEngine.runTestCase(context, testCase)
 
                 if (runResult.exitCode != 0L) {
-                    changeSubmissionState(
-                        submissionId = event.submissionId,
-                        state = when (runResult.exitCode) {
-                            TIMEOUT_EXIT_CODE -> SubmissionState.TIME_LIMIT_EXCEEDED
-                            MEMORY_LIMIT_EXCEEDED_EXIT_CODE -> SubmissionState.MEMORY_LIMIT_EXCEEDED
-                            else -> SubmissionState.RUNTIME_ERROR
-                        }
-                    )
+                    val newStatus = when (runResult.exitCode) {
+                        TIMEOUT_EXIT_CODE -> SubmissionStatus.TIME_LIMIT_EXCEEDED
+                        MEMORY_LIMIT_EXCEEDED_EXIT_CODE -> SubmissionStatus.MEMORY_LIMIT_EXCEEDED
+                        else -> SubmissionStatus.RUNTIME_ERROR
+                    }
+                    changeSubmissionStatus(context, newStatus)
                     return
                 }
 
                 if (runResult.stdout != testCase.expectedOutput) {
-                    changeSubmissionState(event.submissionId, SubmissionState.WRONG_ANSWER)
+                    changeSubmissionStatus(context, SubmissionStatus.WRONG_ANSWER)
                     return
                 }
             }
-            changeSubmissionState(event.submissionId, SubmissionState.ACCEPTED)
+            changeSubmissionStatus(context, SubmissionStatus.ACCEPTED)
         } catch (e: Exception) {
-            logger.error("Error while processing submission={}", event.submissionId, e)
-            changeSubmissionState(event.submissionId, SubmissionState.SYSTEM_ERROR)
+            logger.error("Error while processing submission={}", context, e)
+            changeSubmissionStatus(context, SubmissionStatus.SYSTEM_ERROR)
         } finally {
-            dockerJudgeEngine.cleanup(event.submissionId)
+            dockerJudgeEngine.cleanup(context.submissionId)
         }
     }
 
-    fun changeSubmissionState(submissionId: UUID, state: SubmissionState) {
-        logger.info("Submission(id={}) state changed to {}", submissionId, state)
+    fun changeSubmissionStatus(context: SubmissionContext, status: SubmissionStatus) {
+        logger.info("Submission(id={}) status changed to {}", context.submissionId, status)
+        eventService.submissionStatusChanged(context, status)
     }
 }

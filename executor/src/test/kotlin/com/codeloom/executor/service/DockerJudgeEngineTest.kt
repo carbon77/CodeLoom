@@ -24,6 +24,8 @@ class DockerJudgeEngineTest : DockerTestBase() {
             val result = dockerJudgeEngine.compile(
                 SubmissionContext(
                     submissionId = submissionId,
+                    userId = UUID.randomUUID(),
+                    problemId = 1,
                     language = LanguageSpec.PYTHON,
                     code = "print('Hello world')"
                 )
@@ -38,6 +40,8 @@ class DockerJudgeEngineTest : DockerTestBase() {
             val result = dockerJudgeEngine.compile(
                 SubmissionContext(
                     submissionId = submissionId,
+                    userId = UUID.randomUUID(),
+                    problemId = 1,
                     language = LanguageSpec.JAVA,
                     code = """
                     public class Main {
@@ -57,6 +61,8 @@ class DockerJudgeEngineTest : DockerTestBase() {
             val result = dockerJudgeEngine.compile(
                 SubmissionContext(
                     submissionId = submissionId,
+                    userId = UUID.randomUUID(),
+                    problemId = 1,
                     language = LanguageSpec.JAVA,
                     code = """
                     public class Main {
@@ -75,6 +81,8 @@ class DockerJudgeEngineTest : DockerTestBase() {
         fun testCorrectCpp_shouldCompile() {
             val context = SubmissionContext(
                 submissionId = submissionId,
+                userId = UUID.randomUUID(),
+                problemId = 1,
                 language = LanguageSpec.CPP,
                 code = """
 #include <iostream>
@@ -108,6 +116,8 @@ int main() {
         fun testCorrectPython_shouldReturn() {
             val context = SubmissionContext(
                 submissionId = submissionId,
+                userId = UUID.randomUUID(),
+                problemId = 1,
                 language = LanguageSpec.PYTHON,
                 code = "print(sum(map(int, input().split())), end='')"
             )
@@ -126,6 +136,8 @@ int main() {
         fun testCorrectJava_shouldReturn() {
             val context = SubmissionContext(
                 submissionId = submissionId,
+                userId = UUID.randomUUID(),
+                problemId = 1,
                 language = LanguageSpec.JAVA,
                 code = """
                     import java.util.Scanner;
@@ -154,6 +166,8 @@ int main() {
         fun testCorrectCpp_shouldReturn() {
             val context = SubmissionContext(
                 submissionId = submissionId,
+                userId = UUID.randomUUID(),
+                problemId = 1,
                 language = LanguageSpec.CPP,
                 code = """
 #include <iostream>

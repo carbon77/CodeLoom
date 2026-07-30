@@ -1,6 +1,6 @@
 package com.codeloom.executor.service
 
-import com.codeloom.executor.engine.SubmissionState
+import com.codeloom.executor.engine.SubmissionStatus
 import com.codeloom.executor.event.SubmissionKafkaEvent
 import com.codeloom.executor.model.TestCase
 import com.codeloom.executor.repository.TestCaseRepository
@@ -17,11 +17,14 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
     @MockitoBean
     private val testCaseRepository: TestCaseRepository = mock()
 
+    @MockitoBean
+    private val eventService: EventService = mock()
+
     private lateinit var service: SubmissionProcessingService
 
     @BeforeEach
     fun setUp() {
-        service = spy(SubmissionProcessingService(testCaseRepository, dockerJudgeEngine))
+        service = spy(SubmissionProcessingService(testCaseRepository, dockerJudgeEngine, eventService))
 
         `when`(testCaseRepository.findByProblemId(1))
             .thenReturn(
@@ -56,17 +59,17 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
             service.process(event)
 
             verify(service) {
-                1 * { changeSubmissionState(submissionId, SubmissionState.COMPILING) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.COMPILE_ERROR) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.COMPILING) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.COMPILE_ERROR) }
 
-                1 * { changeSubmissionState(submissionId, SubmissionState.RUNNING) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.RUNNING) }
 
-                0 * { changeSubmissionState(submissionId, SubmissionState.RUNTIME_ERROR) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.TIME_LIMIT_EXCEEDED) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.MEMORY_LIMIT_EXCEEDED) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.WRONG_ANSWER) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.RUNTIME_ERROR) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.TIME_LIMIT_EXCEEDED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.MEMORY_LIMIT_EXCEEDED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.WRONG_ANSWER) }
 
-                1 * { changeSubmissionState(submissionId, SubmissionState.ACCEPTED) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.ACCEPTED) }
             }
         }
 
@@ -90,17 +93,17 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
             service.process(event)
 
             verify(service) {
-                1 * { changeSubmissionState(submissionId, SubmissionState.COMPILING) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.COMPILE_ERROR) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.COMPILING) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.COMPILE_ERROR) }
 
-                1 * { changeSubmissionState(submissionId, SubmissionState.RUNNING) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.RUNNING) }
 
-                0 * { changeSubmissionState(submissionId, SubmissionState.RUNTIME_ERROR) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.TIME_LIMIT_EXCEEDED) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.MEMORY_LIMIT_EXCEEDED) }
-                1 * { changeSubmissionState(submissionId, SubmissionState.WRONG_ANSWER) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.RUNTIME_ERROR) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.TIME_LIMIT_EXCEEDED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.MEMORY_LIMIT_EXCEEDED) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.WRONG_ANSWER) }
 
-                0 * { changeSubmissionState(submissionId, SubmissionState.ACCEPTED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.ACCEPTED) }
             }
         }
 
@@ -124,17 +127,17 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
             service.process(event)
 
             verify(service) {
-                1 * { changeSubmissionState(submissionId, SubmissionState.COMPILING) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.COMPILE_ERROR) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.COMPILING) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.COMPILE_ERROR) }
 
-                1 * { changeSubmissionState(submissionId, SubmissionState.RUNNING) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.RUNNING) }
 
-                1 * { changeSubmissionState(submissionId, SubmissionState.RUNTIME_ERROR) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.TIME_LIMIT_EXCEEDED) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.MEMORY_LIMIT_EXCEEDED) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.WRONG_ANSWER) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.RUNTIME_ERROR) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.TIME_LIMIT_EXCEEDED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.MEMORY_LIMIT_EXCEEDED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.WRONG_ANSWER) }
 
-                0 * { changeSubmissionState(submissionId, SubmissionState.ACCEPTED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.ACCEPTED) }
             }
         }
 
@@ -157,17 +160,17 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
             service.process(event)
 
             verify(service) {
-                1 * { changeSubmissionState(submissionId, SubmissionState.COMPILING) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.COMPILE_ERROR) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.COMPILING) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.COMPILE_ERROR) }
 
-                1 * { changeSubmissionState(submissionId, SubmissionState.RUNNING) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.RUNNING) }
 
-                0 * { changeSubmissionState(submissionId, SubmissionState.RUNTIME_ERROR) }
-                1 * { changeSubmissionState(submissionId, SubmissionState.TIME_LIMIT_EXCEEDED) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.MEMORY_LIMIT_EXCEEDED) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.WRONG_ANSWER) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.RUNTIME_ERROR) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.TIME_LIMIT_EXCEEDED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.MEMORY_LIMIT_EXCEEDED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.WRONG_ANSWER) }
 
-                0 * { changeSubmissionState(submissionId, SubmissionState.ACCEPTED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.ACCEPTED) }
             }
         }
 
@@ -190,17 +193,17 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
             service.process(event)
 
             verify(service) {
-                1 * { changeSubmissionState(submissionId, SubmissionState.COMPILING) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.COMPILE_ERROR) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.COMPILING) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.COMPILE_ERROR) }
 
-                1 * { changeSubmissionState(submissionId, SubmissionState.RUNNING) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.RUNNING) }
 
-                0 * { changeSubmissionState(submissionId, SubmissionState.RUNTIME_ERROR) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.TIME_LIMIT_EXCEEDED) }
-                1 * { changeSubmissionState(submissionId, SubmissionState.MEMORY_LIMIT_EXCEEDED) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.WRONG_ANSWER) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.RUNTIME_ERROR) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.TIME_LIMIT_EXCEEDED) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.MEMORY_LIMIT_EXCEEDED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.WRONG_ANSWER) }
 
-                0 * { changeSubmissionState(submissionId, SubmissionState.ACCEPTED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.ACCEPTED) }
             }
         }
 
@@ -220,17 +223,17 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
             service.process(event)
 
             verify(service) {
-                1 * { changeSubmissionState(submissionId, SubmissionState.COMPILING) }
-                1 * { changeSubmissionState(submissionId, SubmissionState.COMPILE_ERROR) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.COMPILING) }
+                1 * { changeSubmissionStatus(any(), SubmissionStatus.COMPILE_ERROR) }
 
-                0 * { changeSubmissionState(submissionId, SubmissionState.RUNNING) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.RUNNING) }
 
-                0 * { changeSubmissionState(submissionId, SubmissionState.RUNTIME_ERROR) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.TIME_LIMIT_EXCEEDED) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.MEMORY_LIMIT_EXCEEDED) }
-                0 * { changeSubmissionState(submissionId, SubmissionState.WRONG_ANSWER) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.RUNTIME_ERROR) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.TIME_LIMIT_EXCEEDED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.MEMORY_LIMIT_EXCEEDED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.WRONG_ANSWER) }
 
-                0 * { changeSubmissionState(submissionId, SubmissionState.ACCEPTED) }
+                0 * { changeSubmissionStatus(any(), SubmissionStatus.ACCEPTED) }
             }
         }
     }

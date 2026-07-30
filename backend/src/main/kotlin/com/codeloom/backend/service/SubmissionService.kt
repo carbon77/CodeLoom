@@ -8,6 +8,7 @@ import com.codeloom.backend.model.Submission
 import com.codeloom.backend.model.SubmissionStatus
 import com.codeloom.backend.userId
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.kafka.core.KafkaTemplate
@@ -24,6 +25,8 @@ class SubmissionService(
     @Value("\${codeloom.kafka.submission-topic}")
     private val submissionsTopic: String,
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     fun findSubmissions(problemId: Long, principal: Principal): Collection<Submission> {
         return submissionRepository.findByUserIdAndProblemId(
             userId = principal.userId,
@@ -32,6 +35,7 @@ class SubmissionService(
     }
 
     fun sendSubmission(request: SendSubmissionRequest, principal: Principal) {
+        logger.info("Sending submission...")
         if (!problemRepository.existsById(request.problemId)) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Problem with id=${request.problemId} does not exist")
         }
@@ -58,5 +62,6 @@ class SubmissionService(
             submission.id.toString(),
             objectMapper.writeValueAsString(event),
         )
+        logger.info("Submission sent: submissionId={}", submission.id)
     }
 }

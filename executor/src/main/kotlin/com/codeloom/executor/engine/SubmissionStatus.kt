@@ -1,6 +1,6 @@
 package com.codeloom.executor.engine
 
-enum class SubmissionState {
+enum class SubmissionStatus {
     PENDING,
 
     COMPILING,

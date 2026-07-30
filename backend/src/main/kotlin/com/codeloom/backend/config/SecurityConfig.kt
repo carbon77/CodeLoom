@@ -43,7 +43,7 @@ class SecurityConfig {
             val authorities = authoritiesConverter.convert(jwt) ?: emptyList()
             val realmAccess = jwt.getClaimAsMap("realm_access")
 
-            if (realmAccess["roles"] == null) {
+            if (realmAccess?.get("roles") == null) {
                 return@setJwtGrantedAuthoritiesConverter emptyList()
             }
 

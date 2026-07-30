@@ -12,4 +12,6 @@ enum class SubmissionState {
     RUNTIME_ERROR,
     TIME_LIMIT_EXCEEDED,
     MEMORY_LIMIT_EXCEEDED,
+
+    SYSTEM_ERROR,
 }

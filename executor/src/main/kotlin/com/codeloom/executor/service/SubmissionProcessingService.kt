@@ -61,6 +61,9 @@ class SubmissionProcessingService(
                 }
             }
             changeSubmissionState(event.submissionId, SubmissionState.ACCEPTED)
+        } catch (e: Exception) {
+            logger.error("Error while processing submission={}", event.submissionId, e)
+            changeSubmissionState(event.submissionId, SubmissionState.SYSTEM_ERROR)
         } finally {
             dockerJudgeEngine.cleanup(event.submissionId)
         }

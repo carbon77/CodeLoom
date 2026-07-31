@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: backend
+    name: executor
   datasource:
     url: ${CODELOOM_EXECUTOR_DB_URL}
     username: ${CODELOOM_EXECUTOR_DB_USER}

@@ -1,8 +1,8 @@
 package com.codeloom.backend.converter
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.postgresql.util.PGobject
 import org.springframework.core.convert.converter.Converter
+import tools.jackson.databind.ObjectMapper
 
 abstract class AbstractJsonReadingConverter<T>(
     private val objectMapper: ObjectMapper,

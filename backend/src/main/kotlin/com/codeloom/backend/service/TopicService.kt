@@ -4,13 +4,12 @@ import com.codeloom.backend.dao.ProblemTopicRepository
 import com.codeloom.backend.dao.TopicRepository
 import com.codeloom.backend.model.ProblemTopic
 import com.codeloom.backend.model.Topic
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.contains
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.ObjectMapper
 import java.io.IOException
 import java.util.*
 
@@ -36,7 +35,7 @@ class TopicService(
         val problemTopics = node.asIterable()
             .mapNotNull {
                 when {
-                    it.contains("topic_id") -> {
+                    it.has("topic_id") -> {
                         try {
                             UUID.fromString(it["topic_id"].asText())
                         } catch (e: IllegalArgumentException) {
@@ -44,7 +43,7 @@ class TopicService(
                         }
                     }
 
-                    it.contains("name") -> {
+                    it.has("name") -> {
                         topicRepository
                             .save(Topic(name = it["name"].asText()))
                             .id!!

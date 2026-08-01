@@ -1,7 +1,7 @@
-package com.codeloom.executor.event
+package com.codeloom.backend.event
 
-import com.codeloom.executor.engine.SubmissionStatus
-import java.util.*
+import com.codeloom.backend.model.SubmissionStatus
+import java.util.UUID
 
 data class SubmissionStatusChangedEvent(
     val submissionId: UUID,

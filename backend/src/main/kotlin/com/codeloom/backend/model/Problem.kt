@@ -13,9 +13,9 @@ data class Problem(
     @Column("problem_id")
     val id: Long? = null,
     @Column("slug")
-    val slug: String,
+    val slug: String = "",
     @Column("title")
-    val title: String,
+    val title: String = "",
     @Column("description")
     val description: String = "",
     @Column("difficulty")

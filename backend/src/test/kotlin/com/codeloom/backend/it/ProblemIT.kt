@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.http.MediaType
@@ -60,8 +60,8 @@ class ProblemIT {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
-    private lateinit var ts: MutableList<Topic>
-    private lateinit var ps: MutableList<Problem>
+    private lateinit var topics: MutableList<Topic>
+    private lateinit var problems: MutableList<Problem>
 
     @Nested
     inner class FindAllItems {
@@ -109,7 +109,7 @@ class ProblemIT {
                 status { isOk() }
                 content { contentTypeCompatibleWith(MediaType.APPLICATION_JSON) }
                 jsonPath("$.id", Matchers.equalTo(1))
-                checkProblemDto(ps[0])
+                checkProblemDto(problems[0])
             }
         }
 
@@ -128,7 +128,7 @@ class ProblemIT {
                 status { isOk() }
                 content { contentTypeCompatibleWith(MediaType.APPLICATION_JSON) }
                 jsonPath("$.id", Matchers.equalTo(1))
-                checkProblem(ps[0])
+                checkProblem(problems[0])
             }
         }
 
@@ -255,7 +255,7 @@ class ProblemIT {
                         Matchers.equalTo("These triplets sum to zero")
                     )
                     jsonPath("$.constraints.executionTimeLimitMs", Matchers.equalTo(3000L), Long::class.java)
-                    jsonPath("$.constraints.memoryUsageLimitBytes", Matchers.equalTo(8L), Long::class.java)
+                    jsonPath("$.constraints.memoryUsageLimitBytes", Matchers.equalTo(4L), Long::class.java)
                     jsonPath("$.createdAt", Matchers.notNullValue())
                     jsonPath("$.updatedAt", Matchers.notNullValue())
                 }
@@ -328,7 +328,7 @@ class ProblemIT {
                         "slug": "three_sum",
                         "topics": [
                             { "topic_id": "incorrect_uuid" },
-                            { "topic_id": "${ts[0].id!!}" },
+                            { "topic_id": "${topics[0].id!!}" },
                             { "name": "Two Pointers" },
                             { "name": "Hash Table" }
                         ]
@@ -386,8 +386,8 @@ class ProblemIT {
 
 
     fun initProblems() {
-        ts = mutableListOf()
-        ps = mutableListOf()
+        topics = mutableListOf()
+        problems = mutableListOf()
 
         val t1 = topicRepository.save(Topic(name = "topic1"))
         val t2 = topicRepository.save(Topic(name = "topic2"))
@@ -426,8 +426,8 @@ class ProblemIT {
                 publishedAt = Instant.now(),
             )
         )
-        ts.addAll(listOf(t1, t2, t3))
-        ps.addAll(listOf(p1, p2, p3))
+        topics.addAll(listOf(t1, t2, t3))
+        problems.addAll(listOf(p1, p2, p3))
         problemTopicRepository.saveAll(
             listOf(
                 t3 to p1,

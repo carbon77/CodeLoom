@@ -7,13 +7,13 @@ import com.codeloom.backend.event.SubmissionEvent
 import com.codeloom.backend.model.Submission
 import com.codeloom.backend.model.SubmissionStatus
 import com.codeloom.backend.userId
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import tools.jackson.databind.ObjectMapper
 import java.security.Principal
 
 @Service

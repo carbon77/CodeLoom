@@ -12,14 +12,14 @@ class TestCase(
     val id: UUID? = null,
 
     @Column("problem_id")
-    val problemId: Long,
+    val problemId: Long? = null,
 
     @Column("input")
-    val input: String,
+    val input: String = "",
 
     @Column("expected_output")
-    val expectedOutput: String,
+    val expectedOutput: String = "",
 
     @Column("is_public")
-    val isPublic: Boolean,
+    val isPublic: Boolean = false,
 )

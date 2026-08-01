@@ -2,8 +2,8 @@ package com.codeloom.backend.controller
 
 import com.codeloom.backend.model.Topic
 import com.codeloom.backend.service.TopicService
-import com.fasterxml.jackson.databind.JsonNode
 import org.springframework.web.bind.annotation.*
+import tools.jackson.databind.JsonNode
 import java.io.IOException
 import java.util.*
 

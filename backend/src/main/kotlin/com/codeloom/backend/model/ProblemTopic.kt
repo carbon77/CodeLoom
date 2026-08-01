@@ -1,6 +1,6 @@
 package com.codeloom.backend.model
 
-import java.util.*
+import java.util.UUID
 
 data class ProblemTopic(
     val topicId: UUID,

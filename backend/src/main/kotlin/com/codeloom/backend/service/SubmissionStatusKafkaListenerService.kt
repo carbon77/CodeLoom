@@ -45,7 +45,7 @@ class SubmissionStatusKafkaListenerService(
                             executionTimeMs = it.executionTimeMs,
                             bytesUsed = it.memoryUsageBytes,
                         )
-                    }
+                    },
                 )
                 logger.info(
                     "Persisted {} test case result(s) for submission={}",

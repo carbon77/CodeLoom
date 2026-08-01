@@ -1,7 +1,7 @@
 package com.codeloom.executor.engine
 
 import com.codeloom.executor.languages.LanguageSpec
-import java.util.*
+import java.util.UUID
 
 data class SubmissionContext(
     val submissionId: UUID,

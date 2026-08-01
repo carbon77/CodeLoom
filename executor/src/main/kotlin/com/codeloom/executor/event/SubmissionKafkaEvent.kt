@@ -1,6 +1,6 @@
 package com.codeloom.executor.event
 
-import java.util.*
+import java.util.UUID
 
 data class SubmissionKafkaEvent(
     val submissionId: UUID,

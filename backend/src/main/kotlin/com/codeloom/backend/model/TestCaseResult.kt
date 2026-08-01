@@ -10,25 +10,18 @@ class TestCaseResult(
     @Id
     @Column("test_case_result_id")
     val id: UUID? = null,
-
     @Column("submission_id")
     val submissionId: UUID,
-
     @Column("input")
     val input: String,
-
     @Column("expected_output")
     val expectedOutput: String,
-
     @Column("stdout")
     val stdout: String,
-
     @Column("stderr")
     val stderr: String? = null,
-
     @Column("execution_time_ms")
     val executionTimeMs: Long? = null,
-
     @Column("bytes_used")
     val bytesUsed: Long? = null,
 )

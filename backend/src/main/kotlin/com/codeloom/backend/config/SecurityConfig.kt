@@ -15,7 +15,6 @@ import org.springframework.security.web.SecurityFilterChain
 @EnableWebSecurity
 @Profile("!test")
 class SecurityConfig {
-
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http.invoke {
@@ -47,10 +46,11 @@ class SecurityConfig {
                 return@setJwtGrantedAuthoritiesConverter emptyList()
             }
 
-            val roles = (realmAccess["roles"] as Collection<String>)
-                .filter { role -> role.startsWith("ROLE_") }
-                .map { role -> SimpleGrantedAuthority(role) }
-                .toList()
+            val roles =
+                (realmAccess["roles"] as Collection<String>)
+                    .filter { role -> role.startsWith("ROLE_") }
+                    .map { role -> SimpleGrantedAuthority(role) }
+                    .toList()
             return@setJwtGrantedAuthoritiesConverter authorities + roles
         }
 

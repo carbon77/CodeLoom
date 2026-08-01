@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service
 import tools.jackson.core.JacksonException
 import tools.jackson.databind.ObjectMapper
 
-
 @Service
 class SubmissionKafkaListenerService(
     private val objectMapper: ObjectMapper,

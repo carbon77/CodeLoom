@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Repo layout
-Three **independent** projects — not a Gradle multi-module build. No root build file, no root test runner, no CI. Run every command inside the relevant subdirectory.
+Three **independent** projects — not a Gradle multi-module build. No root build file, no root test runner. Run every command inside the relevant subdirectory. CI (`.github/workflows/ktlint.yml`) runs `ktlintCheck` on backend and executor.
 
 - `backend/` — Kotlin + Spring Boot 4 REST API (Spring Data JDBC, OAuth2 resource server, Kafka producer, Flyway). Entry: `com.codeloom.backend.BackendApplication`. REST under `/v1`, Swagger at `/docs/swagger.html`.
 - `executor/` — Kotlin + Spring Boot judge service: Kafka consumer + docker-java. **No REST controllers.** Entry: `com.codeloom.executor.ExecutorApplication`.
@@ -13,7 +13,7 @@ Three **independent** projects — not a Gradle multi-module build. No root buil
 - Backend expects a Keycloak realm `codeloom` (issuer-uri hardcoded to `http://localhost:8080/realms/codeloom`) and maps only realm roles prefixed `ROLE_` (use `ROLE_ADMIN`/`ROLE_USER`).
 
 ## Commands
-- backend & executor: `./gradlew bootRun`, `./gradlew test` (Java 21 toolchain; Windows: `gradlew.bat`).
+- backend & executor: `./gradlew bootRun`, `./gradlew test`, `./gradlew ktlintCheck`, `./gradlew ktlintFormat` (Java 21 toolchain; Windows: `gradlew.bat`).
 - frontend: `pnpm install`, `pnpm dev`, `pnpm type-check`, `pnpm build` (runs type-check first), `pnpm lint` (eslint with `--fix`), `pnpm format`.
 
 ## Config / env

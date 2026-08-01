@@ -14,20 +14,23 @@ class DockerClientConfig(
     @Value("\${codeloom.docker.host}")
     private val dockerHost: String,
 ) {
-
     @Bean
     fun dockerClient(): DockerClient {
-        val config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-            .withDockerHost(dockerHost)
-            .build()
+        val config =
+            DefaultDockerClientConfig
+                .createDefaultConfigBuilder()
+                .withDockerHost(dockerHost)
+                .build()
 
-        val dockerClient = ApacheDockerHttpClient.Builder()
-            .dockerHost(config.dockerHost)
-            .sslConfig(config.sslConfig)
-            .maxConnections(10)
-            .connectionTimeout(Duration.ofSeconds(10))
-            .responseTimeout(Duration.ofSeconds(30))
-            .build()
+        val dockerClient =
+            ApacheDockerHttpClient
+                .Builder()
+                .dockerHost(config.dockerHost)
+                .sslConfig(config.sslConfig)
+                .maxConnections(10)
+                .connectionTimeout(Duration.ofSeconds(10))
+                .responseTimeout(Duration.ofSeconds(30))
+                .build()
         return DockerClientBuilder
             .getInstance(config)
             .withDockerHttpClient(dockerClient)

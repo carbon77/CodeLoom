@@ -15,37 +15,45 @@ class DockerVolumeFileIO(
     private val dockerClient: DockerClient,
     private val imageManager: DockerImageManager,
 ) {
-
-    fun writeFile(volumeName: String, fileName: String, content: ByteArray) {
+    fun writeFile(
+        volumeName: String,
+        fileName: String,
+        content: ByteArray,
+    ) {
         withHelperContainer(volumeName) { containerId ->
-            dockerClient.copyArchiveToContainerCmd(containerId)
+            dockerClient
+                .copyArchiveToContainerCmd(containerId)
                 .withRemotePath(WORKSPACE_DIR)
                 .withTarInputStream(ByteArrayInputStream(createTar(fileName, content)))
                 .exec()
         }
     }
 
-    private fun withHelperContainer(volumeName: String, block: (containerID: String) -> Unit) {
+    private fun withHelperContainer(
+        volumeName: String,
+        block: (containerID: String) -> Unit,
+    ) {
         imageManager.pullImageIfAbsent(HELPER_CONTAINER_IMAGE_NAME)
 
         var containerId: String? = null
         try {
-            containerId = dockerClient.createContainerCmd(HELPER_CONTAINER_IMAGE_NAME)
-                .withHostConfig(
-                    HostConfig()
-                        .withMounts(
-                            listOf(
-                                Mount()
-                                    .withType(MountType.VOLUME)
-                                    .withSource(volumeName)
-                                    .withTarget(WORKSPACE_DIR)
-                            )
-                        )
-                )
-                .withWorkingDir(WORKSPACE_DIR)
-                .withCmd("sleep", "30")
-                .exec()
-                .id
+            containerId =
+                dockerClient
+                    .createContainerCmd(HELPER_CONTAINER_IMAGE_NAME)
+                    .withHostConfig(
+                        HostConfig()
+                            .withMounts(
+                                listOf(
+                                    Mount()
+                                        .withType(MountType.VOLUME)
+                                        .withSource(volumeName)
+                                        .withTarget(WORKSPACE_DIR),
+                                ),
+                            ),
+                    ).withWorkingDir(WORKSPACE_DIR)
+                    .withCmd("sleep", "30")
+                    .exec()
+                    .id
 
             block(containerId)
         } finally {
@@ -55,7 +63,10 @@ class DockerVolumeFileIO(
         }
     }
 
-    private fun createTar(fileName: String, content: ByteArray): ByteArray {
+    private fun createTar(
+        fileName: String,
+        content: ByteArray,
+    ): ByteArray {
         val buffer = ByteArrayOutputStream()
         TarArchiveOutputStream(buffer).use { tar ->
             val entry = TarArchiveEntry(fileName)

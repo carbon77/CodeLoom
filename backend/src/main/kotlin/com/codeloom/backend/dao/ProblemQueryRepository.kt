@@ -14,19 +14,19 @@ class ProblemQueryRepository(
     private val topicRepository: TopicRepository,
     private val testCaseRepository: TestCaseRepository,
 ) {
-
     fun findProblemListDtos(filters: ProblemFilters): List<ProblemListDto> {
-        val sql = StringBuilder(
-            """
-            SELECT
-                p.problem_id,
-                p.slug,
-                p.title,
-                p.difficulty,
-                p.published_at
-            FROM problems p
-        """.trimIndent()
-        )
+        val sql =
+            StringBuilder(
+                """
+                SELECT
+                    p.problem_id,
+                    p.slug,
+                    p.title,
+                    p.difficulty,
+                    p.published_at
+                FROM problems p
+                """.trimIndent(),
+            )
         val joinClause = StringBuilder()
         val whereClause = StringBuilder(" WHERE 1 = 1")
         val params = mutableMapOf<String, Any>()

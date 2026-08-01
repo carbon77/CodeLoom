@@ -1,4 +1,4 @@
-package com.codeloom.backend.service;
+package com.codeloom.backend.service
 
 import com.codeloom.backend.dao.TestCaseRepository
 import com.codeloom.backend.model.TestCase
@@ -9,7 +9,8 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.ObjectMapper
-import java.util.*
+import java.util.Optional
+import java.util.UUID
 
 @Service
 class TestCaseService(
@@ -24,20 +25,26 @@ class TestCaseService(
     }
 
     fun getMany(ids: List<UUID>): Iterable<TestCase> = testCaseRepository.findAllById(ids)
+
     fun create(testCase: TestCase): TestCase = testCaseRepository.save(testCase)
 
     @Transactional
-    fun patch(id: UUID, patchNode: JsonNode): TestCase {
-        val testCase: TestCase = testCaseRepository.findById(id).orElseThrow {
-            ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with id `$id` not found")
-        }
-        val updated = TestCase(
-            id = testCase.id,
-            problemId = testCase.problemId,
-            input = patchNode.patchValue("input", objectMapper, testCase.input),
-            expectedOutput = patchNode.patchValue("expectedOutput", objectMapper, testCase.expectedOutput),
-            isPublic = patchNode.patchValue("isPublic", objectMapper, testCase.isPublic),
-        )
+    fun patch(
+        id: UUID,
+        patchNode: JsonNode,
+    ): TestCase {
+        val testCase: TestCase =
+            testCaseRepository.findById(id).orElseThrow {
+                ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with id `$id` not found")
+            }
+        val updated =
+            TestCase(
+                id = testCase.id,
+                problemId = testCase.problemId,
+                input = patchNode.patchValue("input", objectMapper, testCase.input),
+                expectedOutput = patchNode.patchValue("expectedOutput", objectMapper, testCase.expectedOutput),
+                isPublic = patchNode.patchValue("isPublic", objectMapper, testCase.isPublic),
+            )
         return testCaseRepository.save(updated)
     }
 
@@ -48,7 +55,10 @@ class TestCaseService(
         }
     }
 
-    fun getByProblemId(problemId: Long, publicOnly: Boolean): Iterable<TestCase> {
+    fun getByProblemId(
+        problemId: Long,
+        publicOnly: Boolean,
+    ): Iterable<TestCase> {
         if (publicOnly) {
             return testCaseRepository.findByProblemIdAndIsPublic(problemId, true)
         }

@@ -27,36 +27,43 @@ class SubmissionService(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun findSubmissions(problemId: Long, principal: Principal): Collection<Submission> {
-        return submissionRepository.findByUserIdAndProblemId(
+    fun findSubmissions(
+        problemId: Long,
+        principal: Principal,
+    ): Collection<Submission> =
+        submissionRepository.findByUserIdAndProblemId(
             userId = principal.userId,
             problemId = problemId,
         )
-    }
 
-    fun sendSubmission(request: SendSubmissionRequest, principal: Principal) {
+    fun sendSubmission(
+        request: SendSubmissionRequest,
+        principal: Principal,
+    ) {
         logger.info("Sending submission...")
         if (!problemRepository.existsById(request.problemId)) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Problem with id=${request.problemId} does not exist")
         }
 
-        val submission = submissionRepository.save(
-            Submission(
-                userId = principal.userId,
-                problemId = request.problemId,
-                language = request.language,
-                code = request.code,
-                status = SubmissionStatus.PENDING,
+        val submission =
+            submissionRepository.save(
+                Submission(
+                    userId = principal.userId,
+                    problemId = request.problemId,
+                    language = request.language,
+                    code = request.code,
+                    status = SubmissionStatus.PENDING,
+                ),
             )
-        )
 
-        val event = SubmissionEvent(
-            submissionId = submission.id!!,
-            userId = submission.userId,
-            problemId = request.problemId,
-            code = request.code,
-            language = request.language,
-        )
+        val event =
+            SubmissionEvent(
+                submissionId = submission.id!!,
+                userId = submission.userId,
+                problemId = request.problemId,
+                code = request.code,
+                language = request.language,
+            )
         kafkaTemplate.send(
             submissionsTopic,
             submission.id.toString(),

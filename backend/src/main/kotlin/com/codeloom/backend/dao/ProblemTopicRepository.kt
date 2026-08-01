@@ -1,4 +1,4 @@
-package com.codeloom.backend.dao;
+package com.codeloom.backend.dao
 
 import com.codeloom.backend.model.ProblemTopic
 import org.springframework.jdbc.core.JdbcTemplate

@@ -6,16 +6,17 @@ import org.hamcrest.Matchers
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
-import org.springframework.test.web.servlet.*
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.MockMvcResultMatchersDsl
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.postgresql.PostgreSQLContainer
-import java.util.*
+import java.util.UUID
 import kotlin.test.assertEquals
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -23,20 +24,21 @@ import kotlin.test.assertEquals
 @AutoConfigureMockMvc(addFilters = false)
 @Sql(
     statements = [
-        "TRUNCATE TABLE topics CASCADE"
+        "TRUNCATE TABLE topics CASCADE",
     ],
-    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
 )
 class TopicIT {
     companion object {
         @JvmStatic
         @Container
         @ServiceConnection
-        val postgresContainer = PostgreSQLContainer("postgres:18.1-alpine3.23").apply {
-            withDatabaseName("testdb")
-            withUsername("testuser")
-            withPassword("test")
-        }
+        val postgresContainer =
+            PostgreSQLContainer("postgres:18.1-alpine3.23").apply {
+                withDatabaseName("testdb")
+                withUsername("testuser")
+                withPassword("test")
+            }
     }
 
     @Autowired
@@ -48,8 +50,8 @@ class TopicIT {
     private fun initTopic(name: String = "Arrays"): Topic =
         topicRepository.save(
             Topic(
-                name = name
-            )
+                name = name,
+            ),
         )
 
     /* -------------------------------------------------------------
@@ -57,10 +59,10 @@ class TopicIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class FindAll {
-
         @Test
         fun `test with no topics should return empty array`() {
-            mockMvc.get("/v1/topics")
+            mockMvc
+                .get("/v1/topics")
                 .andExpect {
                     status { isOk() }
                     content { contentTypeCompatibleWith(MediaType.APPLICATION_JSON) }
@@ -73,7 +75,8 @@ class TopicIT {
             initTopic("Arrays")
             initTopic("Dynamic Programming")
 
-            mockMvc.get("/v1/topics")
+            mockMvc
+                .get("/v1/topics")
                 .andExpect {
                     status { isOk() }
                     content { contentTypeCompatibleWith(MediaType.APPLICATION_JSON) }
@@ -89,12 +92,12 @@ class TopicIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class FindOne {
-
         @Test
         fun `test should return topic`() {
             val topic = initTopic("Graphs")
 
-            mockMvc.get("/v1/topics/${topic.id}")
+            mockMvc
+                .get("/v1/topics/${topic.id}")
                 .andExpect {
                     status { isOk() }
                     content { contentTypeCompatibleWith(MediaType.APPLICATION_JSON) }
@@ -105,7 +108,8 @@ class TopicIT {
 
         @Test
         fun `test with non-existing id should return 404`() {
-            mockMvc.get("/v1/topics/${UUID.randomUUID()}")
+            mockMvc
+                .get("/v1/topics/${UUID.randomUUID()}")
                 .andExpect {
                     status { isNotFound() }
                 }
@@ -117,18 +121,18 @@ class TopicIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class Create {
-
         @Test
         fun `test should create topic`() {
-            mockMvc.post("/v1/topics") {
-                contentType = MediaType.APPLICATION_JSON
-                content = """
-                    {
-                      "name": "Greedy"
-                    }
-                """.trimIndent()
-            }
-                .andExpect {
+            mockMvc
+                .post("/v1/topics") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content =
+                        """
+                        {
+                          "name": "Greedy"
+                        }
+                        """.trimIndent()
+                }.andExpect {
                     status { isOk() }
                     content { contentTypeCompatibleWith(MediaType.APPLICATION_JSON) }
                     jsonPath("$.id", Matchers.notNullValue())
@@ -137,7 +141,6 @@ class TopicIT {
 
             assertEquals(1, topicRepository.count())
         }
-
     }
 
     /* -------------------------------------------------------------
@@ -145,20 +148,20 @@ class TopicIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class Patch {
-
         @Test
         fun `test should patch topic`() {
             val topic = initTopic("Old Name")
 
-            mockMvc.patch("/v1/topics/${topic.id}") {
-                contentType = MediaType.APPLICATION_JSON
-                content = """
-                    {
-                      "name": "New Name"
-                    }
-                """.trimIndent()
-            }
-                .andExpect {
+            mockMvc
+                .patch("/v1/topics/${topic.id}") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content =
+                        """
+                        {
+                          "name": "New Name"
+                        }
+                        """.trimIndent()
+                }.andExpect {
                     status { isOk() }
                     jsonPath("$.name", Matchers.equalTo("New Name"))
                 }
@@ -173,12 +176,12 @@ class TopicIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class Delete {
-
         @Test
         fun `test should delete topic`() {
             val topic = initTopic("Bit Manipulation")
 
-            mockMvc.delete("/v1/topics/${topic.id}")
+            mockMvc
+                .delete("/v1/topics/${topic.id}")
                 .andExpect {
                     status { isOk() }
                 }

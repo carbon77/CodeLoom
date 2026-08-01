@@ -6,13 +6,13 @@ import com.codeloom.backend.model.ProblemConstraints
 import com.codeloom.backend.model.ProblemDifficulty
 import com.codeloom.backend.model.ProblemExamples
 import com.codeloom.backend.model.SubmissionStatus
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.converter.Converter
 import org.springframework.data.convert.ReadingConverter
 import org.springframework.data.convert.WritingConverter
 import org.springframework.data.jdbc.core.mapping.JdbcValue
 import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration
+import tools.jackson.databind.ObjectMapper
 import java.sql.JDBCType
 
 @Configuration

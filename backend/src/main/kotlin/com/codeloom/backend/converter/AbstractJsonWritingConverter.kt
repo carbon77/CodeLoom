@@ -1,9 +1,9 @@
 package com.codeloom.backend.converter
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.postgresql.util.PGobject
 import org.springframework.core.convert.converter.Converter
 import org.springframework.data.jdbc.core.mapping.JdbcValue
+import tools.jackson.databind.ObjectMapper
 import java.sql.JDBCType
 
 abstract class AbstractJsonWritingConverter<T : Any>(

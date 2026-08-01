@@ -7,13 +7,13 @@ import com.codeloom.backend.dto.ProblemDto
 import com.codeloom.backend.dto.ProblemFilters
 import com.codeloom.backend.dto.ProblemListDto
 import com.codeloom.backend.model.Problem
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.contains
+import com.codeloom.backend.patchValue
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.ObjectMapper
 import java.time.Instant
 
 @Service
@@ -58,13 +58,23 @@ class ProblemService(
     fun update(problemId: Long, patchNode: JsonNode): Problem {
         val problem = problemRepository.findById(problemId)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with ID $problemId not found") }
-        objectMapper.readerForUpdating(problem).readValue<Problem>(patchNode)
+        val updated = problem.copy(
+            title = patchNode.patchValue("title", objectMapper, problem.title),
+            slug = patchNode.patchValue("slug", objectMapper, problem.slug),
+            description = patchNode.patchValue("description", objectMapper, problem.description),
+            difficulty = patchNode.patchValue("difficulty", objectMapper, problem.difficulty),
+            hints = patchNode.get("hints")?.takeIf { it.isArray }?.asArray()?.values()?.map { it.asString() }
+                ?.toTypedArray()
+                ?: problem.hints,
+            examples = patchNode.patchValue("examples", objectMapper, problem.examples),
+            constraints = patchNode.patchValue("constraints", objectMapper, problem.constraints),
+        )
 
-        if (patchNode.contains("topics")) {
+        if (patchNode.has("topics")) {
             topicService.createManyWithProblem(problemId, patchNode.get("topics"))
         }
 
-        return problemRepository.save(problem)
+        return problemRepository.save(updated)
     }
 
     @Transactional

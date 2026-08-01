@@ -2,11 +2,16 @@ package com.codeloom.backend.model
 
 enum class SubmissionStatus {
     PENDING,
+
+    COMPILING,
+    COMPILE_ERROR,
+
     RUNNING,
     ACCEPTED,
-    COMPILATION_ERROR,
+    WRONG_ANSWER,
     RUNTIME_ERROR,
     TIME_LIMIT_EXCEEDED,
     MEMORY_LIMIT_EXCEEDED,
-    WRONG_ANSWER,
+
+    SYSTEM_ERROR,
 }

@@ -1,0 +1,48 @@
+name: Run tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changed:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      executor: ${{ steps.filter.outputs.executor }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            executor:
+              - 'executor/**'
+
+  tests:
+    name: Tests (${{ matrix.project }})
+    needs: changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [backend, executor]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Run tests
+        if: ${{ (matrix.project == 'backend' && needs.changed.outputs.backend == 'true') || (matrix.project == 'executor' && needs.changed.outputs.executor == 'true') }}
+        working-directory: ${{ matrix.project }}
+        run: chmod +x gradlew && ./gradlew test

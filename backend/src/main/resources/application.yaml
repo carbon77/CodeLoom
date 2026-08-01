@@ -1,7 +1,5 @@
 server:
   port: ${CODELOOM_PORT:8080}
-  error:
-    include-stacktrace: never
 
 spring:
   application:
@@ -11,6 +9,12 @@ spring:
     username: ${CODELOOM_DB_USER}
     password: ${CODELOOM_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+
+  web:
+    error:
+      include-stacktrace: never
 
   security:
     oauth2:
@@ -18,9 +22,15 @@ spring:
         jwt:
           issuer-uri: http://localhost:8080/realms/codeloom
   kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
     consumer:
       group-id: codeloom
-    bootstrap-servers: localhost:29092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
 
 springdoc:
   api-docs:
@@ -35,3 +45,4 @@ logging:
 codeloom:
   kafka:
     submission-topic: submissions
+    submission-status-topic: submission_statuses

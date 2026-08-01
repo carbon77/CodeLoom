@@ -2,6 +2,7 @@ package com.codeloom.backend.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.invoke
@@ -12,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 @EnableWebSecurity
+@Profile("!test")
 class SecurityConfig {
 
     @Bean
@@ -41,7 +43,7 @@ class SecurityConfig {
             val authorities = authoritiesConverter.convert(jwt) ?: emptyList()
             val realmAccess = jwt.getClaimAsMap("realm_access")
 
-            if (realmAccess["roles"] == null) {
+            if (realmAccess?.get("roles") == null) {
                 return@setJwtGrantedAuthoritiesConverter emptyList()
             }
 

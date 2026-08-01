@@ -1,4 +1,4 @@
-name: CI
+name: Run tests
 
 on:
   pull_request:
@@ -45,4 +45,4 @@ jobs:
       - name: Run tests
         if: ${{ (matrix.project == 'backend' && needs.changed.outputs.backend == 'true') || (matrix.project == 'executor' && needs.changed.outputs.executor == 'true') }}
         working-directory: ${{ matrix.project }}
-        run: ./gradlew test
+        run: chmod +x gradlew && ./gradlew test

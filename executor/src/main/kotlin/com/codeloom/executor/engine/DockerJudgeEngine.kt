@@ -18,6 +18,7 @@ import kotlin.time.measureTimedValue
 class DockerJudgeEngine(
     private val dockerClient: DockerClient,
     private val volumeFileIO: DockerVolumeFileIO,
+    private val imageManager: DockerImageManager,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -176,6 +177,8 @@ class DockerJudgeEngine(
             .withMemorySwap(memoryLimit)
             .withNetworkMode("none")
             .withReadonlyRootfs(false)
+
+        imageManager.pullImageIfAbsent(context.language.image, timeoutSeconds = 300)
 
         val containerId = dockerClient.createContainerCmd(context.language.image)
             .withHostConfig(hostConfig)

@@ -1,5 +1,6 @@
 package com.codeloom.executor.service
 
+import com.codeloom.executor.engine.DockerImageManager
 import com.codeloom.executor.engine.DockerJudgeEngine
 import com.codeloom.executor.engine.DockerVolumeFileIO
 import com.github.dockerjava.api.DockerClient
@@ -14,6 +15,7 @@ import java.time.Duration
 
 @TestConfiguration
 @Import(
+    DockerImageManager::class,
     DockerVolumeFileIO::class,
     DockerJudgeEngine::class,
 )

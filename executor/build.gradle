@@ -12,8 +12,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.jetbrains.kotlin:kotlin-reflect'
-    implementation 'tools.jackson.module:jackson-module-kotlin'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'com.github.docker-java:docker-java:3.7.1'

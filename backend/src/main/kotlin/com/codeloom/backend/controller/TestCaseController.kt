@@ -1,10 +1,11 @@
 package com.codeloom.backend.controller
 
+import com.codeloom.backend.dto.CreateTestCaseRequest
 import com.codeloom.backend.model.TestCase
 import com.codeloom.backend.service.TestCaseService
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
 import tools.jackson.databind.JsonNode
-import java.io.IOException
 import java.util.*
 
 @RestController
@@ -12,22 +13,21 @@ import java.util.*
 class TestCaseController(private val testCaseService: TestCaseService) {
 
     @GetMapping("/{id}")
-    fun getOne(@PathVariable id: UUID): TestCase = testCaseService.getOne(id)
+    fun findById(@PathVariable id: UUID): TestCase = testCaseService.findById(id)
 
     @GetMapping("/by-ids")
-    fun getMany(@RequestParam ids: List<UUID>): Iterable<TestCase> = testCaseService.getMany(ids)
+    fun findAllByIds(@RequestParam ids: List<UUID>): Iterable<TestCase> = testCaseService.findAllByIds(ids)
 
     @GetMapping("/by-problem-id/{problemId}")
-    fun getByProblemId(
+    fun findByProblemId(
         @PathVariable problemId: Long,
-        @RequestParam(required = false) publicOnly: Boolean = true,
-    ): Iterable<TestCase> = testCaseService.getByProblemId(problemId, publicOnly)
+        @RequestParam(required = false) isPublic: Boolean?,
+    ): Iterable<TestCase> = testCaseService.findAllByProblemId(problemId, isPublic)
 
     @PostMapping
-    fun create(@RequestBody testCase: TestCase): TestCase = testCaseService.create(testCase)
+    fun create(@Valid @RequestBody request: CreateTestCaseRequest): TestCase = testCaseService.create(request)
 
     @PatchMapping("/{id}")
-    @Throws(IOException::class)
     fun patch(@PathVariable id: UUID, @RequestBody patchNode: JsonNode): TestCase = testCaseService.patch(id, patchNode)
 
     @DeleteMapping("/{id}")

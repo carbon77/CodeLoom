@@ -1,5 +1,6 @@
 package com.codeloom.backend.dao
 
+import com.codeloom.backend.dao.testcase.TestCaseRepository
 import com.codeloom.backend.dto.ProblemDto
 import com.codeloom.backend.dto.ProblemFilters
 import com.codeloom.backend.dto.ProblemListDto
@@ -57,7 +58,7 @@ class ProblemQueryRepository(
     fun findProblemDtoBySlug(slug: String): ProblemDto? {
         val problem = problemRepository.findBySlug(slug) ?: return null
         if (problem.id == null) return null
-        val testCases = testCaseRepository.findByProblemIdAndIsPublic(problem.id, true)
+        val testCases = testCaseRepository.findAllByProblemId(problem.id, true)
         val topics = topicRepository.findByProblemId(problem.id)
 
         return ProblemDto(

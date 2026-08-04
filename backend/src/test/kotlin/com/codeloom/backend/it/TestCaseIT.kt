@@ -1,7 +1,7 @@
 package com.codeloom.backend.it
 
 import com.codeloom.backend.dao.ProblemRepository
-import com.codeloom.backend.dao.TestCaseRepository
+import com.codeloom.backend.dao.testcase.TestCaseRepository
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.model.TestCase
 import org.hamcrest.Matchers

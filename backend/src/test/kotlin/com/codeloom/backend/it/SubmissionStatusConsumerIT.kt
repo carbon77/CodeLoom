@@ -2,8 +2,8 @@ package com.codeloom.backend.it
 
 import com.codeloom.backend.dao.ProblemRepository
 import com.codeloom.backend.dao.SubmissionRepository
-import com.codeloom.backend.dao.TestCaseRepository
-import com.codeloom.backend.dao.TestCaseResultRepository
+import com.codeloom.backend.dao.testcase.TestCaseRepository
+import com.codeloom.backend.dao.testcase.TestCaseResultRepository
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.model.Submission
 import com.codeloom.backend.model.TestCase

@@ -1,4 +1,4 @@
-package com.codeloom.backend.service;
+package com.codeloom.backend.service
 
 import com.codeloom.backend.dao.ProblemTopicRepository
 import com.codeloom.backend.dao.TopicRepository

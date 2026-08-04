@@ -1,0 +1,2 @@
+rootProject.name = 'codeloom'
+include 'common', 'backend', 'executor'

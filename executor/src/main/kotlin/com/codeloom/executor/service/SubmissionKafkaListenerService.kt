@@ -1,6 +1,6 @@
 package com.codeloom.executor.service
 
-import com.codeloom.executor.event.SubmissionKafkaEvent
+import com.codeloom.common.SubmissionEvent
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
@@ -18,7 +18,7 @@ class SubmissionKafkaListenerService(
     @KafkaListener(topics = ["submissions"], groupId = "codeloom")
     fun listenSubmission(message: String) {
         try {
-            val event = objectMapper.readValue(message, SubmissionKafkaEvent::class.java)
+            val event = objectMapper.readValue(message, SubmissionEvent::class.java)
             logger.info("Received submission event: problemId=${event.problemId} userId=${event.userId}")
             submissionProcessingService.process(event)
         } catch (e: JacksonException) {

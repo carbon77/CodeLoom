@@ -1,5 +1,6 @@
 package com.codeloom.backend.model
 
+import com.codeloom.common.SubmissionStatus
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column

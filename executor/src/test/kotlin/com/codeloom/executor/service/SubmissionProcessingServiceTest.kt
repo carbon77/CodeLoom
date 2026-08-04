@@ -1,7 +1,7 @@
 package com.codeloom.executor.service
 
-import com.codeloom.executor.engine.SubmissionStatus
-import com.codeloom.executor.event.SubmissionKafkaEvent
+import com.codeloom.common.SubmissionEvent
+import com.codeloom.common.SubmissionStatus
 import com.codeloom.executor.model.TestCase
 import com.codeloom.executor.repository.TestCaseRepository
 import org.junit.jupiter.api.BeforeEach
@@ -41,7 +41,7 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
     inner class Java {
         @Test
         fun `correct java program, should submission accepted`() {
-            val event = SubmissionKafkaEvent(
+            val event = SubmissionEvent(
                 submissionId = submissionId,
                 problemId = 1,
                 userId = UUID.randomUUID(),
@@ -75,7 +75,7 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
 
         @Test
         fun `wrong java program, should wrong answer`() {
-            val event = SubmissionKafkaEvent(
+            val event = SubmissionEvent(
                 submissionId = submissionId,
                 problemId = 1,
                 userId = UUID.randomUUID(),
@@ -109,7 +109,7 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
 
         @Test
         fun `wrong java program, should runtime error`() {
-            val event = SubmissionKafkaEvent(
+            val event = SubmissionEvent(
                 submissionId = submissionId,
                 problemId = 1,
                 userId = UUID.randomUUID(),
@@ -143,7 +143,7 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
 
         @Test
         fun `wrong java program, time limit exceeded`() {
-            val event = SubmissionKafkaEvent(
+            val event = SubmissionEvent(
                 submissionId = submissionId,
                 problemId = 1,
                 userId = UUID.randomUUID(),
@@ -176,7 +176,7 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
 
         @Test
         fun `wrong java program, should memory limit exceeded`() {
-            val event = SubmissionKafkaEvent(
+            val event = SubmissionEvent(
                 submissionId = submissionId,
                 problemId = 1,
                 userId = UUID.randomUUID(),
@@ -209,7 +209,7 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
 
         @Test
         fun `wrong java program, should compile error`() {
-            val event = SubmissionKafkaEvent(
+            val event = SubmissionEvent(
                 submissionId = submissionId,
                 problemId = 1,
                 userId = UUID.randomUUID(),

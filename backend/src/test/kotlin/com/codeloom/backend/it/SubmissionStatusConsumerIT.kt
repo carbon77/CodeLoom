@@ -6,8 +6,8 @@ import com.codeloom.backend.dao.TestCaseRepository
 import com.codeloom.backend.dao.TestCaseResultRepository
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.model.Submission
-import com.codeloom.backend.model.SubmissionStatus
 import com.codeloom.backend.model.TestCase
+import com.codeloom.common.SubmissionStatus
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

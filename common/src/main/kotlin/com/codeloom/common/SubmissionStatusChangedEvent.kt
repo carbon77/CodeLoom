@@ -1,6 +1,5 @@
-package com.codeloom.executor.event
+package com.codeloom.common
 
-import com.codeloom.executor.engine.SubmissionStatus
 import java.util.*
 
 data class SubmissionStatusChangedEvent(

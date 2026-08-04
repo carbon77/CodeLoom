@@ -4,6 +4,8 @@ plugins {
     id 'org.springframework.boot' version '4.1.0'
     id 'io.spring.dependency-management' version '1.1.7'
     id "org.jetbrains.kotlin.kapt" version '2.4.10'
+    id 'nu.studer.jooq' version '10.2.1'
+    id 'org.flywaydb.flyway' version '13.1.0'
 }
 
 group = 'com.codeloom'
@@ -33,6 +35,7 @@ ext {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-jooq'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-kafka'
@@ -47,6 +50,8 @@ dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
     implementation 'org.postgresql:postgresql'
     implementation 'tools.jackson.module:jackson-module-kotlin:3.2.1'
+
+    jooqGenerator 'org.postgresql:postgresql'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
@@ -69,5 +74,51 @@ kotlin {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+import org.jooq.meta.jaxb.Logging
+
+flyway {
+    url = System.getenv("CODELOOM_DB_URL") ?: "jdbc:postgresql://localhost:5432/codeloom_backend"
+    user = System.getenv("CODELOOM_DB_USER")
+    password = System.getenv("CODELOOM_DB_PASSWORD")
+    locations = ["filesystem:src/main/resources/db/migration"]
+}
+
+jooq {
+    version = '3.20.11'
+
+    configurations {
+        main {
+            generateSchemaSourceOnCompilation = true
+            generationTool {
+                logging = Logging.WARN
+                jdbc {
+                    driver = "org.postgresql.Driver"
+                    url = System.getenv("CODELOOM_DB_URL") ?: "jdbc:postgresql://localhost:5433/codeloom_backend"
+                    user = System.getenv("CODELOOM_DB_USER") ?: "zakat"
+                    password = System.getenv("CODELOOM_DB_PASSWORD") ?: "zakat_pwd"
+                }
+                generator {
+                    name = 'org.jooq.codegen.KotlinGenerator'
+                    database {
+                        name = 'org.jooq.meta.postgres.PostgresDatabase'
+                        inputSchema = 'public'
+                    }
+                    generate {
+                        deprecated = false
+                        kotlinSetterJvmNameAnnotationsOnIsPrefix = true
+                        pojosAsKotlinDataClasses = true
+                        fluentSetters = true
+                    }
+                    target {
+                        packageName = 'com.codeloom.backend.jooq'
+                        directory = 'build/generated-src/jooq/main'
+                    }
+                    strategy.name = 'org.jooq.codegen.DefaultGeneratorStrategy'
+                }
+            }
+        }
+    }
 }
 

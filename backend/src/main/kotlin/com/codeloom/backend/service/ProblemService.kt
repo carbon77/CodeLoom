@@ -6,8 +6,10 @@ import com.codeloom.backend.dto.CreateProblemRequest
 import com.codeloom.backend.dto.ProblemDto
 import com.codeloom.backend.dto.ProblemFilters
 import com.codeloom.backend.dto.ProblemListDto
+import com.codeloom.backend.jooq.tables.references.PROBLEMS
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.patchValue
+import org.jooq.DSLContext
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -22,6 +24,7 @@ class ProblemService(
     private val problemRepository: ProblemRepository,
     private val problemQueryRepository: ProblemQueryRepository,
     private val objectMapper: ObjectMapper,
+    private val dsl: DSLContext,
 ) {
     @Transactional(readOnly = true)
     fun findItemsByFilters(filters: ProblemFilters): List<ProblemListDto> {
@@ -36,8 +39,13 @@ class ProblemService(
 
     @Transactional(readOnly = true)
     fun findById(id: Long): Problem {
-        return problemRepository.findById(id)
-            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with ID $id not found") }
+        return dsl.selectFrom(PROBLEMS)
+            .where(PROBLEMS.PROBLEM_ID.eq(id.toInt()))
+            .fetchOne()
+            ?.into(Problem::class.java)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with ID $id not found")
+//        return problemRepository.findById(id)
+//            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with ID $id not found") }
     }
 
     @Transactional

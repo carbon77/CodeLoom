@@ -23,8 +23,10 @@ jobs:
           filters: |
             backend:
               - 'backend/**'
+              - 'common/**'
             executor:
               - 'executor/**'
+              - 'common/**'
 
   tests:
     name: Tests (${{ matrix.project }})
@@ -44,5 +46,4 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Run tests
         if: ${{ (matrix.project == 'backend' && needs.changed.outputs.backend == 'true') || (matrix.project == 'executor' && needs.changed.outputs.executor == 'true') }}
-        working-directory: ${{ matrix.project }}
-        run: chmod +x gradlew && ./gradlew test
+        run: chmod +x gradlew && ./gradlew :${{ matrix.project }}:test

@@ -1,26 +1,26 @@
 package com.codeloom.backend.controller
 
+import com.codeloom.backend.dto.CreateTopicRequest
 import com.codeloom.backend.model.Topic
 import com.codeloom.backend.service.TopicService
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
 import tools.jackson.databind.JsonNode
-import java.io.IOException
 import java.util.*
 
 @RestController
 @RequestMapping("/v1/topics")
 class TopicController(private val topicService: TopicService) {
     @GetMapping
-    fun getAll(): Iterable<Topic> = topicService.getAll()
+    fun findAll(): Iterable<Topic> = topicService.findAll()
 
     @GetMapping("/{id}")
-    fun getOne(@PathVariable id: UUID): Topic = topicService.getOne(id)
+    fun findAll(@PathVariable id: UUID): Topic = topicService.findById(id)
 
     @PostMapping
-    fun create(@RequestBody topic: Topic): Topic = topicService.create(topic)
+    fun create(@Valid @RequestBody request: CreateTopicRequest): Topic = topicService.create(request)
 
     @PatchMapping("/{id}")
-    @Throws(IOException::class)
     fun patch(@PathVariable id: UUID, @RequestBody patchNode: JsonNode): Topic = topicService.patch(id, patchNode)
 
     @DeleteMapping("/{id}")

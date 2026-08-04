@@ -1,9 +1,13 @@
 package com.codeloom.executor.service
 
-import com.codeloom.executor.engine.*
-import com.codeloom.executor.event.SubmissionKafkaEvent
-import com.codeloom.executor.event.SubmissionStatusPayload
-import com.codeloom.executor.event.TestCaseResult
+import com.codeloom.common.SubmissionEvent
+import com.codeloom.common.SubmissionStatus
+import com.codeloom.common.SubmissionStatusPayload
+import com.codeloom.common.TestCaseResult
+import com.codeloom.executor.engine.DockerJudgeEngine
+import com.codeloom.executor.engine.MEMORY_LIMIT_EXCEEDED_EXIT_CODE
+import com.codeloom.executor.engine.SubmissionContext
+import com.codeloom.executor.engine.TIMEOUT_EXIT_CODE
 import com.codeloom.executor.languages.LanguageSpec
 import com.codeloom.executor.repository.TestCaseRepository
 import org.slf4j.LoggerFactory
@@ -17,7 +21,7 @@ class SubmissionProcessingService(
 ) {
     private val logger = LoggerFactory.getLogger(SubmissionProcessingService::class.java)
 
-    fun process(event: SubmissionKafkaEvent) {
+    fun process(event: SubmissionEvent) {
         val testCases = testCaseRepository.findByProblemId(event.problemId)
         val context = SubmissionContext(
             submissionId = event.submissionId,

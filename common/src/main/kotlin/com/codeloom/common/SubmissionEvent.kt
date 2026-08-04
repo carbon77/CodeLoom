@@ -1,4 +1,4 @@
-package com.codeloom.backend.event
+package com.codeloom.common
 
 import java.util.UUID
 

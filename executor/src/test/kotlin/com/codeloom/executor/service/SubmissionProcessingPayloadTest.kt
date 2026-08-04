@@ -1,22 +1,18 @@
 package com.codeloom.executor.service
 
+import com.codeloom.common.SubmissionEvent
+import com.codeloom.common.SubmissionStatus
+import com.codeloom.common.SubmissionStatusPayload
 import com.codeloom.executor.engine.CompilationResult
 import com.codeloom.executor.engine.DockerJudgeEngine
 import com.codeloom.executor.engine.RunResult
-import com.codeloom.executor.engine.SubmissionStatus
-import com.codeloom.executor.event.SubmissionKafkaEvent
-import com.codeloom.executor.event.SubmissionStatusPayload
 import com.codeloom.executor.model.TestCase
 import com.codeloom.executor.repository.TestCaseRepository
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
-import org.mockito.kotlin.any
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
-import java.util.UUID
+import org.mockito.kotlin.*
+import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -38,7 +34,7 @@ class SubmissionProcessingPayloadTest {
         TestCase(id = UUID.randomUUID(), problemId = problemId, input = "2", expectedOutput = "2", isPublic = false)
 
     private val event =
-        SubmissionKafkaEvent(
+        SubmissionEvent(
             submissionId = submissionId,
             userId = UUID.randomUUID(),
             problemId = problemId,
@@ -108,7 +104,8 @@ class SubmissionProcessingPayloadTest {
     }
 
     private fun capturedPayload(status: SubmissionStatus): SubmissionStatusPayload? {
-        val captor = ArgumentCaptor.forClass(SubmissionStatusPayload::class.java) as ArgumentCaptor<SubmissionStatusPayload>
+        val captor =
+            ArgumentCaptor.forClass(SubmissionStatusPayload::class.java) as ArgumentCaptor<SubmissionStatusPayload>
         verify(eventService).submissionStatusChanged(any(), eq(status), captor.capture())
         return captor.value
     }

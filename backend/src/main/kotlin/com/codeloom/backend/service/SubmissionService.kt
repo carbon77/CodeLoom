@@ -3,10 +3,10 @@ package com.codeloom.backend.service
 import com.codeloom.backend.dao.ProblemRepository
 import com.codeloom.backend.dao.SendSubmissionRequest
 import com.codeloom.backend.dao.SubmissionRepository
-import com.codeloom.backend.event.SubmissionEvent
 import com.codeloom.backend.model.Submission
-import com.codeloom.backend.model.SubmissionStatus
 import com.codeloom.backend.userId
+import com.codeloom.common.SubmissionEvent
+import com.codeloom.common.SubmissionStatus
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus

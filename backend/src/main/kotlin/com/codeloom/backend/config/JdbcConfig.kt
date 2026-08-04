@@ -5,7 +5,7 @@ import com.codeloom.backend.converter.AbstractJsonWritingConverter
 import com.codeloom.backend.model.ProblemConstraints
 import com.codeloom.backend.model.ProblemDifficulty
 import com.codeloom.backend.model.ProblemExamples
-import com.codeloom.backend.model.SubmissionStatus
+import com.codeloom.common.SubmissionStatus
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.converter.Converter
 import org.springframework.data.convert.ReadingConverter

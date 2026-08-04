@@ -6,10 +6,10 @@ import com.codeloom.backend.dto.CreateProblemRequest
 import com.codeloom.backend.dto.ProblemDto
 import com.codeloom.backend.dto.ProblemFilters
 import com.codeloom.backend.dto.ProblemListDto
-import com.codeloom.backend.jooq.tables.references.PROBLEMS
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.patchValue
 import org.jooq.DSLContext
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -39,13 +39,8 @@ class ProblemService(
 
     @Transactional(readOnly = true)
     fun findById(id: Long): Problem {
-        return dsl.selectFrom(PROBLEMS)
-            .where(PROBLEMS.PROBLEM_ID.eq(id.toInt()))
-            .fetchOne()
-            ?.into(Problem::class.java)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with ID $id not found")
-//        return problemRepository.findById(id)
-//            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with ID $id not found") }
+        return problemRepository.findById(id)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with ID $id not found") }
     }
 
     @Transactional
@@ -59,7 +54,12 @@ class ProblemService(
             title = request.title,
             slug = request.title.lowercase().replace(" ", "_"),
         )
-        return problemRepository.save(problem)
+
+        return try {
+            problemRepository.save(problem)
+        } catch (e: DuplicateKeyException) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Problem already exists")
+        }
     }
 
     @Transactional

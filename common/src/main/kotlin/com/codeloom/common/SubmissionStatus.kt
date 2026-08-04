@@ -1,4 +1,4 @@
-package com.codeloom.executor.engine
+package com.codeloom.common
 
 enum class SubmissionStatus {
     PENDING,

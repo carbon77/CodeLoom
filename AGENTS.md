@@ -6,7 +6,7 @@ Gradle multi-module build (`settings.gradle` includes `common`, `backend`, `exec
 - `common/` — shared Kafka event + enum classes (`SubmissionEvent`, `SubmissionStatus`, `SubmissionStatusChangedEvent`, `SubmissionStatusPayload`, `TestCaseResult`). Package `com.codeloom.common`. No Spring starter dependency; both services depend on `project(':common')`.
 - `backend/` — Kotlin + Spring Boot 4 REST API (Spring Data JDBC, OAuth2 resource server, Kafka producer+consumer, Flyway). Entry: `com.codeloom.backend.BackendApplication`. REST under `/v1`, Swagger at `/docs/swagger.html`.
 - `executor/` — Kotlin + Spring Boot judge service: Kafka consumer + docker-java. **No REST controllers.** Entry: `com.codeloom.executor.ExecutorApplication`. Default port 8082.
-- `frontend/` — Vue 3 + Vite + TS (Pinia, PrimeVue, Tailwind 4, axios). Package manager is **pnpm**.
+- `frontend/` — React 19 + Vite + TS SPA (MUI, react-router, oidc-client-ts). Package manager is **pnpm**. Auth via Keycloak (realm `codeloom`, client `codeloom-frontend`); OIDC config read from `VITE_*` env vars in `src/auth/keycloak.ts`.
 
 ## Infrastructure
 - `docker compose up -d` (repo root) starts Keycloak, Postgres, Kafka, Zookeeper, Adminer. `init.sql` creates DBs `codeloom_backend` and `keycloak`.
@@ -15,7 +15,7 @@ Gradle multi-module build (`settings.gradle` includes `common`, `backend`, `exec
 
 ## Commands
 - backend & executor: `./gradlew :backend:bootRun`, `./gradlew :executor:bootRun`, `./gradlew :backend:test`, `./gradlew :executor:test` (Java 21; Windows: `gradlew.bat`).
-- frontend (run inside `frontend/`): `pnpm install`, `pnpm dev`, `pnpm type-check`, `pnpm build` (runs type-check first), `pnpm lint` (eslint with `--fix`), `pnpm format`.
+- frontend (run inside `frontend/`): `pnpm install`, `pnpm dev`, `pnpm type-check`, `pnpm build` (runs type-check first), `pnpm lint` (oxlint).
 
 ## CI
 - `.github/workflows/tests.yml` runs on PRs (paths-filtered via `common/**`): `./gradlew :backend:test` and `./gradlew :executor:test` on `ubuntu-latest`, Java 21, `gradle/actions/setup-gradle`. No frontend job.
@@ -23,8 +23,8 @@ Gradle multi-module build (`settings.gradle` includes `common`, `backend`, `exec
 ## Config / env
 - backend needs `CODELOOM_DB_URL`, `CODELOOM_DB_USER`, `CODELOOM_DB_PASSWORD`; optional `CODELOOM_PORT` (default 8080).
 - executor needs `CODELOOM_EXECUTOR_DB_URL/USER/PASSWORD`, optional `CODELOOM_EXECUTOR_PORT` (default 8082), `CODELOOM_EXECUTOR_DOCKER_HOST` (default `unix:///var/run/docker.sock`).
-- Each of `backend/` and `executor/` has a **gitignored** `.env` (`common/` and `frontend/` do not). Spring does not read `.env` automatically — values must be exported or passed at run time.
-- Gotcha: backend's default port (8080) collides with Keycloak on the host; run backend on another port locally. `frontend/src/api.ts` hardcodes `http://localhost:8080/v1` at line 4 and must be edited if the backend moves.
+- Each of `backend/`, `executor/`, and `frontend/` has a **gitignored** `.env` (`common/` does not). Spring does not read `.env` automatically — values must be exported or passed at run time. Vite reads `frontend/.env` automatically; `frontend/.env.example` documents the variables.
+- Gotcha: backend's default port (8080) collides with Keycloak on the host; run backend on another port locally.
 
 ## Tests
 - backend: integration tests in `src/test/kotlin/com/codeloom/backend/it/`. **All** use Testcontainers Postgres (`postgres:18.1-alpine3.23`) via `@ServiceConnection`; `SubmissionStatusConsumerIT` additionally spins up a Confluent Kafka container and publishes to the Kafka topic. `ProblemIT`/`TestCaseIT`/`TopicIT` mock Kafka out. Require a running Docker daemon.

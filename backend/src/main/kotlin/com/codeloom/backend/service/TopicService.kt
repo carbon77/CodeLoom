@@ -1,9 +1,9 @@
 package com.codeloom.backend.service
 
-import com.codeloom.backend.dao.ProblemTopicRepository
-import com.codeloom.backend.dao.TopicRepository
+import com.codeloom.backend.dao.topic.TopicRepository
+import com.codeloom.backend.dao.topic.TopicRepositoryCustomImpl
 import com.codeloom.backend.dto.CreateTopicRequest
-import com.codeloom.backend.model.ProblemTopic
+import com.codeloom.backend.model.ProblemTopicRelationship
 import com.codeloom.backend.model.Topic
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -15,7 +15,7 @@ import java.util.*
 
 @Service
 class TopicService(
-    private val problemTopicRepository: ProblemTopicRepository,
+    private val topicRepositoryCustomImpl: TopicRepositoryCustomImpl,
     private val topicRepository: TopicRepository,
     private val objectMapper: ObjectMapper,
 ) {
@@ -32,12 +32,16 @@ class TopicService(
 
     @Transactional
     fun createManyWithProblem(problemId: Long, node: JsonNode) {
-        problemTopicRepository.deleteByProblemId(problemId)
-        val problemTopics = node.asIterable()
+        topicRepositoryCustomImpl.deleteRelationshipsWithProblem(problemId)
+        val problemTopicRelationships = node.asIterable()
             .mapNotNull {
                 when {
                     it.has("topic_id") -> {
-                        UUID.fromString(it["topic_id"].asString())
+                        try {
+                            UUID.fromString(it["topic_id"].asString())
+                        } catch (_: IllegalArgumentException) {
+                            null
+                        }
                     }
 
                     it.has("name") -> {
@@ -48,8 +52,8 @@ class TopicService(
                     else -> null
                 }
             }
-            .map { ProblemTopic(it, problemId) }
-        problemTopicRepository.saveAll(problemTopics)
+            .map { ProblemTopicRelationship(it, problemId) }
+        topicRepositoryCustomImpl.saveAllProblemRelationships(problemTopicRelationships)
     }
 
     @Transactional

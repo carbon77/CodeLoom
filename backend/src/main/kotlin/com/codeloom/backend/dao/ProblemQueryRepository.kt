@@ -1,6 +1,7 @@
 package com.codeloom.backend.dao
 
 import com.codeloom.backend.dao.testcase.TestCaseRepository
+import com.codeloom.backend.dao.topic.TopicRepository
 import com.codeloom.backend.dto.ProblemDto
 import com.codeloom.backend.dto.ProblemFilters
 import com.codeloom.backend.dto.ProblemListDto

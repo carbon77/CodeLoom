@@ -8,7 +8,6 @@ import com.codeloom.backend.dto.ProblemFilters
 import com.codeloom.backend.dto.ProblemListDto
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.patchValue
-import org.jooq.DSLContext
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -24,7 +23,6 @@ class ProblemService(
     private val problemRepository: ProblemRepository,
     private val problemQueryRepository: ProblemQueryRepository,
     private val objectMapper: ObjectMapper,
-    private val dsl: DSLContext,
 ) {
     @Transactional(readOnly = true)
     fun findItemsByFilters(filters: ProblemFilters): List<ProblemListDto> {

@@ -1,6 +1,6 @@
 package com.codeloom.backend.it
 
-import com.codeloom.backend.dao.TopicRepository
+import com.codeloom.backend.dao.topic.TopicRepository
 import com.codeloom.backend.model.Topic
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Nested

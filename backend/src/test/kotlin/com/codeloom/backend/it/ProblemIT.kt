@@ -1,6 +1,6 @@
 package com.codeloom.backend.it
 
-import com.codeloom.backend.dao.ProblemRepository
+import com.codeloom.backend.dao.problem.ProblemRepository
 import com.codeloom.backend.dao.topic.TopicRepositoryCustomImpl
 import com.codeloom.backend.dao.topic.TopicRepository
 import com.codeloom.backend.model.*

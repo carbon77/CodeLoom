@@ -10,10 +10,7 @@ import com.codeloom.backend.service.ProblemService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.dao.DuplicateKeyException
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.JsonNode
 
 @RestController
@@ -59,11 +56,7 @@ class ProblemController(
     @Operation(summary = "Create new problem")
     @PostMapping
     fun create(@Valid @RequestBody request: CreateProblemRequest): Problem {
-        try {
-            return problemService.create(request)
-        } catch (e: DuplicateKeyException) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Problem already exists")
-        }
+        return problemService.create(request)
     }
 
     @Operation(summary = "Update problem")

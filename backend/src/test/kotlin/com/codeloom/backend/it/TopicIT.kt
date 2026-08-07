@@ -1,6 +1,6 @@
 package com.codeloom.backend.it
 
-import com.codeloom.backend.dao.TopicRepository
+import com.codeloom.backend.dao.topic.TopicRepository
 import com.codeloom.backend.model.Topic
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Nested
@@ -136,6 +136,25 @@ class TopicIT {
                 }
 
             assertEquals(1, topicRepository.count())
+        }
+
+        @Test
+        fun `test without name should create throw bad request`() {
+            mockMvc.post("/v1/topics") {
+                contentType = MediaType.APPLICATION_JSON
+                content = """
+                    {
+                      "name": ""
+                    }
+                """.trimIndent()
+            }
+                .andExpect {
+                    status { isBadRequest() }
+                    content { contentTypeCompatibleWith(MediaType.APPLICATION_JSON) }
+                    jsonPath("$.status", Matchers.equalTo(400))
+                }
+
+            assertEquals(0, topicRepository.count())
         }
 
     }

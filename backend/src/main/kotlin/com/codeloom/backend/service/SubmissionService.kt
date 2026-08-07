@@ -1,7 +1,7 @@
 package com.codeloom.backend.service
 
-import com.codeloom.backend.dao.ProblemRepository
-import com.codeloom.backend.dao.SendSubmissionRequest
+import com.codeloom.backend.dao.problem.ProblemRepository
+import com.codeloom.backend.dto.SendSubmissionRequest
 import com.codeloom.backend.dao.SubmissionRepository
 import com.codeloom.backend.model.Submission
 import com.codeloom.backend.userId

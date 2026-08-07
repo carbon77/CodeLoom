@@ -3,7 +3,7 @@ import { apiFetch } from "./client";
 export type Difficulty = "EASY" | "MEDIUM" | "HARD";
 
 export interface ProblemListDto {
-  id: number;
+  problemId: number;
   title: string;
   slug: string;
   difficulty: Difficulty;
@@ -69,7 +69,9 @@ export function fetchProblems(
     }
   }
   const query = searchParams.toString();
-  return apiFetch<ProblemListDto[]>(`/v1/problems/items${query ? `?${query}` : ""}`).catch((error) => {
+  return apiFetch<ProblemListDto[]>(
+    `/v1/problems/items${query ? `?${query}` : ""}`,
+  ).catch((error) => {
     console.error("Error fetching problems:", error);
     throw error;
   });
@@ -89,7 +91,9 @@ export function fetchProblem(problemId: number): Promise<ProblemDetail> {
   });
 }
 
-export function fetchProblemBySlug(problemSlug: string): Promise<ProblemDetail> {
+export function fetchProblemBySlug(
+  problemSlug: string,
+): Promise<ProblemDetail> {
   return apiFetch<ProblemDetail>(`/v1/problems/slug/${problemSlug}`).catch(
     (error) => {
       console.error("Error fetching problem by slug:", error);
@@ -122,12 +126,12 @@ export function updateProblem(
 }
 
 export function deleteProblem(problemId: number): Promise<void> {
-  return apiFetch<void>(`/v1/problems/${problemId}`, { method: "DELETE" }).catch(
-    (error) => {
-      console.error("Error deleting problem:", error);
-      throw error;
-    },
-  );
+  return apiFetch<void>(`/v1/problems/${problemId}`, {
+    method: "DELETE",
+  }).catch((error) => {
+    console.error("Error deleting problem:", error);
+    throw error;
+  });
 }
 
 export function publishProblem(problemId: number): Promise<ProblemDetail> {
@@ -167,7 +171,10 @@ export function createTestCase(testCase: TestCase): Promise<TestCase> {
   });
 }
 
-export function patchTestCase(id: string, testCase: TestCase): Promise<TestCase> {
+export function patchTestCase(
+  id: string,
+  testCase: TestCase,
+): Promise<TestCase> {
   return apiFetch<TestCase>(`/v1/testCases/${id}`, {
     method: "PATCH",
     body: testCase,

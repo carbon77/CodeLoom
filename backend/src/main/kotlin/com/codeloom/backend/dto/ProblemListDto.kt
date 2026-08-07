@@ -4,7 +4,7 @@ import com.codeloom.backend.model.ProblemDifficulty
 import java.time.Instant
 
 data class ProblemListDto(
-    val id: Long,
+    val problemId: Long,
     val title: String,
     val slug: String,
     val difficulty: ProblemDifficulty,

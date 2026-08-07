@@ -29,6 +29,10 @@ export default function RequireAuth() {
     }
   }, [user, location.pathname, attempt])
 
+  if (user) {
+    return <Outlet />
+  }
+
   return (
     <Box
       sx={{
@@ -52,7 +56,6 @@ export default function RequireAuth() {
           </Button>
         </>
       )}
-      {user && <Outlet />}
     </Box>
   )
 }

@@ -1,7 +1,7 @@
 package com.codeloom.backend.service
 
 import com.codeloom.backend.dao.SubmissionRepository
-import com.codeloom.backend.dao.TestCaseResultRepository
+import com.codeloom.backend.dao.testcase.TestCaseResultRepository
 import com.codeloom.backend.model.TestCaseResult
 import com.codeloom.common.SubmissionStatusChangedEvent
 import org.slf4j.LoggerFactory

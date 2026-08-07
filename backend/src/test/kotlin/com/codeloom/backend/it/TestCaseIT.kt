@@ -1,7 +1,7 @@
 package com.codeloom.backend.it
 
-import com.codeloom.backend.dao.ProblemRepository
-import com.codeloom.backend.dao.TestCaseRepository
+import com.codeloom.backend.dao.problem.ProblemRepository
+import com.codeloom.backend.dao.testcase.TestCaseRepository
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.model.TestCase
 import org.hamcrest.Matchers
@@ -145,7 +145,7 @@ class TestCaseIT {
     inner class FindByProblemId {
 
         @Test
-        fun `should return only public test cases by default`() {
+        fun `should return all test cases by default`() {
             val problem = initProblem()
             initTestCase(problem.id!!, isPublic = true)
             initTestCase(problem.id!!, isPublic = false)
@@ -153,22 +153,22 @@ class TestCaseIT {
             mockMvc.get("/v1/testCases/by-problem-id/${problem.id}")
                 .andExpect {
                     status { isOk() }
-                    jsonPath("$.length()", Matchers.equalTo(1))
+                    jsonPath("$.length()", Matchers.equalTo(2))
                 }
         }
 
         @Test
-        fun `should return all test cases when publicOnly=false`() {
+        fun `should return only public test cases when isPublic=true`() {
             val problem = initProblem()
             initTestCase(problem.id!!, isPublic = true)
             initTestCase(problem.id!!, isPublic = false)
 
             mockMvc.get("/v1/testCases/by-problem-id/${problem.id}") {
-                param("publicOnly", "false")
+                param("isPublic", "true")
             }
                 .andExpect {
                     status { isOk() }
-                    jsonPath("$.length()", Matchers.equalTo(2))
+                    jsonPath("$.length()", Matchers.equalTo(1))
                 }
         }
     }

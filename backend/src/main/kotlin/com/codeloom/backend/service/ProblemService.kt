@@ -1,13 +1,13 @@
 package com.codeloom.backend.service
 
-import com.codeloom.backend.dao.ProblemQueryRepository
-import com.codeloom.backend.dao.ProblemRepository
+import com.codeloom.backend.dao.problem.ProblemRepository
 import com.codeloom.backend.dto.CreateProblemRequest
 import com.codeloom.backend.dto.ProblemDto
 import com.codeloom.backend.dto.ProblemFilters
 import com.codeloom.backend.dto.ProblemListDto
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.patchValue
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -20,17 +20,16 @@ import java.time.Instant
 class ProblemService(
     private val topicService: TopicService,
     private val problemRepository: ProblemRepository,
-    private val problemQueryRepository: ProblemQueryRepository,
     private val objectMapper: ObjectMapper,
 ) {
     @Transactional(readOnly = true)
     fun findItemsByFilters(filters: ProblemFilters): List<ProblemListDto> {
-        return problemQueryRepository.findProblemListDtos(filters)
+        return problemRepository.findProblemListDtos(filters)
     }
 
     @Transactional(readOnly = true)
     fun findDtoBySlug(slug: String): ProblemDto {
-        return problemQueryRepository.findProblemDtoBySlug(slug)
+        return problemRepository.findProblemDtoBySlug(slug)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with slug $slug not found")
     }
 
@@ -51,7 +50,12 @@ class ProblemService(
             title = request.title,
             slug = request.title.lowercase().replace(" ", "_"),
         )
-        return problemRepository.save(problem)
+
+        return try {
+            problemRepository.save(problem)
+        } catch (e: DuplicateKeyException) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Problem already exists")
+        }
     }
 
     @Transactional

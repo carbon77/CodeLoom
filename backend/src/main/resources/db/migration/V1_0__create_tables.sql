@@ -5,7 +5,7 @@ CREATE TYPE problem_difficulty AS ENUM ('EASY', 'MEDIUM', 'HARD');
 CREATE TABLE IF NOT EXISTS "problems"
 (
     "problem_id"  SERIAL PRIMARY KEY,
-    "slug"        TEXT               NOT NULL,
+    "slug"        VARCHAR(255)               NOT NULL,
     "title"       TEXT               NOT NULL,
     "description" TEXT               NOT NULL,
     "hints"       TEXT ARRAY         NOT NULL,

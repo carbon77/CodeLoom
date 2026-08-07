@@ -6,7 +6,7 @@ import org.springframework.data.relational.core.mapping.Table
 import java.util.*
 
 @Table("test_cases")
-class TestCase(
+data class TestCase(
     @Id
     @Column("test_case_id")
     val id: UUID? = null,

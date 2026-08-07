@@ -1,8 +1,8 @@
 package com.codeloom.backend.it
 
-import com.codeloom.backend.dao.ProblemRepository
-import com.codeloom.backend.dao.ProblemTopicRepository
-import com.codeloom.backend.dao.TopicRepository
+import com.codeloom.backend.dao.problem.ProblemRepository
+import com.codeloom.backend.dao.topic.TopicRepositoryCustomImpl
+import com.codeloom.backend.dao.topic.TopicRepository
 import com.codeloom.backend.model.*
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Nested
@@ -49,7 +49,7 @@ class ProblemIT {
     }
 
     @Autowired
-    private lateinit var problemTopicRepository: ProblemTopicRepository
+    private lateinit var topicRepositoryCustomImpl: TopicRepositoryCustomImpl
 
     @Autowired
     private lateinit var problemRepository: ProblemRepository
@@ -428,7 +428,7 @@ class ProblemIT {
         )
         topics.addAll(listOf(t1, t2, t3))
         problems.addAll(listOf(p1, p2, p3))
-        problemTopicRepository.saveAll(
+        topicRepositoryCustomImpl.saveAllProblemRelationships(
             listOf(
                 t3 to p1,
                 t1 to p2,

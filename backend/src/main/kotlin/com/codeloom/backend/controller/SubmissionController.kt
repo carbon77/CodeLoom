@@ -1,8 +1,9 @@
 package com.codeloom.backend.controller
 
-import com.codeloom.backend.dao.SendSubmissionRequest
+import com.codeloom.backend.dto.SendSubmissionRequest
 import com.codeloom.backend.model.Submission
 import com.codeloom.backend.service.SubmissionService
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 
@@ -22,7 +23,7 @@ class SubmissionController(
 
     @PostMapping
     fun sendSubmission(
-        @RequestBody request: SendSubmissionRequest,
+        @Valid @RequestBody request: SendSubmissionRequest,
         principal: Principal,
     ) {
         submissionService.sendSubmission(request, principal)

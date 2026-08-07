@@ -1,6 +1,7 @@
-package com.codeloom.backend.service;
+package com.codeloom.backend.service
 
-import com.codeloom.backend.dao.TestCaseRepository
+import com.codeloom.backend.dao.testcase.TestCaseRepository
+import com.codeloom.backend.dto.CreateTestCaseRequest
 import com.codeloom.backend.model.TestCase
 import com.codeloom.backend.patchValue
 import org.springframework.http.HttpStatus
@@ -16,24 +17,25 @@ class TestCaseService(
     private val testCaseRepository: TestCaseRepository,
     private val objectMapper: ObjectMapper,
 ) {
-    fun getOne(id: UUID): TestCase {
-        val testCaseOptional: Optional<TestCase> = testCaseRepository.findById(id)
-        return testCaseOptional.orElseThrow {
-            ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with id `$id` not found")
-        }
-    }
+    fun findById(id: UUID): TestCase = findOrThrow(id)
 
-    fun getMany(ids: List<UUID>): Iterable<TestCase> = testCaseRepository.findAllById(ids)
-    fun create(testCase: TestCase): TestCase = testCaseRepository.save(testCase)
+    fun findAllByIds(ids: List<UUID>): Iterable<TestCase> = testCaseRepository.findAllById(ids)
+
+    @Transactional
+    fun create(request: CreateTestCaseRequest): TestCase {
+        val testCase = TestCase(
+            problemId = request.problemId,
+            input = request.input,
+            expectedOutput = request.expectedOutput,
+            isPublic = request.isPublic,
+        )
+        return testCaseRepository.save(testCase)
+    }
 
     @Transactional
     fun patch(id: UUID, patchNode: JsonNode): TestCase {
-        val testCase: TestCase = testCaseRepository.findById(id).orElseThrow {
-            ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with id `$id` not found")
-        }
-        val updated = TestCase(
-            id = testCase.id,
-            problemId = testCase.problemId,
+        val testCase = findById(id)
+        val updated = testCase.copy(
             input = patchNode.patchValue("input", objectMapper, testCase.input),
             expectedOutput = patchNode.patchValue("expectedOutput", objectMapper, testCase.expectedOutput),
             isPublic = patchNode.patchValue("isPublic", objectMapper, testCase.isPublic),
@@ -41,17 +43,19 @@ class TestCaseService(
         return testCaseRepository.save(updated)
     }
 
+    @Transactional
     fun delete(id: UUID) {
-        val testCase: TestCase? = testCaseRepository.findById(id).orElse(null)
-        if (testCase != null) {
-            testCaseRepository.delete(testCase)
-        }
+        testCaseRepository.deleteById(id)
     }
 
-    fun getByProblemId(problemId: Long, publicOnly: Boolean): Iterable<TestCase> {
-        if (publicOnly) {
-            return testCaseRepository.findByProblemIdAndIsPublic(problemId, true)
-        }
-        return testCaseRepository.findByProblemId(problemId)
+    fun findAllByProblemId(problemId: Long, isPublic: Boolean?): Iterable<TestCase> {
+        return testCaseRepository.findAllByProblemId(problemId, isPublic)
+    }
+
+    private fun findOrThrow(id: UUID): TestCase {
+        return testCaseRepository.findById(id)
+            .orElseThrow {
+                ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with id `$id` not found")
+            }
     }
 }

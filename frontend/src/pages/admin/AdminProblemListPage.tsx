@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Alert,
   Box,
@@ -19,12 +19,12 @@ import {
   TableHead,
   TableRow,
   Typography,
-} from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import DeleteIcon from '@mui/icons-material/Delete'
-import EditIcon from '@mui/icons-material/Edit'
-import PublishIcon from '@mui/icons-material/Publish'
-import UnpublishedIcon from '@mui/icons-material/Unpublished'
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import PublishIcon from "@mui/icons-material/Publish";
+import UnpublishedIcon from "@mui/icons-material/Unpublished";
 import {
   deleteProblem,
   fetchProblems,
@@ -32,80 +32,80 @@ import {
   unpublishProblem,
   type Difficulty,
   type ProblemListDto,
-} from '../../api/problems'
+} from "../../api/problems";
 
-const difficultyColors: Record<Difficulty, 'success' | 'warning' | 'error'> = {
-  EASY: 'success',
-  MEDIUM: 'warning',
-  HARD: 'error',
-}
+const difficultyColors: Record<Difficulty, "success" | "warning" | "error"> = {
+  EASY: "success",
+  MEDIUM: "warning",
+  HARD: "error",
+};
 
 export default function AdminProblemListPage() {
-  const [problems, setProblems] = useState<ProblemListDto[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [busyId, setBusyId] = useState<number | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<ProblemListDto | null>(null)
-  const [deleting, setDeleting] = useState(false)
+  const [problems, setProblems] = useState<ProblemListDto[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ProblemListDto | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    let active = true
-    setError(null)
-    void loadProblems(active)
+    let active = true;
+    setError(null);
+    void loadProblems(active);
     return () => {
-      active = false
-    }
-  }, [])
+      active = false;
+    };
+  }, []);
 
   async function loadProblems(active: boolean): Promise<void> {
     try {
-      const items = await fetchProblems({ publishedOnly: 'false' })
+      const items = await fetchProblems({ publishedOnly: "false" });
       if (active) {
-        setProblems(items)
+        setProblems(items);
       }
     } catch {
       if (active) {
-        setError('Unable to load problems. Please try again.')
+        setError("Unable to load problems. Please try again.");
       }
     }
   }
 
   async function handleTogglePublished(problem: ProblemListDto): Promise<void> {
-    setBusyId(problem.id)
-    setError(null)
+    setBusyId(problem.problemId);
+    setError(null);
     try {
       if (problem.publishedAt) {
-        await unpublishProblem(problem.id)
+        await unpublishProblem(problem.problemId);
       } else {
-        await publishProblem(problem.id)
+        await publishProblem(problem.problemId);
       }
-      await loadProblems(true)
+      await loadProblems(true);
     } catch {
-      setError('Unable to update publication status. Please try again.')
+      setError("Unable to update publication status. Please try again.");
     } finally {
-      setBusyId(null)
+      setBusyId(null);
     }
   }
 
   async function handleDelete(): Promise<void> {
     if (!deleteTarget) {
-      return
+      return;
     }
-    setDeleting(true)
-    setError(null)
+    setDeleting(true);
+    setError(null);
     try {
-      await deleteProblem(deleteTarget.id)
-      setDeleteTarget(null)
-      await loadProblems(true)
+      await deleteProblem(deleteTarget.problemId);
+      setDeleteTarget(null);
+      await loadProblems(true);
     } catch {
-      setError('Unable to delete problem. Please try again.')
+      setError("Unable to delete problem. Please try again.");
     } finally {
-      setDeleting(false)
+      setDeleting(false);
     }
   }
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
         <Typography variant="h4" component="h1" sx={{ flexGrow: 1 }}>
           Manage Problems
         </Typography>
@@ -120,7 +120,7 @@ export default function AdminProblemListPage() {
       </Box>
 
       {problems === null && !error && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
         </Box>
       )}
@@ -145,7 +145,7 @@ export default function AdminProblemListPage() {
             </TableHead>
             <TableBody>
               {problems.map((problem) => (
-                <TableRow key={problem.id} hover>
+                <TableRow key={problem.problemId} hover>
                   <TableCell>{problem.title}</TableCell>
                   <TableCell>{problem.slug}</TableCell>
                   <TableCell>
@@ -157,17 +157,23 @@ export default function AdminProblemListPage() {
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={problem.publishedAt ? 'Published' : 'Draft'}
-                      color={problem.publishedAt ? 'success' : 'default'}
+                      label={problem.publishedAt ? "Published" : "Draft"}
+                      color={problem.publishedAt ? "success" : "default"}
                       size="small"
                       variant="outlined"
                     />
                   </TableCell>
                   <TableCell align="right">
-                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: 1,
+                        justifyContent: "flex-end",
+                      }}
+                    >
                       <Button
                         component={Link}
-                        to={`/admin/problems/${problem.id}/edit`}
+                        to={`/admin/problems/${problem.problemId}/edit`}
                         size="small"
                         startIcon={<EditIcon />}
                       >
@@ -175,12 +181,18 @@ export default function AdminProblemListPage() {
                       </Button>
                       <Button
                         size="small"
-                        color={problem.publishedAt ? 'warning' : 'success'}
-                        startIcon={problem.publishedAt ? <UnpublishedIcon /> : <PublishIcon />}
-                        disabled={busyId === problem.id}
+                        color={problem.publishedAt ? "warning" : "success"}
+                        startIcon={
+                          problem.publishedAt ? (
+                            <UnpublishedIcon />
+                          ) : (
+                            <PublishIcon />
+                          )
+                        }
+                        disabled={busyId === problem.problemId}
                         onClick={() => void handleTogglePublished(problem)}
                       >
-                        {problem.publishedAt ? 'Unpublish' : 'Publish'}
+                        {problem.publishedAt ? "Unpublish" : "Publish"}
                       </Button>
                       <Button
                         size="small"
@@ -199,12 +211,15 @@ export default function AdminProblemListPage() {
         </TableContainer>
       )}
 
-      <Dialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}>
+      <Dialog
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+      >
         <DialogTitle>Delete problem</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete "{deleteTarget?.title}"? This cannot be
-            undone.
+            Are you sure you want to delete "{deleteTarget?.title}"? This cannot
+            be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -217,10 +232,10 @@ export default function AdminProblemListPage() {
             disabled={deleting}
             onClick={() => void handleDelete()}
           >
-            {deleting ? 'Deleting…' : 'Delete'}
+            {deleting ? "Deleting…" : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>
     </Box>
-  )
+  );
 }

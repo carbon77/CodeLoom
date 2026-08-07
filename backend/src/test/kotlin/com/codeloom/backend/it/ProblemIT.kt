@@ -82,6 +82,7 @@ class ProblemIT {
                 status { isOk() }
                 content { contentType(MediaType.APPLICATION_JSON) }
                 jsonPath("$.length()", Matchers.equalTo(3))
+                jsonPath("$[0].problemId", Matchers.equalTo(1))
                 jsonPath("$[0].title", Matchers.equalTo("Two Sum"))
                 jsonPath("$[0].slug", Matchers.equalTo("two_sum"))
                 jsonPath("$[0].difficulty", Matchers.equalTo("EASY"))

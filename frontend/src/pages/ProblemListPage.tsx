@@ -216,7 +216,7 @@ export default function ProblemListPage() {
             <TableBody>
               {filtered.map((problem) => (
                 <TableRow
-                  key={problem.id}
+                  key={problem.problemId}
                   hover
                   onClick={() => navigate(`/problems/${problem.slug}`)}
                   sx={{ cursor: "pointer" }}

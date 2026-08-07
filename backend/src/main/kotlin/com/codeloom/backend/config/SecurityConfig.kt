@@ -31,6 +31,8 @@ class SecurityConfig {
                 authorize(HttpMethod.OPTIONS, "/**", permitAll)
                 authorize("/error", permitAll)
                 authorize("/docs/**", permitAll)
+                authorize("/v1/submissions/**", hasAnyRole("USER", "ADMIN"))
+                authorize(HttpMethod.GET, "/v1/topics/**", hasAnyRole("USER", "ADMIN"))
                 authorize(HttpMethod.GET, "/v1/problems/**", hasAnyRole("USER", "ADMIN"))
                 authorize(HttpMethod.POST, "/v1/problems/**", hasRole("ADMIN"))
                 authorize(HttpMethod.PUT, "/v1/problems/**", hasRole("ADMIN"))

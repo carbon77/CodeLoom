@@ -3,26 +3,17 @@ import { useNavigate } from "react-router-dom";
 import {
   Alert,
   Box,
-  Button,
   Chip,
   CircularProgress,
-  FormControl,
-  InputAdornment,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
-  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import {
   fetchProblems,
   fetchTopics,
@@ -30,14 +21,13 @@ import {
   type ProblemListDto,
   type Topic,
 } from "../api/problems";
+import ProblemFilters from "../components/problem/ProblemFilters";
 
 const difficultyColors: Record<Difficulty, "success" | "warning" | "error"> = {
   EASY: "success",
   MEDIUM: "warning",
   HARD: "error",
 };
-
-const difficulties: Difficulty[] = ["EASY", "MEDIUM", "HARD"];
 
 function formatDate(value: string | null): string {
   if (!value) {
@@ -121,71 +111,17 @@ export default function ProblemListPage() {
         Problems
       </Typography>
 
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Stack
-          direction={{ xs: "column", md: "row" }}
-          spacing={2}
-          sx={{ alignItems: "center" }}
-        >
-          <TextField
-            size="small"
-            placeholder="Search by title"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            sx={{ flex: 1, minWidth: 200 }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>Difficulty</InputLabel>
-            <Select<Difficulty[]>
-              multiple
-              label="Difficulty"
-              value={selectedDifficulties}
-              onChange={(event) =>
-                setSelectedDifficulties(event.target.value as Difficulty[])
-              }
-            >
-              {difficulties.map((difficulty) => (
-                <MenuItem key={difficulty} value={difficulty}>
-                  {difficulty}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>Topic</InputLabel>
-            <Select<string[]>
-              multiple
-              label="Topic"
-              value={selectedTopics}
-              onChange={(event) =>
-                setSelectedTopics(event.target.value as string[])
-              }
-            >
-              {topics.map((topic) => (
-                <MenuItem key={topic.id} value={topic.name}>
-                  {topic.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button
-            variant="outlined"
-            disabled={!hasFilters}
-            onClick={handleClearFilters}
-          >
-            Clear
-          </Button>
-        </Stack>
-      </Paper>
+      <ProblemFilters
+        search={search}
+        onSearchChange={setSearch}
+        selectedDifficulties={selectedDifficulties}
+        onSelectedDifficultiesChange={setSelectedDifficulties}
+        topics={topics}
+        selectedTopics={selectedTopics}
+        onSelectedTopicsChange={setSelectedTopics}
+        hasFilters={hasFilters}
+        onClearFilters={handleClearFilters}
+      />
 
       {problems === null && !error && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>

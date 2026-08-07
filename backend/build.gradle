@@ -37,7 +37,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.postgresql:postgresql'
 
-    jooqGenerator 'org.jooq:jooq-meta-extensions:3.21.7'
+    jooqGenerator 'org.jooq:jooq-meta-extensions:3.20.11'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
@@ -79,17 +79,11 @@ jooq {
             generateSchemaSourceOnCompilation = true
             generationTool {
                 logging = Logging.WARN
-//                jdbc {
-//                    driver = "org.postgresql.Driver"
-//                    url = System.getenv("CODELOOM_DB_URL") ?: "jdbc:postgresql://localhost:5433/codeloom_backend"
-//                    user = System.getenv("CODELOOM_DB_USER") ?: "zakat"
-//                    password = System.getenv("CODELOOM_DB_PASSWORD") ?: "zakat_pwd"
-//                }
                 generator {
                     name = 'org.jooq.codegen.KotlinGenerator'
                     database {
                         name = 'org.jooq.meta.extensions.ddl.DDLDatabase'
-                        inputSchema = 'public'
+                        inputSchema = 'PUBLIC'
 
                         properties {
                             property {

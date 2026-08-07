@@ -8,6 +8,7 @@ import com.codeloom.backend.dto.ProblemFilters
 import com.codeloom.backend.dto.ProblemListDto
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.patchValue
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -56,25 +57,29 @@ class ProblemService(
 
     @Transactional
     fun update(problemId: Long, patchNode: JsonNode): Problem {
-        val problem = problemRepository.findById(problemId)
-            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with ID $problemId not found") }
-        val updated = problem.copy(
-            title = patchNode.patchValue("title", objectMapper, problem.title),
-            slug = patchNode.patchValue("slug", objectMapper, problem.slug),
-            description = patchNode.patchValue("description", objectMapper, problem.description),
-            difficulty = patchNode.patchValue("difficulty", objectMapper, problem.difficulty),
-            hints = patchNode.get("hints")?.takeIf { it.isArray }?.asArray()?.values()?.map { it.asString() }
-                ?.toTypedArray()
-                ?: problem.hints,
-            examples = patchNode.patchValue("examples", objectMapper, problem.examples),
-            constraints = patchNode.patchValue("constraints", objectMapper, problem.constraints),
-        )
+        try {
+            val problem = problemRepository.findById(problemId)
+                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with ID $problemId not found") }
+            val updated = problem.copy(
+                title = patchNode.patchValue("title", objectMapper, problem.title),
+                slug = patchNode.patchValue("slug", objectMapper, problem.slug),
+                description = patchNode.patchValue("description", objectMapper, problem.description),
+                difficulty = patchNode.patchValue("difficulty", objectMapper, problem.difficulty),
+                hints = patchNode.get("hints")?.takeIf { it.isArray }?.asArray()?.values()?.map { it.asString() }
+                    ?.toTypedArray()
+                    ?: problem.hints,
+                examples = patchNode.patchValue("examples", objectMapper, problem.examples),
+                constraints = patchNode.patchValue("constraints", objectMapper, problem.constraints),
+            )
 
-        if (patchNode.has("topics")) {
-            topicService.createManyWithProblem(problemId, patchNode.get("topics"))
+            if (patchNode.has("topics")) {
+                topicService.createManyWithProblem(problemId, patchNode.get("topics"))
+            }
+
+            return problemRepository.save(updated)
+        } catch (e: DuplicateKeyException) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Problem already exists")
         }
-
-        return problemRepository.save(updated)
     }
 
     @Transactional

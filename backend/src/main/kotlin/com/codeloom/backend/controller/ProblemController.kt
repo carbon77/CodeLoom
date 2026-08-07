@@ -19,7 +19,6 @@ import tools.jackson.databind.JsonNode
 @RestController
 @RequestMapping("/v1/problems")
 @Tag(name = "Problems API")
-@CrossOrigin(origins = ["*"])
 class ProblemController(
     private val problemService: ProblemService,
 ) {

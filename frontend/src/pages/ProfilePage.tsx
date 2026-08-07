@@ -14,17 +14,8 @@ import {
 } from '@mui/material'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { signOut } from '../auth/keycloak'
+import { getRoles } from '../auth/roles'
 import { useAuth } from '../auth/useAuth'
-import type { User } from 'oidc-client-ts'
-
-interface RealmAccess {
-  roles?: string[]
-}
-
-function getRoles(user: User): string[] {
-  const realmAccess = user.profile.realm_access as unknown as RealmAccess | undefined
-  return realmAccess?.roles ?? []
-}
 
 export default function ProfilePage() {
   const user = useAuth()

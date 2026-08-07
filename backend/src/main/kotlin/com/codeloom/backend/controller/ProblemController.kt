@@ -24,11 +24,13 @@ class ProblemController(
     @GetMapping("items")
     fun findAllItems(
         @RequestParam(required = false) difficulties: Set<ProblemDifficulty>?,
+        @RequestParam(required = false) topics: Set<String>?,
         @RequestParam(defaultValue = "true") publishedOnly: Boolean,
     ): List<ProblemListDto> {
         return problemService.findItemsByFilters(
             filters = ProblemFilters(
                 difficulties = difficulties,
+                topics = topics,
                 publishedOnly = publishedOnly,
             )
         )

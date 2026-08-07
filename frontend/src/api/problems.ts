@@ -21,8 +21,12 @@ export interface ProblemExample {
   explanation?: string | null;
 }
 
-export interface ProblemDetail extends ProblemListDto {
+export interface ProblemDetail {
+  id: number;
+  slug: string;
+  title: string;
   description: string;
+  difficulty: Difficulty;
   constraints: ProblemConstraints | null;
   examples: { examples: ProblemExample[] } | null;
   hints: string[];
@@ -46,14 +50,34 @@ export interface ProblemUpdatePayload {
   hints: string[];
 }
 
+export interface Topic {
+  id: string;
+  name: string;
+}
+
 export function fetchProblems(
-  params?: Record<string, string>,
+  params?: Record<string, string | string[]>,
 ): Promise<ProblemListDto[]> {
-  const query = params
-    ? `?${new URLSearchParams(params).toString()}`
-    : "";
-  return apiFetch<ProblemListDto[]>(`/v1/problems/items${query}`).catch((error) => {
+  const searchParams = new URLSearchParams();
+  if (params) {
+    for (const [key, value] of Object.entries(params)) {
+      if (Array.isArray(value)) {
+        value.forEach((item) => searchParams.append(key, item));
+      } else {
+        searchParams.append(key, value);
+      }
+    }
+  }
+  const query = searchParams.toString();
+  return apiFetch<ProblemListDto[]>(`/v1/problems/items${query ? `?${query}` : ""}`).catch((error) => {
     console.error("Error fetching problems:", error);
+    throw error;
+  });
+}
+
+export function fetchTopics(): Promise<Topic[]> {
+  return apiFetch<Topic[]>("/v1/topics").catch((error) => {
+    console.error("Error fetching topics:", error);
     throw error;
   });
 }
@@ -63,6 +87,15 @@ export function fetchProblem(problemId: number): Promise<ProblemDetail> {
     console.error("Error fetching problem:", error);
     throw error;
   });
+}
+
+export function fetchProblemBySlug(problemSlug: string): Promise<ProblemDetail> {
+  return apiFetch<ProblemDetail>(`/v1/problems/slug/${problemSlug}`).catch(
+    (error) => {
+      console.error("Error fetching problem by slug:", error);
+      throw error;
+    },
+  );
 }
 
 export function createProblem(title: string): Promise<ProblemDetail> {

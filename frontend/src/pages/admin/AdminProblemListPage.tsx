@@ -28,11 +28,14 @@ import UnpublishedIcon from "@mui/icons-material/Unpublished";
 import {
   deleteProblem,
   fetchProblems,
+  fetchTopics,
   publishProblem,
   unpublishProblem,
   type Difficulty,
   type ProblemListDto,
+  type Topic,
 } from "../../api/problems";
+import ProblemFilters from "../../components/problem/ProblemFilters";
 
 const difficultyColors: Record<Difficulty, "success" | "warning" | "error"> = {
   EASY: "success",
@@ -43,9 +46,29 @@ const difficultyColors: Record<Difficulty, "success" | "warning" | "error"> = {
 export default function AdminProblemListPage() {
   const [problems, setProblems] = useState<ProblemListDto[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [selectedDifficulties, setSelectedDifficulties] = useState<
+    Difficulty[]
+  >([]);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ProblemListDto | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetchTopics()
+      .then((items) => {
+        if (active) {
+          setTopics(items);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -54,11 +77,20 @@ export default function AdminProblemListPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [selectedDifficulties, selectedTopics]);
 
   async function loadProblems(active: boolean): Promise<void> {
     try {
-      const items = await fetchProblems({ publishedOnly: "false" });
+      const params: Record<string, string | string[]> = {
+        publishedOnly: "false",
+      };
+      if (selectedDifficulties.length > 0) {
+        params.difficulties = selectedDifficulties;
+      }
+      if (selectedTopics.length > 0) {
+        params.topics = selectedTopics;
+      }
+      const items = await fetchProblems(params);
       if (active) {
         setProblems(items);
       }
@@ -68,6 +100,23 @@ export default function AdminProblemListPage() {
       }
     }
   }
+
+  const normalizedSearch = search.trim().toLowerCase();
+  const filtered =
+    problems?.filter((problem) =>
+      problem.title.toLowerCase().includes(normalizedSearch),
+    ) ?? null;
+
+  const hasFilters =
+    selectedDifficulties.length > 0 ||
+    selectedTopics.length > 0 ||
+    normalizedSearch !== "";
+
+  const handleClearFilters = () => {
+    setSelectedDifficulties([]);
+    setSelectedTopics([]);
+    setSearch("");
+  };
 
   async function handleTogglePublished(problem: ProblemListDto): Promise<void> {
     setBusyId(problem.problemId);
@@ -119,6 +168,18 @@ export default function AdminProblemListPage() {
         </Button>
       </Box>
 
+      <ProblemFilters
+        search={search}
+        onSearchChange={setSearch}
+        selectedDifficulties={selectedDifficulties}
+        onSelectedDifficultiesChange={setSelectedDifficulties}
+        topics={topics}
+        selectedTopics={selectedTopics}
+        onSelectedTopicsChange={setSelectedTopics}
+        hasFilters={hasFilters}
+        onClearFilters={handleClearFilters}
+      />
+
       {problems === null && !error && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -131,7 +192,11 @@ export default function AdminProblemListPage() {
         <Alert severity="info">No problems yet. Create your first one.</Alert>
       )}
 
-      {problems !== null && problems.length > 0 && (
+      {problems !== null && problems.length > 0 && filtered?.length === 0 && (
+        <Alert severity="info">No problems match your filters.</Alert>
+      )}
+
+      {problems !== null && filtered && filtered.length > 0 && (
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -144,7 +209,7 @@ export default function AdminProblemListPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {problems.map((problem) => (
+              {filtered.map((problem) => (
                 <TableRow key={problem.problemId} hover>
                   <TableCell>{problem.title}</TableCell>
                   <TableCell>{problem.slug}</TableCell>

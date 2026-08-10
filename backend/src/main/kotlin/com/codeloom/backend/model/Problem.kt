@@ -26,15 +26,12 @@ data class Problem(
     val examples: ProblemExamples? = null,
     @Column("hints")
     val hints: Array<String> = arrayOf(),
-
     @CreatedDate
     @Column("created_at")
     val createdAt: Instant = Instant.now(),
-
     @LastModifiedDate
     @Column("updated_at")
     val updatedAt: Instant = Instant.now(),
-
     @Column("published_at")
     val publishedAt: Instant? = null,
 )

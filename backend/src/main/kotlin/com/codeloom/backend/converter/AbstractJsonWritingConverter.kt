@@ -10,7 +10,6 @@ abstract class AbstractJsonWritingConverter<T : Any>(
     protected val objectMapper: ObjectMapper,
     protected val clazz: Class<T>,
 ) : Converter<T, JdbcValue> {
-
     override fun convert(source: T): JdbcValue {
         val obj = PGobject()
         obj.type = "jsonb"

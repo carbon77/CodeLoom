@@ -14,13 +14,11 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
 @EnableWebSecurity
 @Profile("!test")
 class SecurityConfig {
-
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http {
@@ -51,12 +49,13 @@ class SecurityConfig {
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
-        val configuration = CorsConfiguration().apply {
-            allowedOrigins = listOf("http://localhost:5173")
-            allowedMethods = listOf("*")
-            allowedHeaders = listOf("*")
-            allowCredentials = true
-        }
+        val configuration =
+            CorsConfiguration().apply {
+                allowedOrigins = listOf("http://localhost:5173")
+                allowedMethods = listOf("*")
+                allowedHeaders = listOf("*")
+                allowCredentials = true
+            }
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
         return source
@@ -75,10 +74,11 @@ class SecurityConfig {
                 return@setJwtGrantedAuthoritiesConverter emptyList()
             }
 
-            val roles = (realmAccess["roles"] as Collection<String>)
-                .filter { role -> role.startsWith("ROLE_") }
-                .map { role -> SimpleGrantedAuthority(role) }
-                .toList()
+            val roles =
+                (realmAccess["roles"] as Collection<String>)
+                    .filter { role -> role.startsWith("ROLE_") }
+                    .map { role -> SimpleGrantedAuthority(role) }
+                    .toList()
             return@setJwtGrantedAuthoritiesConverter authorities + roles
         }
 

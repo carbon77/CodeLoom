@@ -46,10 +46,11 @@ class ProblemService(
 
     @Transactional
     fun create(request: CreateProblemRequest): Problem {
-        val problem = Problem(
-            title = request.title,
-            slug = request.title.lowercase().replace(" ", "_"),
-        )
+        val problem =
+            Problem(
+                title = request.title,
+                slug = request.title.lowercase().replace(" ", "_"),
+            )
 
         return try {
             problemRepository.save(problem)
@@ -59,21 +60,27 @@ class ProblemService(
     }
 
     @Transactional
-    fun update(problemId: Long, patchNode: JsonNode): Problem {
+    fun update(
+        problemId: Long,
+        patchNode: JsonNode,
+    ): Problem {
         try {
-            val problem = problemRepository.findById(problemId)
-                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with ID $problemId not found") }
-            val updated = problem.copy(
-                title = patchNode.patchValue("title", objectMapper, problem.title),
-                slug = patchNode.patchValue("slug", objectMapper, problem.slug),
-                description = patchNode.patchValue("description", objectMapper, problem.description),
-                difficulty = patchNode.patchValue("difficulty", objectMapper, problem.difficulty),
-                hints = patchNode.get("hints")?.takeIf { it.isArray }?.asArray()?.values()?.map { it.asString() }
-                    ?.toTypedArray()
-                    ?: problem.hints,
-                examples = patchNode.patchValue("examples", objectMapper, problem.examples),
-                constraints = patchNode.patchValue("constraints", objectMapper, problem.constraints),
-            )
+            val problem =
+                problemRepository.findById(problemId)
+                    .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with ID $problemId not found") }
+            val updated =
+                problem.copy(
+                    title = patchNode.patchValue("title", objectMapper, problem.title),
+                    slug = patchNode.patchValue("slug", objectMapper, problem.slug),
+                    description = patchNode.patchValue("description", objectMapper, problem.description),
+                    difficulty = patchNode.patchValue("difficulty", objectMapper, problem.difficulty),
+                    hints =
+                        patchNode.get("hints")?.takeIf { it.isArray }?.asArray()?.values()?.map { it.asString() }
+                            ?.toTypedArray()
+                            ?: problem.hints,
+                    examples = patchNode.patchValue("examples", objectMapper, problem.examples),
+                    constraints = patchNode.patchValue("constraints", objectMapper, problem.constraints),
+                )
 
             if (patchNode.has("topics")) {
                 topicService.createManyWithProblem(problemId, patchNode.get("topics"))
@@ -91,7 +98,7 @@ class ProblemService(
         problemRepository.save(
             problem.copy(
                 publishedAt = Instant.now(),
-            )
+            ),
         )
     }
 
@@ -101,7 +108,7 @@ class ProblemService(
         problemRepository.save(
             problem.copy(
                 publishedAt = null,
-            )
+            ),
         )
     }
 }

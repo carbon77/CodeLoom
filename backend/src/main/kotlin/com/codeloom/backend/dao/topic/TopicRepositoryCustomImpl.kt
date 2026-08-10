@@ -12,21 +12,23 @@ class TopicRepositoryCustomImpl(
     private val dsl: DSLContext,
 ) : TopicRepositoryCustom {
     override fun findByProblemId(problemId: Long): Iterable<Topic> {
-        val topics = dsl.select(TOPICS.asterisk())
-            .from(TOPICS)
-            .innerJoin(PROBLEM_TOPICS)
-            .on(PROBLEM_TOPICS.PROBLEM_ID.eq(problemId.toInt()))
-            .and(PROBLEM_TOPICS.TOPIC_ID.eq(TOPICS.TOPIC_ID))
-            .fetchInto(Topic::class.java)
+        val topics =
+            dsl.select(TOPICS.asterisk())
+                .from(TOPICS)
+                .innerJoin(PROBLEM_TOPICS)
+                .on(PROBLEM_TOPICS.PROBLEM_ID.eq(problemId.toInt()))
+                .and(PROBLEM_TOPICS.TOPIC_ID.eq(TOPICS.TOPIC_ID))
+                .fetchInto(Topic::class.java)
         return topics
     }
 
     override fun saveAllProblemRelationships(problemTopicRelationships: Collection<ProblemTopicRelationship>) {
-        val inserts = problemTopicRelationships.map {
-            dsl.insertInto(PROBLEM_TOPICS)
-                .set(PROBLEM_TOPICS.TOPIC_ID, it.topicId)
-                .set(PROBLEM_TOPICS.PROBLEM_ID, it.problemId.toInt())
-        }
+        val inserts =
+            problemTopicRelationships.map {
+                dsl.insertInto(PROBLEM_TOPICS)
+                    .set(PROBLEM_TOPICS.TOPIC_ID, it.topicId)
+                    .set(PROBLEM_TOPICS.PROBLEM_ID, it.problemId.toInt())
+            }
         dsl.batch(inserts).execute()
     }
 

@@ -6,9 +6,9 @@ import org.hamcrest.Matchers
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.servlet.*
@@ -23,20 +23,21 @@ import kotlin.test.assertEquals
 @AutoConfigureMockMvc(addFilters = false)
 @Sql(
     statements = [
-        "TRUNCATE TABLE topics CASCADE"
+        "TRUNCATE TABLE topics CASCADE",
     ],
-    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
 )
 class TopicIT {
     companion object {
         @JvmStatic
         @Container
         @ServiceConnection
-        val postgresContainer = PostgreSQLContainer("postgres:18.1-alpine3.23").apply {
-            withDatabaseName("testdb")
-            withUsername("testuser")
-            withPassword("test")
-        }
+        val postgresContainer =
+            PostgreSQLContainer("postgres:18.1-alpine3.23").apply {
+                withDatabaseName("testdb")
+                withUsername("testuser")
+                withPassword("test")
+            }
     }
 
     @Autowired
@@ -48,8 +49,8 @@ class TopicIT {
     private fun initTopic(name: String = "Arrays"): Topic =
         topicRepository.save(
             Topic(
-                name = name
-            )
+                name = name,
+            ),
         )
 
     /* -------------------------------------------------------------
@@ -57,7 +58,6 @@ class TopicIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class FindAll {
-
         @Test
         fun `test with no topics should return empty array`() {
             mockMvc.get("/v1/topics")
@@ -89,7 +89,6 @@ class TopicIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class FindOne {
-
         @Test
         fun `test should return topic`() {
             val topic = initTopic("Graphs")
@@ -117,16 +116,16 @@ class TopicIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class Create {
-
         @Test
         fun `test should create topic`() {
             mockMvc.post("/v1/topics") {
                 contentType = MediaType.APPLICATION_JSON
-                content = """
+                content =
+                    """
                     {
                       "name": "Greedy"
                     }
-                """.trimIndent()
+                    """.trimIndent()
             }
                 .andExpect {
                     status { isOk() }
@@ -142,11 +141,12 @@ class TopicIT {
         fun `test without name should create throw bad request`() {
             mockMvc.post("/v1/topics") {
                 contentType = MediaType.APPLICATION_JSON
-                content = """
+                content =
+                    """
                     {
                       "name": ""
                     }
-                """.trimIndent()
+                    """.trimIndent()
             }
                 .andExpect {
                     status { isBadRequest() }
@@ -156,7 +156,6 @@ class TopicIT {
 
             assertEquals(0, topicRepository.count())
         }
-
     }
 
     /* -------------------------------------------------------------
@@ -164,18 +163,18 @@ class TopicIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class Patch {
-
         @Test
         fun `test should patch topic`() {
             val topic = initTopic("Old Name")
 
             mockMvc.patch("/v1/topics/${topic.id}") {
                 contentType = MediaType.APPLICATION_JSON
-                content = """
+                content =
+                    """
                     {
                       "name": "New Name"
                     }
-                """.trimIndent()
+                    """.trimIndent()
             }
                 .andExpect {
                     status { isOk() }
@@ -192,7 +191,6 @@ class TopicIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class Delete {
-
         @Test
         fun `test should delete topic`() {
             val topic = initTopic("Bit Manipulation")

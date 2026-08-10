@@ -12,7 +12,6 @@ import java.security.Principal
 class SubmissionController(
     private val submissionService: SubmissionService,
 ) {
-
     @GetMapping
     fun findSubmissions(
         @RequestParam("problemId") problemId: Long,

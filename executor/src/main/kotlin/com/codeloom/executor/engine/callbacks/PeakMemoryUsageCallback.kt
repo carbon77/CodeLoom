@@ -9,9 +9,10 @@ class PeakMemoryUsageCallback : ResultCallbackTemplate<PeakMemoryUsageCallback, 
 
     override fun onNext(stats: Statistics) {
         val usage = stats.memoryStats?.usage ?: return
-        val cache = (stats.memoryStats.stats?.cache as? Number)?.toLong()
-            ?: (stats.memoryStats.stats?.inactiveFile as? Number)?.toLong()
-            ?: 0L
+        val cache =
+            (stats.memoryStats.stats?.cache as? Number)?.toLong()
+                ?: (stats.memoryStats.stats?.inactiveFile as? Number)?.toLong()
+                ?: 0L
         val effectiveUsage = (usage - cache).coerceAtLeast(0)
         peakUsage.updateAndGet { current -> maxOf(current, effectiveUsage) }
     }

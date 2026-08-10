@@ -1,8 +1,8 @@
 package com.codeloom.backend.it
 
 import com.codeloom.backend.dao.problem.ProblemRepository
-import com.codeloom.backend.dao.topic.TopicRepositoryCustomImpl
 import com.codeloom.backend.dao.topic.TopicRepository
+import com.codeloom.backend.dao.topic.TopicRepositoryCustomImpl
 import com.codeloom.backend.model.*
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Nested
@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.servlet.*
@@ -34,18 +34,19 @@ import kotlin.test.assertNotEquals
             "TRUNCATE TABLE topics CASCADE",
             "TRUNCATE TABLE problems RESTART IDENTITY CASCADE",
         ],
-    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
 )
 class ProblemIT {
     companion object {
         @JvmStatic
         @Container
         @ServiceConnection
-        val postgresContainer = PostgreSQLContainer("postgres:18.1-alpine3.23").apply {
-            withDatabaseName("testdb")
-            withUsername("testuser")
-            withPassword("test")
-        }
+        val postgresContainer =
+            PostgreSQLContainer("postgres:18.1-alpine3.23").apply {
+                withDatabaseName("testdb")
+                withUsername("testuser")
+                withPassword("test")
+            }
     }
 
     @Autowired
@@ -65,7 +66,6 @@ class ProblemIT {
 
     @Nested
     inner class FindAllItems {
-
         @Test
         fun `test with no problems should return empty array`() {
             mockMvc.get("/v1/problems/items").andExpect {
@@ -167,7 +167,7 @@ class ProblemIT {
                             id = 1,
                             title = "Merge two Arrays",
                             slug = "merge_two_arrays",
-                        )
+                        ),
                     )
                 }
             assertEquals(1, problemRepository.count())
@@ -205,27 +205,27 @@ class ProblemIT {
                     contentType = MediaType.APPLICATION_JSON
                     content =
                         """
-                    {
-                        "title": "Three Sum",
-                        "slug": "three_sum",
-                        "difficulty": "HARD",
-                        "description": "Find three numbers that sum to zero",
-                        "hints": ["hint #1", "hint #2", "hint #3"],
-                        "examples": {
-                            "examples": [
-                                {
-                                    "input": "nums = [-1,0,1,2,-1,-4]",
-                                    "output": "[[-1,-1,2],[-1,0,1]]",
-                                    "explanation": "These triplets sum to zero"
-                                }
-                            ]
-                        },
-                        "constraints": {
-                            "executionTimeLimitMs": 3000,
-                            "memoryUsageLimitBytes": 4
+                        {
+                            "title": "Three Sum",
+                            "slug": "three_sum",
+                            "difficulty": "HARD",
+                            "description": "Find three numbers that sum to zero",
+                            "hints": ["hint #1", "hint #2", "hint #3"],
+                            "examples": {
+                                "examples": [
+                                    {
+                                        "input": "nums = [-1,0,1,2,-1,-4]",
+                                        "output": "[[-1,-1,2],[-1,0,1]]",
+                                        "explanation": "These triplets sum to zero"
+                                    }
+                                ]
+                            },
+                            "constraints": {
+                                "executionTimeLimitMs": 3000,
+                                "memoryUsageLimitBytes": 4
+                            }
                         }
-                    }
-                """.trimIndent()
+                        """.trimIndent()
                 }
                 .andExpect {
                     status { isOk() }
@@ -236,7 +236,7 @@ class ProblemIT {
                     jsonPath("$.difficulty", Matchers.equalTo("HARD"))
                     jsonPath(
                         "$.description",
-                        Matchers.equalTo("Find three numbers that sum to zero")
+                        Matchers.equalTo("Find three numbers that sum to zero"),
                     )
                     jsonPath("$.hints.length()", Matchers.equalTo(3))
                     jsonPath("$.hints[0]", Matchers.equalTo("hint #1"))
@@ -245,15 +245,15 @@ class ProblemIT {
                     jsonPath("$.examples.examples.length()", Matchers.equalTo(1))
                     jsonPath(
                         "$.examples.examples[0].input",
-                        Matchers.equalTo("nums = [-1,0,1,2,-1,-4]")
+                        Matchers.equalTo("nums = [-1,0,1,2,-1,-4]"),
                     )
                     jsonPath(
                         "$.examples.examples[0].output",
-                        Matchers.equalTo("[[-1,-1,2],[-1,0,1]]")
+                        Matchers.equalTo("[[-1,-1,2],[-1,0,1]]"),
                     )
                     jsonPath(
                         "$.examples.examples[0].explanation",
-                        Matchers.equalTo("These triplets sum to zero")
+                        Matchers.equalTo("These triplets sum to zero"),
                     )
                     jsonPath("$.constraints.executionTimeLimitMs", Matchers.equalTo(3000L), Long::class.java)
                     jsonPath("$.constraints.memoryUsageLimitBytes", Matchers.equalTo(4L), Long::class.java)
@@ -277,11 +277,11 @@ class ProblemIT {
                     contentType = MediaType.APPLICATION_JSON
                     content =
                         """
-                    {
-                        "title": "Updated Title",
-                        "slug": "updated_slug"
-                    }
-                """.trimIndent()
+                        {
+                            "title": "Updated Title",
+                            "slug": "updated_slug"
+                        }
+                        """.trimIndent()
                 }
                 .andExpect { status { isNotFound() } }
         }
@@ -294,11 +294,11 @@ class ProblemIT {
                     contentType = MediaType.APPLICATION_JSON
                     content =
                         """
-                    {
-                        "title": "Updated Two Sum",
-                        "difficulty": "EASY"
-                    }
-                """.trimIndent()
+                        {
+                            "title": "Updated Two Sum",
+                            "difficulty": "EASY"
+                        }
+                        """.trimIndent()
                 }
                 .andExpect {
                     status { isOk() }
@@ -324,17 +324,17 @@ class ProblemIT {
                     contentType = MediaType.APPLICATION_JSON
                     content =
                         """
-                    {
-                        "title": "Three Sum",
-                        "slug": "three_sum",
-                        "topics": [
-                            { "topic_id": "incorrect_uuid" },
-                            { "topic_id": "${topics[0].id!!}" },
-                            { "name": "Two Pointers" },
-                            { "name": "Hash Table" }
-                        ]
-                    }
-                """.trimIndent()
+                        {
+                            "title": "Three Sum",
+                            "slug": "three_sum",
+                            "topics": [
+                                { "topic_id": "incorrect_uuid" },
+                                { "topic_id": "${topics[0].id!!}" },
+                                { "name": "Two Pointers" },
+                                { "name": "Hash Table" }
+                            ]
+                        }
+                        """.trimIndent()
                 }
                 .andExpect {
                     status { isOk() }
@@ -385,7 +385,6 @@ class ProblemIT {
         }
     }
 
-
     fun initProblems() {
         topics = mutableListOf()
         problems = mutableListOf()
@@ -393,40 +392,43 @@ class ProblemIT {
         val t1 = topicRepository.save(Topic(name = "topic1"))
         val t2 = topicRepository.save(Topic(name = "topic2"))
         val t3 = topicRepository.save(Topic(name = "topic3"))
-        val p1 = problemRepository.save(
-            Problem(
-                title = "Two Sum",
-                slug = "two_sum",
-                description = "Find two numbers",
-                hints = arrayOf("hint #1", "hint #2"),
-                examples =
-                    ProblemExamples(
-                        examples =
-                            listOf(ProblemExample("input", "output", "explain"))
-                    ),
-                constraints =
-                    ProblemConstraints(
-                        executionTimeLimitMs = 2000,
-                        memoryUsageLimitBytes = 4,
-                    )
+        val p1 =
+            problemRepository.save(
+                Problem(
+                    title = "Two Sum",
+                    slug = "two_sum",
+                    description = "Find two numbers",
+                    hints = arrayOf("hint #1", "hint #2"),
+                    examples =
+                        ProblemExamples(
+                            examples =
+                                listOf(ProblemExample("input", "output", "explain")),
+                        ),
+                    constraints =
+                        ProblemConstraints(
+                            executionTimeLimitMs = 2000,
+                            memoryUsageLimitBytes = 4,
+                        ),
+                ),
             )
-        )
-        val p2 = problemRepository.save(
-            Problem(
-                title = "Sort",
-                slug = "sort",
-                difficulty = ProblemDifficulty.MEDIUM,
-                publishedAt = Instant.now(),
+        val p2 =
+            problemRepository.save(
+                Problem(
+                    title = "Sort",
+                    slug = "sort",
+                    difficulty = ProblemDifficulty.MEDIUM,
+                    publishedAt = Instant.now(),
+                ),
             )
-        )
-        val p3 = problemRepository.save(
-            Problem(
-                title = "B-Tree Sort",
-                slug = "b-tree_sort",
-                difficulty = ProblemDifficulty.HARD,
-                publishedAt = Instant.now(),
+        val p3 =
+            problemRepository.save(
+                Problem(
+                    title = "B-Tree Sort",
+                    slug = "b-tree_sort",
+                    difficulty = ProblemDifficulty.HARD,
+                    publishedAt = Instant.now(),
+                ),
             )
-        )
         topics.addAll(listOf(t1, t2, t3))
         problems.addAll(listOf(p1, p2, p3))
         topicRepositoryCustomImpl.saveAllProblemRelationships(
@@ -437,7 +439,7 @@ class ProblemIT {
                 t3 to p2,
                 t2 to p3,
                 t3 to p3,
-            )
+            ),
         )
     }
 
@@ -456,7 +458,7 @@ class ProblemIT {
                 jsonPath("$.examples.examples[$i].output", Matchers.equalTo(example.output))
                 jsonPath(
                     "$.examples.examples[$i].explanation",
-                    Matchers.equalTo(example.explanation)
+                    Matchers.equalTo(example.explanation),
                 )
             }
         }
@@ -499,7 +501,7 @@ class ProblemIT {
                 jsonPath("$.examples.examples[$i].output", Matchers.equalTo(example.output))
                 jsonPath(
                     "$.examples.examples[$i].explanation",
-                    Matchers.equalTo(example.explanation)
+                    Matchers.equalTo(example.explanation),
                 )
             }
         }

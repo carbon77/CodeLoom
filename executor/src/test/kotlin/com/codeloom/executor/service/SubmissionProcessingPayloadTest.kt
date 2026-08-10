@@ -18,7 +18,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class SubmissionProcessingPayloadTest {
-
     private val testCaseRepository: TestCaseRepository = mock()
     private val dockerJudgeEngine: DockerJudgeEngine = mock()
     private val eventService: EventService = mock()
@@ -80,7 +79,7 @@ class SubmissionProcessingPayloadTest {
     fun `wrong answer includes results up to the failing test case`() {
         whenever(testCaseRepository.findByProblemId(problemId)).thenReturn(listOf(publicTestCase))
         whenever(dockerJudgeEngine.runTestCase(any(), any())).thenReturn(
-            RunResult(exitCode = 0L, stdout = "0", stderr = "", executionTimeMs = 10, memoryUsageBytes = 100)
+            RunResult(exitCode = 0L, stdout = "0", stderr = "", executionTimeMs = 10, memoryUsageBytes = 100),
         )
 
         service.process(event)
@@ -95,7 +94,7 @@ class SubmissionProcessingPayloadTest {
     fun `compile error carries no payload`() {
         whenever(testCaseRepository.findByProblemId(problemId)).thenReturn(listOf(publicTestCase))
         whenever(dockerJudgeEngine.compile(any())).thenReturn(
-            CompilationResult(isSuccessful = false, stderr = "compile error")
+            CompilationResult(isSuccessful = false, stderr = "compile error"),
         )
 
         service.process(event)

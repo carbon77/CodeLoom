@@ -14,7 +14,6 @@ import java.util.*
 @SpringBootApplication
 @EnableJdbcAuditing
 class BackendApplication {
-
     @Bean
     fun objectMapper(): ObjectMapper = jacksonObjectMapper()
 }
@@ -29,7 +28,11 @@ val Principal.userId: UUID
         return UUID.fromString(jwt.token.subject)
     }
 
-inline fun <reified T> JsonNode.patchValue(name: String, objectMapper: ObjectMapper, current: T): T {
+inline fun <reified T> JsonNode.patchValue(
+    name: String,
+    objectMapper: ObjectMapper,
+    current: T,
+): T {
     val value = get(name) ?: return current
     if (value.isNull) return current
     return objectMapper.treeToValue(value, T::class.java)

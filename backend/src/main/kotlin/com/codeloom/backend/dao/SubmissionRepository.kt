@@ -5,5 +5,8 @@ import org.springframework.data.repository.CrudRepository
 import java.util.*
 
 interface SubmissionRepository : CrudRepository<Submission, UUID> {
-    fun findByUserIdAndProblemId(userId: UUID, problemId: Long): Collection<Submission>
+    fun findByUserIdAndProblemId(
+        userId: UUID,
+        problemId: Long,
+    ): Collection<Submission>
 }

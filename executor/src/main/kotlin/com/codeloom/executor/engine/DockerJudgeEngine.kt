@@ -60,11 +60,12 @@ class DockerJudgeEngine(
             }
             return CompilationResult(
                 isSuccessful = outcome.exitCode == 0L,
-                stderr = when (outcome.exitCode) {
-                    MEMORY_LIMIT_EXCEEDED_EXIT_CODE -> MEMORY_LIMIT_EXCEEDED_MESSAGE
-                    TIMEOUT_EXIT_CODE -> TIMEOUT_MESSAGE
-                    else -> outcome.stderr
-                },
+                stderr =
+                    when (outcome.exitCode) {
+                        MEMORY_LIMIT_EXCEEDED_EXIT_CODE -> MEMORY_LIMIT_EXCEEDED_MESSAGE
+                        TIMEOUT_EXIT_CODE -> TIMEOUT_MESSAGE
+                        else -> outcome.stderr
+                    },
             )
         } catch (e: DockerException) {
             logger.error("Compilation failed: submissionId={}", context.submissionId, e)
@@ -73,7 +74,10 @@ class DockerJudgeEngine(
         }
     }
 
-    fun runTestCase(context: SubmissionContext, testCase: TestCase): RunResult {
+    fun runTestCase(
+        context: SubmissionContext,
+        testCase: TestCase,
+    ): RunResult {
         logger.info("Running test case: submissionId={} testCaseId={}", context.submissionId, testCase.id)
         volumeFileIO.writeFile(
             volumeName = volumeName(context.submissionId),
@@ -95,11 +99,12 @@ class DockerJudgeEngine(
         return RunResult(
             exitCode = outcome.exitCode,
             stdout = outcome.stdout,
-            stderr = when (outcome.exitCode) {
-                MEMORY_LIMIT_EXCEEDED_EXIT_CODE -> MEMORY_LIMIT_EXCEEDED_MESSAGE
-                TIMEOUT_EXIT_CODE -> TIMEOUT_MESSAGE
-                else -> outcome.stderr
-            },
+            stderr =
+                when (outcome.exitCode) {
+                    MEMORY_LIMIT_EXCEEDED_EXIT_CODE -> MEMORY_LIMIT_EXCEEDED_MESSAGE
+                    TIMEOUT_EXIT_CODE -> TIMEOUT_MESSAGE
+                    else -> outcome.stderr
+                },
             executionTimeMs = outcome.executionTimeMs,
             memoryUsageBytes = outcome.memoryUsageBytes,
         )
@@ -112,27 +117,29 @@ class DockerJudgeEngine(
         val peakMemoryUsageCallback = PeakMemoryUsageCallback()
         dockerClient.startContainerCmd(containerId).exec()
 
-        val (exitCode, executionDuration) = measureTimedValue {
-            try {
-                dockerClient.waitContainerCmd(containerId)
-                    .start()
-                    .awaitStatusCode(context.executionTimeLimitMs ?: DEFAULT_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-                    .toLong()
-            } catch (e: Exception) {
-                logger.error("Execution timed out: {}", e.message)
-                runCatching { dockerClient.killContainerCmd(containerId).exec() }
-                TIMEOUT_EXIT_CODE
+        val (exitCode, executionDuration) =
+            measureTimedValue {
+                try {
+                    dockerClient.waitContainerCmd(containerId)
+                        .start()
+                        .awaitStatusCode(context.executionTimeLimitMs ?: DEFAULT_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                        .toLong()
+                } catch (e: Exception) {
+                    logger.error("Execution timed out: {}", e.message)
+                    runCatching { dockerClient.killContainerCmd(containerId).exec() }
+                    TIMEOUT_EXIT_CODE
+                }
             }
-        }
 
         runCatching { peakMemoryUsageCallback.close() }
         val memoryUsageBytes = peakMemoryUsageCallback.peak()
 
-        val oomKilled = runCatching {
-            dockerClient
-                .inspectContainerCmd(containerId)
-                .exec().state?.oomKilled == true
-        }.getOrDefault(false)
+        val oomKilled =
+            runCatching {
+                dockerClient
+                    .inspectContainerCmd(containerId)
+                    .exec().state?.oomKilled == true
+            }.getOrDefault(false)
 
         val stdout = StringBuilder()
         val stderr = StringBuilder()
@@ -150,11 +157,12 @@ class DockerJudgeEngine(
         return ContainerOutcome(
             exitCode = if (oomKilled) MEMORY_LIMIT_EXCEEDED_EXIT_CODE else exitCode,
             stdout = stdout.toString(),
-            stderr = when (exitCode) {
-                TIMEOUT_EXIT_CODE -> TIMEOUT_MESSAGE
-                MEMORY_LIMIT_EXCEEDED_EXIT_CODE -> MEMORY_LIMIT_EXCEEDED_MESSAGE
-                else -> stderr.toString()
-            },
+            stderr =
+                when (exitCode) {
+                    TIMEOUT_EXIT_CODE -> TIMEOUT_MESSAGE
+                    MEMORY_LIMIT_EXCEEDED_EXIT_CODE -> MEMORY_LIMIT_EXCEEDED_MESSAGE
+                    else -> stderr.toString()
+                },
             executionTimeMs = executionDuration.inWholeMilliseconds,
             memoryUsageBytes = memoryUsageBytes,
         )
@@ -164,27 +172,31 @@ class DockerJudgeEngine(
         context: SubmissionContext,
         shellCommand: String,
     ): String {
-        val isCompiling = context.language.compileCommand != null &&
+        val isCompiling =
+            context.language.compileCommand != null &&
                 context.language.compileCommand == shellCommand
-        val memoryLimit = if (isCompiling || context.memoryUsageLimitBytes == null) {
-            DEFAULT_MEMORY_LIMIT_BYTES
-        } else {
-            context.memoryUsageLimitBytes
-        }
-        val hostConfig = HostConfig.newHostConfig()
-            .withBinds(Bind(volumeName(context.submissionId), Volume(WORKSPACE_DIR)))
-            .withMemory(memoryLimit)
-            .withMemorySwap(memoryLimit)
-            .withNetworkMode("none")
-            .withReadonlyRootfs(false)
+        val memoryLimit =
+            if (isCompiling || context.memoryUsageLimitBytes == null) {
+                DEFAULT_MEMORY_LIMIT_BYTES
+            } else {
+                context.memoryUsageLimitBytes
+            }
+        val hostConfig =
+            HostConfig.newHostConfig()
+                .withBinds(Bind(volumeName(context.submissionId), Volume(WORKSPACE_DIR)))
+                .withMemory(memoryLimit)
+                .withMemorySwap(memoryLimit)
+                .withNetworkMode("none")
+                .withReadonlyRootfs(false)
 
         imageManager.pullImageIfAbsent(context.language.image, timeoutSeconds = 300)
 
-        val containerId = dockerClient.createContainerCmd(context.language.image)
-            .withHostConfig(hostConfig)
-            .withWorkingDir(WORKSPACE_DIR)
-            .withCmd("sh", "-c", shellCommand)
-            .exec().id
+        val containerId =
+            dockerClient.createContainerCmd(context.language.image)
+                .withHostConfig(hostConfig)
+                .withWorkingDir(WORKSPACE_DIR)
+                .withCmd("sh", "-c", shellCommand)
+                .exec().id
         return containerId
     }
 
@@ -193,9 +205,10 @@ class DockerJudgeEngine(
     }
 
     fun cleanup(submissionId: UUID) {
-        val volumeExists = dockerClient.listVolumesCmd()
-            .withFilter("name", listOf(volumeName(submissionId)))
-            .exec().volumes.isNotEmpty()
+        val volumeExists =
+            dockerClient.listVolumesCmd()
+                .withFilter("name", listOf(volumeName(submissionId)))
+                .exec().volumes.isNotEmpty()
 
         if (volumeExists) {
             dockerClient.removeVolumeCmd(volumeName(submissionId)).exec()

@@ -23,23 +23,28 @@ class TestCaseService(
 
     @Transactional
     fun create(request: CreateTestCaseRequest): TestCase {
-        val testCase = TestCase(
-            problemId = request.problemId,
-            input = request.input,
-            expectedOutput = request.expectedOutput,
-            isPublic = request.isPublic,
-        )
+        val testCase =
+            TestCase(
+                problemId = request.problemId,
+                input = request.input,
+                expectedOutput = request.expectedOutput,
+                isPublic = request.isPublic,
+            )
         return testCaseRepository.save(testCase)
     }
 
     @Transactional
-    fun patch(id: UUID, patchNode: JsonNode): TestCase {
+    fun patch(
+        id: UUID,
+        patchNode: JsonNode,
+    ): TestCase {
         val testCase = findById(id)
-        val updated = testCase.copy(
-            input = patchNode.patchValue("input", objectMapper, testCase.input),
-            expectedOutput = patchNode.patchValue("expectedOutput", objectMapper, testCase.expectedOutput),
-            isPublic = patchNode.patchValue("isPublic", objectMapper, testCase.isPublic),
-        )
+        val updated =
+            testCase.copy(
+                input = patchNode.patchValue("input", objectMapper, testCase.input),
+                expectedOutput = patchNode.patchValue("expectedOutput", objectMapper, testCase.expectedOutput),
+                isPublic = patchNode.patchValue("isPublic", objectMapper, testCase.isPublic),
+            )
         return testCaseRepository.save(updated)
     }
 
@@ -48,7 +53,10 @@ class TestCaseService(
         testCaseRepository.deleteById(id)
     }
 
-    fun findAllByProblemId(problemId: Long, isPublic: Boolean?): Iterable<TestCase> {
+    fun findAllByProblemId(
+        problemId: Long,
+        isPublic: Boolean?,
+    ): Iterable<TestCase> {
         return testCaseRepository.findAllByProblemId(problemId, isPublic)
     }
 

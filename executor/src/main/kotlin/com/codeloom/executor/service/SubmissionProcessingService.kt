@@ -23,22 +23,22 @@ class SubmissionProcessingService(
 
     fun process(event: SubmissionEvent) {
         val testCases = testCaseRepository.findByProblemId(event.problemId)
-        val context = SubmissionContext(
-            submissionId = event.submissionId,
-            userId = event.userId,
-            problemId = event.problemId,
-            code = event.code,
-            language = LanguageSpec.fromLanguage(event.language),
-            executionTimeLimitMs = event.executionTimeLimitMs,
-            memoryUsageLimitBytes = event.memoryUsageLimitBytes,
-        )
+        val context =
+            SubmissionContext(
+                submissionId = event.submissionId,
+                userId = event.userId,
+                problemId = event.problemId,
+                code = event.code,
+                language = LanguageSpec.fromLanguage(event.language),
+                executionTimeLimitMs = event.executionTimeLimitMs,
+                memoryUsageLimitBytes = event.memoryUsageLimitBytes,
+            )
 
         if (testCases.isEmpty()) {
             logger.warn("Problem doesn't have any test cases: problemId={}", event.problemId)
             changeSubmissionStatus(context, SubmissionStatus.ACCEPTED)
             return
         }
-
 
         val testCaseResults = mutableListOf<TestCaseResult>()
         try {
@@ -68,11 +68,12 @@ class SubmissionProcessingService(
                 }
 
                 if (runResult.exitCode != 0L) {
-                    val newStatus = when (runResult.exitCode) {
-                        TIMEOUT_EXIT_CODE -> SubmissionStatus.TIME_LIMIT_EXCEEDED
-                        MEMORY_LIMIT_EXCEEDED_EXIT_CODE -> SubmissionStatus.MEMORY_LIMIT_EXCEEDED
-                        else -> SubmissionStatus.RUNTIME_ERROR
-                    }
+                    val newStatus =
+                        when (runResult.exitCode) {
+                            TIMEOUT_EXIT_CODE -> SubmissionStatus.TIME_LIMIT_EXCEEDED
+                            MEMORY_LIMIT_EXCEEDED_EXIT_CODE -> SubmissionStatus.MEMORY_LIMIT_EXCEEDED
+                            else -> SubmissionStatus.RUNTIME_ERROR
+                        }
                     changeSubmissionStatus(
                         context,
                         newStatus,

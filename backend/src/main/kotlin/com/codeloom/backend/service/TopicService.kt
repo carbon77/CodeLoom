@@ -19,7 +19,6 @@ class TopicService(
     private val topicRepository: TopicRepository,
     private val objectMapper: ObjectMapper,
 ) {
-
     fun findAll(): Iterable<Topic> = topicRepository.findAll()
 
     fun findById(id: UUID): Topic = findOrThrow(id)
@@ -31,33 +30,40 @@ class TopicService(
     }
 
     @Transactional
-    fun createManyWithProblem(problemId: Long, node: JsonNode) {
+    fun createManyWithProblem(
+        problemId: Long,
+        node: JsonNode,
+    ) {
         topicRepositoryCustomImpl.deleteRelationshipsWithProblem(problemId)
-        val problemTopicRelationships = node.asIterable()
-            .mapNotNull {
-                when {
-                    it.has("topic_id") -> {
-                        try {
-                            UUID.fromString(it["topic_id"].asString())
-                        } catch (_: IllegalArgumentException) {
-                            null
+        val problemTopicRelationships =
+            node.asIterable()
+                .mapNotNull {
+                    when {
+                        it.has("topic_id") -> {
+                            try {
+                                UUID.fromString(it["topic_id"].asString())
+                            } catch (_: IllegalArgumentException) {
+                                null
+                            }
                         }
-                    }
 
-                    it.has("name") -> {
-                        val topic = Topic(name = it["name"].asString())
-                        topicRepository.save(topic).id!!
-                    }
+                        it.has("name") -> {
+                            val topic = Topic(name = it["name"].asString())
+                            topicRepository.save(topic).id!!
+                        }
 
-                    else -> null
+                        else -> null
+                    }
                 }
-            }
-            .map { ProblemTopicRelationship(it, problemId) }
+                .map { ProblemTopicRelationship(it, problemId) }
         topicRepositoryCustomImpl.saveAllProblemRelationships(problemTopicRelationships)
     }
 
     @Transactional
-    fun patch(id: UUID, patchNode: JsonNode): Topic {
+    fun patch(
+        id: UUID,
+        patchNode: JsonNode,
+    ): Topic {
         val topic = findOrThrow(id)
         objectMapper.readerForUpdating(topic).readValue<Topic>(patchNode)
         return topicRepository.save(topic)

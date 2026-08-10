@@ -4,5 +4,4 @@ import com.codeloom.backend.model.TestCase
 import org.springframework.data.repository.CrudRepository
 import java.util.*
 
-interface TestCaseRepository : CrudRepository<TestCase, UUID>, TestCaseRepositoryCustom {
-}
+interface TestCaseRepository : CrudRepository<TestCase, UUID>, TestCaseRepositoryCustom

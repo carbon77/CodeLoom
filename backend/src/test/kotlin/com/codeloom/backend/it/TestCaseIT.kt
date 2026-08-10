@@ -8,9 +8,9 @@ import org.hamcrest.Matchers
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.servlet.*
@@ -27,21 +27,21 @@ import kotlin.test.assertTrue
 @Sql(
     statements = [
         "TRUNCATE TABLE test_cases RESTART IDENTITY CASCADE",
-        "TRUNCATE TABLE problems RESTART IDENTITY CASCADE"
+        "TRUNCATE TABLE problems RESTART IDENTITY CASCADE",
     ],
-    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
 )
 class TestCaseIT {
-
     companion object {
         @JvmStatic
         @Container
         @ServiceConnection
-        val postgresContainer = PostgreSQLContainer("postgres:18.1-alpine3.23").apply {
-            withDatabaseName("testdb")
-            withUsername("testuser")
-            withPassword("test")
-        }
+        val postgresContainer =
+            PostgreSQLContainer("postgres:18.1-alpine3.23").apply {
+                withDatabaseName("testdb")
+                withUsername("testuser")
+                withPassword("test")
+            }
     }
 
     @Autowired
@@ -57,23 +57,23 @@ class TestCaseIT {
         problemRepository.save(
             Problem(
                 title = "Two Sum",
-                slug = "two_sum"
-            )
+                slug = "two_sum",
+            ),
         )
 
     private fun initTestCase(
         problemId: Long,
         isPublic: Boolean = true,
         input: String = "1 2",
-        output: String = "3"
+        output: String = "3",
     ): TestCase =
         testCaseRepository.save(
             TestCase(
                 problemId = problemId,
                 input = input,
                 expectedOutput = output,
-                isPublic = isPublic
-            )
+                isPublic = isPublic,
+            ),
         )
 
     /* -------------------------------------------------------------
@@ -81,7 +81,6 @@ class TestCaseIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class FindOne {
-
         @Test
         fun `should return test case`() {
             val problem = initProblem()
@@ -110,7 +109,6 @@ class TestCaseIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class FindMany {
-
         @Test
         fun `should return empty list`() {
             mockMvc.get("/v1/testCases/by-ids") {
@@ -143,7 +141,6 @@ class TestCaseIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class FindByProblemId {
-
         @Test
         fun `should return all test cases by default`() {
             val problem = initProblem()
@@ -178,21 +175,21 @@ class TestCaseIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class Create {
-
         @Test
         fun `should create test case`() {
             val problem = initProblem()
 
             mockMvc.post("/v1/testCases") {
                 contentType = MediaType.APPLICATION_JSON
-                content = """
+                content =
+                    """
                     {
                       "problemId": ${problem.id},
                       "input": "1 2",
                       "expectedOutput": "3",
                       "isPublic": true
                     }
-                """.trimIndent()
+                    """.trimIndent()
             }
                 .andExpect {
                     status { isOk() }
@@ -212,7 +209,6 @@ class TestCaseIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class Patch {
-
         @Test
         fun `should patch test case`() {
             val problem = initProblem()
@@ -220,11 +216,12 @@ class TestCaseIT {
 
             mockMvc.patch("/v1/testCases/${testCase.id}") {
                 contentType = MediaType.APPLICATION_JSON
-                content = """
+                content =
+                    """
                     {
                       "isPublic": true
                     }
-                """.trimIndent()
+                    """.trimIndent()
             }
                 .andExpect {
                     status { isOk() }
@@ -241,7 +238,6 @@ class TestCaseIT {
      * ------------------------------------------------------------- */
     @Nested
     inner class Delete {
-
         @Test
         fun `should delete test case`() {
             val problem = initProblem()

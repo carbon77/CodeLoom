@@ -13,7 +13,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.util.*
 
 class SubmissionProcessingServiceTest : DockerTestBase() {
-
     @MockitoBean
     private val testCaseRepository: TestCaseRepository = mock()
 
@@ -33,7 +32,7 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
                     TestCase(UUID.randomUUID(), 1, "123 321", "444", true),
                     TestCase(UUID.randomUUID(), 1, "10 -20", "-10", true),
                     TestCase(UUID.randomUUID(), 1, "-45 -60", "-105", true),
-                )
+                ),
             )
     }
 
@@ -41,21 +40,23 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
     inner class Java {
         @Test
         fun `correct java program, should submission accepted`() {
-            val event = SubmissionEvent(
-                submissionId = submissionId,
-                problemId = 1,
-                userId = UUID.randomUUID(),
-                code = """
-                    import java.util.Scanner;
-                    public class Main {
-                        public static void main(String[] args) {
-                            Scanner in = new Scanner(System.in);
-                            System.out.print(in.nextInt() + in.nextInt());
+            val event =
+                SubmissionEvent(
+                    submissionId = submissionId,
+                    problemId = 1,
+                    userId = UUID.randomUUID(),
+                    code =
+                        """
+                        import java.util.Scanner;
+                        public class Main {
+                            public static void main(String[] args) {
+                                Scanner in = new Scanner(System.in);
+                                System.out.print(in.nextInt() + in.nextInt());
+                            }
                         }
-                    }
-                """.trimIndent(),
-                language = "java",
-            )
+                        """.trimIndent(),
+                    language = "java",
+                )
             service.process(event)
 
             verify(service) {
@@ -75,21 +76,23 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
 
         @Test
         fun `wrong java program, should wrong answer`() {
-            val event = SubmissionEvent(
-                submissionId = submissionId,
-                problemId = 1,
-                userId = UUID.randomUUID(),
-                code = """
-                    import java.util.Scanner;
-                    public class Main {
-                        public static void main(String[] args) {
-                            Scanner in = new Scanner(System.in);
-                            System.out.print(in.nextInt() - in.nextInt());
+            val event =
+                SubmissionEvent(
+                    submissionId = submissionId,
+                    problemId = 1,
+                    userId = UUID.randomUUID(),
+                    code =
+                        """
+                        import java.util.Scanner;
+                        public class Main {
+                            public static void main(String[] args) {
+                                Scanner in = new Scanner(System.in);
+                                System.out.print(in.nextInt() - in.nextInt());
+                            }
                         }
-                    }
-                """.trimIndent(),
-                language = "java",
-            )
+                        """.trimIndent(),
+                    language = "java",
+                )
             service.process(event)
 
             verify(service) {
@@ -109,21 +112,23 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
 
         @Test
         fun `wrong java program, should runtime error`() {
-            val event = SubmissionEvent(
-                submissionId = submissionId,
-                problemId = 1,
-                userId = UUID.randomUUID(),
-                code = """
-                    import java.util.Scanner;
-                    public class Main {
-                        public static void main(String[] args) {
-                            Scanner in = new Scanner(System.in);
-                            System.out.print(1 / 0);
+            val event =
+                SubmissionEvent(
+                    submissionId = submissionId,
+                    problemId = 1,
+                    userId = UUID.randomUUID(),
+                    code =
+                        """
+                        import java.util.Scanner;
+                        public class Main {
+                            public static void main(String[] args) {
+                                Scanner in = new Scanner(System.in);
+                                System.out.print(1 / 0);
+                            }
                         }
-                    }
-                """.trimIndent(),
-                language = "java",
-            )
+                        """.trimIndent(),
+                    language = "java",
+                )
             service.process(event)
 
             verify(service) {
@@ -143,20 +148,22 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
 
         @Test
         fun `wrong java program, time limit exceeded`() {
-            val event = SubmissionEvent(
-                submissionId = submissionId,
-                problemId = 1,
-                userId = UUID.randomUUID(),
-                code = """
-                    public class Main {
-                        public static void main(String[] args) {
-                            while (true) {}
+            val event =
+                SubmissionEvent(
+                    submissionId = submissionId,
+                    problemId = 1,
+                    userId = UUID.randomUUID(),
+                    code =
+                        """
+                        public class Main {
+                            public static void main(String[] args) {
+                                while (true) {}
+                            }
                         }
-                    }
-                """.trimIndent(),
-                language = "java",
-                executionTimeLimitMs = 5 * 1000L
-            )
+                        """.trimIndent(),
+                    language = "java",
+                    executionTimeLimitMs = 5 * 1000L,
+                )
             service.process(event)
 
             verify(service) {
@@ -176,20 +183,22 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
 
         @Test
         fun `wrong java program, should memory limit exceeded`() {
-            val event = SubmissionEvent(
-                submissionId = submissionId,
-                problemId = 1,
-                userId = UUID.randomUUID(),
-                code = """
-                    public class Main {
-                        public static void main(String[] args) {
-                            int[] x = new int[1000000];
+            val event =
+                SubmissionEvent(
+                    submissionId = submissionId,
+                    problemId = 1,
+                    userId = UUID.randomUUID(),
+                    code =
+                        """
+                        public class Main {
+                            public static void main(String[] args) {
+                                int[] x = new int[1000000];
+                            }
                         }
-                    }
-                """.trimIndent(),
-                language = "java",
-                memoryUsageLimitBytes = 10 * 1024 * 1024L,
-            )
+                        """.trimIndent(),
+                    language = "java",
+                    memoryUsageLimitBytes = 10 * 1024 * 1024L,
+                )
             service.process(event)
 
             verify(service) {
@@ -209,17 +218,19 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
 
         @Test
         fun `wrong java program, should compile error`() {
-            val event = SubmissionEvent(
-                submissionId = submissionId,
-                problemId = 1,
-                userId = UUID.randomUUID(),
-                code = """
-                    import java.util.Scanner;
-                    public class Main {
-                        public static void main(String[] args) {
-                """.trimIndent(),
-                language = "java",
-            )
+            val event =
+                SubmissionEvent(
+                    submissionId = submissionId,
+                    problemId = 1,
+                    userId = UUID.randomUUID(),
+                    code =
+                        """
+                        import java.util.Scanner;
+                        public class Main {
+                            public static void main(String[] args) {
+                        """.trimIndent(),
+                    language = "java",
+                )
             service.process(event)
 
             verify(service) {
@@ -237,5 +248,4 @@ class SubmissionProcessingServiceTest : DockerTestBase() {
             }
         }
     }
-
 }

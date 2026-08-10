@@ -1,7 +1,7 @@
 package com.codeloom.backend.it
 
-import com.codeloom.backend.dao.problem.ProblemRepository
 import com.codeloom.backend.dao.SubmissionRepository
+import com.codeloom.backend.dao.problem.ProblemRepository
 import com.codeloom.backend.dao.testcase.TestCaseRepository
 import com.codeloom.backend.dao.testcase.TestCaseResultRepository
 import com.codeloom.backend.model.Problem
@@ -29,26 +29,27 @@ import kotlin.test.assertEquals
 @TestPropertySource(
     properties = [
         "spring.kafka.consumer.auto-offset-reset=earliest",
-    ]
+    ],
 )
 class SubmissionStatusConsumerIT {
-
     companion object {
         @JvmStatic
         @Container
         @ServiceConnection
-        val postgresContainer = PostgreSQLContainer("postgres:18.1-alpine3.23").apply {
-            withDatabaseName("testdb")
-            withUsername("testuser")
-            withPassword("test")
-        }
+        val postgresContainer =
+            PostgreSQLContainer("postgres:18.1-alpine3.23").apply {
+                withDatabaseName("testdb")
+                withUsername("testuser")
+                withPassword("test")
+            }
 
         @JvmStatic
         @Container
         @ServiceConnection
-        val kafkaContainer = ConfluentKafkaContainer(
-            DockerImageName.parse("confluentinc/cp-kafka:7.7.7")
-        )
+        val kafkaContainer =
+            ConfluentKafkaContainer(
+                DockerImageName.parse("confluentinc/cp-kafka:7.7.7"),
+            )
     }
 
     @Autowired
@@ -89,7 +90,7 @@ class SubmissionStatusConsumerIT {
                     input = "1",
                     expectedOutput = "1",
                     isPublic = true,
-                )
+                ),
             )
         testCaseRepository.save(
             TestCase(
@@ -97,7 +98,7 @@ class SubmissionStatusConsumerIT {
                 input = "2",
                 expectedOutput = "2",
                 isPublic = false,
-            )
+            ),
         )
         submissionId =
             submissionRepository.save(
@@ -107,7 +108,7 @@ class SubmissionStatusConsumerIT {
                     code = "print(input())",
                     language = "python",
                     status = SubmissionStatus.PENDING,
-                )
+                ),
             ).id!!
     }
 
@@ -178,7 +179,7 @@ class SubmissionStatusConsumerIT {
                     ]
                 }
             }
-        """.trimIndent()
+            """.trimIndent()
 
         kafkaTemplate.send(topic, unknownId.toString(), event).get()
 
@@ -187,13 +188,15 @@ class SubmissionStatusConsumerIT {
         assertEquals(SubmissionStatus.PENDING, submissionRepository.findById(submissionId).get().status)
     }
 
-    private fun acceptedEvent(): String =
-        event(SubmissionStatus.ACCEPTED, "1", "")
+    private fun acceptedEvent(): String = event(SubmissionStatus.ACCEPTED, "1", "")
 
-    private fun wrongAnswerEvent(): String =
-        event(SubmissionStatus.WRONG_ANSWER, "0", "wrong")
+    private fun wrongAnswerEvent(): String = event(SubmissionStatus.WRONG_ANSWER, "0", "wrong")
 
-    private fun event(status: SubmissionStatus, stdout: String, stderr: String): String {
+    private fun event(
+        status: SubmissionStatus,
+        stdout: String,
+        stderr: String,
+    ): String {
         val results =
             """
             [
@@ -208,7 +211,7 @@ class SubmissionStatusConsumerIT {
                     "memoryUsageBytes": 1024
                 }
             ]
-        """.trimIndent()
+            """.trimIndent()
         return statusEventWithResults(status, results)
     }
 
@@ -221,9 +224,12 @@ class SubmissionStatusConsumerIT {
             "newStatus": "${status.name}",
             "payload": null
         }
-    """.trimIndent()
+        """.trimIndent()
 
-    private fun statusEventWithResults(status: SubmissionStatus, resultsJson: String): String =
+    private fun statusEventWithResults(
+        status: SubmissionStatus,
+        resultsJson: String,
+    ): String =
         """
         {
             "submissionId": "$submissionId",
@@ -234,9 +240,12 @@ class SubmissionStatusConsumerIT {
                 "testCaseResults": $resultsJson
             }
         }
-    """.trimIndent()
+        """.trimIndent()
 
-    private fun awaitStatus(expected: SubmissionStatus, timeoutMs: Long = 20_000) {
+    private fun awaitStatus(
+        expected: SubmissionStatus,
+        timeoutMs: Long = 20_000,
+    ) {
         val deadline = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < deadline) {
             if (submissionRepository.findById(submissionId).get().status == expected) return
@@ -245,7 +254,10 @@ class SubmissionStatusConsumerIT {
         throw AssertionError("Submission $submissionId did not reach status $expected within ${timeoutMs}ms")
     }
 
-    private fun awaitResultCount(expected: Int, timeoutMs: Long = 20_000) {
+    private fun awaitResultCount(
+        expected: Int,
+        timeoutMs: Long = 20_000,
+    ) {
         val deadline = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < deadline) {
             val count = testCaseResultRepository.findAll().count { it.submissionId == submissionId }

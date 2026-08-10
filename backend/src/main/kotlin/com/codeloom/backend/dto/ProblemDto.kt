@@ -14,7 +14,6 @@ data class ProblemDto(
     val constraints: ProblemConstraints?,
     val examples: ProblemExamples?,
     val hints: Array<String>,
-
     val testCases: Iterable<TestCase>,
     val topics: Iterable<Topic>,
 )

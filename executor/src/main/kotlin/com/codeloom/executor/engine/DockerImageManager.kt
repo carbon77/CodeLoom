@@ -14,7 +14,10 @@ class DockerImageManager(
         private val logger = LoggerFactory.getLogger(javaClass)
     }
 
-    fun pullImageIfAbsent(image: String, timeoutSeconds: Long = 120) {
+    fun pullImageIfAbsent(
+        image: String,
+        timeoutSeconds: Long = 120,
+    ) {
         try {
             dockerClient.inspectImageCmd(image).exec()
         } catch (_: NotFoundException) {

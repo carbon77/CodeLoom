@@ -8,5 +8,5 @@ import java.util.*
 @Table("topics")
 data class Topic(
     @Id @Column("topic_id") var id: UUID? = null,
-    @Column("name") var name: String
+    @Column("name") var name: String,
 )

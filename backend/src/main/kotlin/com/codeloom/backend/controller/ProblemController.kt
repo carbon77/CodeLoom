@@ -19,7 +19,6 @@ import tools.jackson.databind.JsonNode
 class ProblemController(
     private val problemService: ProblemService,
 ) {
-
     @Operation(summary = "Get all problem items")
     @GetMapping("items")
     fun findAllItems(
@@ -28,50 +27,63 @@ class ProblemController(
         @RequestParam(defaultValue = "true") publishedOnly: Boolean,
     ): List<ProblemListDto> {
         return problemService.findItemsByFilters(
-            filters = ProblemFilters(
-                difficulties = difficulties,
-                topics = topics,
-                publishedOnly = publishedOnly,
-            )
+            filters =
+                ProblemFilters(
+                    difficulties = difficulties,
+                    topics = topics,
+                    publishedOnly = publishedOnly,
+                ),
         )
     }
 
     @Operation(summary = "Get problem by id")
     @GetMapping("{problemId}")
-    fun findById(@PathVariable("problemId") problemId: Long): Problem {
+    fun findById(
+        @PathVariable("problemId") problemId: Long,
+    ): Problem {
         return problemService.findById(problemId)
     }
 
     @Operation(summary = "Get problem dto by slug")
     @GetMapping("slug/{problemSlug}")
-    fun findDtoBySlug(@PathVariable("problemSlug") problemSlug: String): ProblemDto =
-        problemService.findDtoBySlug(problemSlug)
+    fun findDtoBySlug(
+        @PathVariable("problemSlug") problemSlug: String,
+    ): ProblemDto = problemService.findDtoBySlug(problemSlug)
 
     @Operation(summary = "Delete problem by id")
     @DeleteMapping("{problemId}")
-    fun delete(@PathVariable("problemId") problemId: Long) {
+    fun delete(
+        @PathVariable("problemId") problemId: Long,
+    ) {
         problemService.deleteById(problemId)
     }
 
     @Operation(summary = "Create new problem")
     @PostMapping
-    fun create(@Valid @RequestBody request: CreateProblemRequest): Problem {
+    fun create(
+        @Valid @RequestBody request: CreateProblemRequest,
+    ): Problem {
         return problemService.create(request)
     }
 
     @Operation(summary = "Update problem")
     @PutMapping("/{problemId}")
-    fun update(@PathVariable problemId: Long, @RequestBody updated: JsonNode): Problem {
+    fun update(
+        @PathVariable problemId: Long,
+        @RequestBody updated: JsonNode,
+    ): Problem {
         return problemService.update(problemId, updated)
     }
 
     @Operation(summary = "Publish problem")
     @PatchMapping("/{problemId}/publish")
-    fun publish(@PathVariable("problemId") problemId: Long) =
-        problemService.publish(problemId)
+    fun publish(
+        @PathVariable("problemId") problemId: Long,
+    ) = problemService.publish(problemId)
 
     @Operation(summary = "Unpublish problem")
     @PatchMapping("/{problemId}/unpublish")
-    fun unpublish(@PathVariable("problemId") problemId: Long) =
-        problemService.unpublish(problemId)
+    fun unpublish(
+        @PathVariable("problemId") problemId: Long,
+    ) = problemService.unpublish(problemId)
 }

@@ -15,19 +15,19 @@ class EventService(
     @Value("\${codeloom.kafka.topics.submission-status}")
     private val submissionStatusTopic: String,
 ) {
-
     fun submissionStatusChanged(
         context: SubmissionContext,
         newStatus: SubmissionStatus,
         payload: SubmissionStatusPayload? = null,
     ) {
-        val event = SubmissionStatusChangedEvent(
-            submissionId = context.submissionId,
-            userId = context.userId,
-            problemId = context.problemId,
-            newStatus = newStatus,
-            payload = payload
-        )
+        val event =
+            SubmissionStatusChangedEvent(
+                submissionId = context.submissionId,
+                userId = context.userId,
+                problemId = context.problemId,
+                newStatus = newStatus,
+                payload = payload,
+            )
 
         kafkaTemplate.send(
             submissionStatusTopic,

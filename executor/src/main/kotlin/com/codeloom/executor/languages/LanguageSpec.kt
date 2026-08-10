@@ -29,7 +29,8 @@ enum class LanguageSpec(
         sourceFileName = "main.py",
         compileCommand = null,
         runCommand = "python3 main.py < input.txt",
-    );
+    ),
+    ;
 
     companion object {
         private val byId = entries.associateBy(LanguageSpec::id)

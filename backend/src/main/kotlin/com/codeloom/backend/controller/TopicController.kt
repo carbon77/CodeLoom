@@ -15,14 +15,23 @@ class TopicController(private val topicService: TopicService) {
     fun findAll(): Iterable<Topic> = topicService.findAll()
 
     @GetMapping("/{id}")
-    fun findAll(@PathVariable id: UUID): Topic = topicService.findById(id)
+    fun findAll(
+        @PathVariable id: UUID,
+    ): Topic = topicService.findById(id)
 
     @PostMapping
-    fun create(@Valid @RequestBody request: CreateTopicRequest): Topic = topicService.create(request)
+    fun create(
+        @Valid @RequestBody request: CreateTopicRequest,
+    ): Topic = topicService.create(request)
 
     @PatchMapping("/{id}")
-    fun patch(@PathVariable id: UUID, @RequestBody patchNode: JsonNode): Topic = topicService.patch(id, patchNode)
+    fun patch(
+        @PathVariable id: UUID,
+        @RequestBody patchNode: JsonNode,
+    ): Topic = topicService.patch(id, patchNode)
 
     @DeleteMapping("/{id}")
-    fun delete(@PathVariable id: UUID) = topicService.delete(id)
+    fun delete(
+        @PathVariable id: UUID,
+    ) = topicService.delete(id)
 }

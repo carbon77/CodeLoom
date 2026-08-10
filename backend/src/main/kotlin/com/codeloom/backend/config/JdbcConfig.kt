@@ -19,29 +19,23 @@ import java.sql.JDBCType
 class JdbcConfig(
     private val objectMapper: ObjectMapper,
 ) : AbstractJdbcConfiguration() {
-
     override fun userConverters(): List<*> {
         return listOf(
             // Problem Examples
             @ReadingConverter
             object : AbstractJsonReadingConverter<ProblemExamples>(objectMapper, ProblemExamples::class.java) {},
-
             @WritingConverter
             object : AbstractJsonWritingConverter<ProblemExamples>(objectMapper, ProblemExamples::class.java) {},
-
             // Problem constraints
             @ReadingConverter
             object : AbstractJsonReadingConverter<ProblemConstraints>(objectMapper, ProblemConstraints::class.java) {},
-
             @WritingConverter
             object : AbstractJsonWritingConverter<ProblemConstraints>(objectMapper, ProblemConstraints::class.java) {},
-
             // ProblemDifficulty to PostgreSQL enum
             @WritingConverter
             object : Converter<ProblemDifficulty, JdbcValue> {
                 override fun convert(source: ProblemDifficulty) = JdbcValue.of(source, JDBCType.OTHER)
             },
-
             @WritingConverter
             object : Converter<SubmissionStatus, JdbcValue> {
                 override fun convert(source: SubmissionStatus) = JdbcValue.of(source, JDBCType.OTHER)

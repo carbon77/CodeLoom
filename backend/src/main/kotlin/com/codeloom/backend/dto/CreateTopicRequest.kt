@@ -4,5 +4,5 @@ import jakarta.validation.constraints.NotBlank
 
 data class CreateTopicRequest(
     @NotBlank(message = "Can't create topic without name")
-    val name: String
+    val name: String,
 )

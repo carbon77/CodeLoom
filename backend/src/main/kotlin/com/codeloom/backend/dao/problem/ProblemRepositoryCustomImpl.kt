@@ -23,16 +23,16 @@ class ProblemRepositoryCustomImpl(
     private val dsl: DSLContext,
     private val objectMapper: ObjectMapper,
 ) : ProblemRepositoryCustom {
-
     override fun findProblemListDtos(filters: ProblemFilters): List<ProblemListDto> {
-        var stmt = dsl.select(
-            PROBLEMS.PROBLEM_ID,
-            PROBLEMS.SLUG,
-            PROBLEMS.TITLE,
-            PROBLEMS.DIFFICULTY,
-            PROBLEMS.PUBLISHED_AT,
-        )
-            .from(PROBLEMS)
+        var stmt =
+            dsl.select(
+                PROBLEMS.PROBLEM_ID,
+                PROBLEMS.SLUG,
+                PROBLEMS.TITLE,
+                PROBLEMS.DIFFICULTY,
+                PROBLEMS.PUBLISHED_AT,
+            )
+                .from(PROBLEMS)
         val conditions = mutableListOf<Condition>()
 
         filters.difficulties?.takeIf { it.isNotEmpty() }?.let {
@@ -40,12 +40,12 @@ class ProblemRepositoryCustomImpl(
         }
 
         filters.topics?.takeIf { it.isNotEmpty() }?.let {
-            stmt = stmt
-                .innerJoin(PROBLEM_TOPICS)
-                .on(PROBLEM_TOPICS.PROBLEM_ID.eq(PROBLEMS.PROBLEM_ID))
-
-                .innerJoin(TOPICS)
-                .on(TOPICS.TOPIC_ID.eq(PROBLEM_TOPICS.TOPIC_ID))
+            stmt =
+                stmt
+                    .innerJoin(PROBLEM_TOPICS)
+                    .on(PROBLEM_TOPICS.PROBLEM_ID.eq(PROBLEMS.PROBLEM_ID))
+                    .innerJoin(TOPICS)
+                    .on(TOPICS.TOPIC_ID.eq(PROBLEM_TOPICS.TOPIC_ID))
 
             conditions.add(TOPICS.NAME.`in`(filters.topics))
         }
@@ -59,10 +59,11 @@ class ProblemRepositoryCustomImpl(
     }
 
     override fun findProblemDtoBySlug(slug: String): ProblemDto? {
-        val dto = dsl
-            .selectFrom(PROBLEMS)
-            .where(PROBLEMS.SLUG.eq(slug))
-            .fetchOne() ?: return null
+        val dto =
+            dsl
+                .selectFrom(PROBLEMS)
+                .where(PROBLEMS.SLUG.eq(slug))
+                .fetchOne() ?: return null
 
         val problemId = dto.problemId?.toLong() ?: return null
         val testCases = testCaseRepository.findAllByProblemId(problemId, true)
@@ -74,12 +75,14 @@ class ProblemRepositoryCustomImpl(
             title = dto.title ?: "",
             description = dto.description ?: "",
             difficulty = ProblemDifficulty.valueOf(dto.difficulty!!.literal),
-            constraints = dto.constraints?.data()?.let {
-                objectMapper.readValue(it, ProblemConstraints::class.java)
-            },
-            examples = dto.examples?.data()?.let {
-                objectMapper.readValue(it, ProblemExamples::class.java)
-            },
+            constraints =
+                dto.constraints?.data()?.let {
+                    objectMapper.readValue(it, ProblemConstraints::class.java)
+                },
+            examples =
+                dto.examples?.data()?.let {
+                    objectMapper.readValue(it, ProblemExamples::class.java)
+                },
             hints = dto.hints?.mapNotNull { it }?.toTypedArray()!!,
             testCases = testCases,
             topics = topics,

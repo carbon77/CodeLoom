@@ -8,7 +8,6 @@ abstract class AbstractJsonReadingConverter<T>(
     private val objectMapper: ObjectMapper,
     private val clazz: Class<T>,
 ) : Converter<PGobject, T> {
-
     override fun convert(source: PGobject): T {
         return objectMapper.readValue(source.value, clazz)
     }

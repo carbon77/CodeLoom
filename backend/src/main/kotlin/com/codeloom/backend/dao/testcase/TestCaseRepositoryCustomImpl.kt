@@ -13,15 +13,17 @@ class TestCaseRepositoryCustomImpl(
         problemId: Long,
         isPublic: Boolean?,
     ): Iterable<TestCase> {
-        val conditions = mutableListOf(
-            TEST_CASES.PROBLEM_ID.eq(problemId.toInt()),
-        )
+        val conditions =
+            mutableListOf(
+                TEST_CASES.PROBLEM_ID.eq(problemId.toInt()),
+            )
         isPublic?.let {
             conditions.add(TEST_CASES.IS_PUBLIC.eq(isPublic))
         }
-        val stmt = dsl.select(TEST_CASES.asterisk())
-            .from(TEST_CASES)
-            .where(conditions)
+        val stmt =
+            dsl.select(TEST_CASES.asterisk())
+                .from(TEST_CASES)
+                .where(conditions)
         return stmt.fetchInto(TestCase::class.java)
     }
 }

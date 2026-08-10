@@ -1,0 +1,19 @@
+info:
+  name: Get Problems Items
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://localhost:8081/v1/problems/items?publishedOnly=false
+  params:
+    - name: publishedOnly
+      value: "false"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

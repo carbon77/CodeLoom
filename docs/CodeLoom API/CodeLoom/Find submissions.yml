@@ -1,0 +1,19 @@
+info:
+  name: Find submissions
+  type: http
+  seq: 7
+
+http:
+  method: GET
+  url: localhost:8081/v1/submissions?problemId=1
+  params:
+    - name: problemId
+      value: "1"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

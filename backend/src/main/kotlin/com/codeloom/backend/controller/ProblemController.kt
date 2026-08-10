@@ -1,5 +1,7 @@
 package com.codeloom.backend.controller
 
+import com.codeloom.backend.config.BAD_REQUEST_RESPONSE_REF
+import com.codeloom.backend.config.NOT_FOUND_RESPONSE_REF
 import com.codeloom.backend.dto.CreateProblemRequest
 import com.codeloom.backend.dto.ProblemDto
 import com.codeloom.backend.dto.ProblemFilters
@@ -8,6 +10,7 @@ import com.codeloom.backend.model.Problem
 import com.codeloom.backend.model.ProblemDifficulty
 import com.codeloom.backend.service.ProblemService
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
@@ -37,6 +40,7 @@ class ProblemController(
     }
 
     @Operation(summary = "Get problem by id")
+    @ApiResponse(responseCode = "404", ref = NOT_FOUND_RESPONSE_REF)
     @GetMapping("{problemId}")
     fun findById(
         @PathVariable("problemId") problemId: Long,
@@ -45,6 +49,7 @@ class ProblemController(
     }
 
     @Operation(summary = "Get problem dto by slug")
+    @ApiResponse(responseCode = "404", ref = NOT_FOUND_RESPONSE_REF)
     @GetMapping("slug/{problemSlug}")
     fun findDtoBySlug(
         @PathVariable("problemSlug") problemSlug: String,
@@ -59,6 +64,7 @@ class ProblemController(
     }
 
     @Operation(summary = "Create new problem")
+    @ApiResponse(responseCode = "400", ref = BAD_REQUEST_RESPONSE_REF)
     @PostMapping
     fun create(
         @Valid @RequestBody request: CreateProblemRequest,
@@ -67,6 +73,8 @@ class ProblemController(
     }
 
     @Operation(summary = "Update problem")
+    @ApiResponse(responseCode = "400", ref = BAD_REQUEST_RESPONSE_REF)
+    @ApiResponse(responseCode = "404", ref = NOT_FOUND_RESPONSE_REF)
     @PutMapping("/{problemId}")
     fun update(
         @PathVariable problemId: Long,
@@ -76,12 +84,14 @@ class ProblemController(
     }
 
     @Operation(summary = "Publish problem")
+    @ApiResponse(responseCode = "404", ref = NOT_FOUND_RESPONSE_REF)
     @PatchMapping("/{problemId}/publish")
     fun publish(
         @PathVariable("problemId") problemId: Long,
     ) = problemService.publish(problemId)
 
     @Operation(summary = "Unpublish problem")
+    @ApiResponse(responseCode = "404", ref = NOT_FOUND_RESPONSE_REF)
     @PatchMapping("/{problemId}/unpublish")
     fun unpublish(
         @PathVariable("problemId") problemId: Long,

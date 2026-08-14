@@ -4,9 +4,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.AuthenticationException
-import org.springframework.validation.ObjectError
+import org.springframework.validation.FieldError
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -63,6 +64,15 @@ class RestExceptionHandler {
         return ResponseEntity.status(error.status).body(error)
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleException(
+        e: HttpMessageNotReadableException,
+        servlet: HttpServletRequest,
+    ): ResponseEntity<ErrorResponse> {
+        val error = errorResponse(e, servlet)
+        return ResponseEntity.status(error.status).body(error)
+    }
+
     private fun errorResponse(
         e: Exception,
         servlet: HttpServletRequest,
@@ -95,13 +105,21 @@ class RestExceptionHandler {
                     path = servlet.requestURI,
                 )
 
+            is HttpMessageNotReadableException ->
+                ErrorResponse(
+                    status = HttpStatus.BAD_REQUEST.value(),
+                    message = "Body is malformed",
+                    timestamp = LocalDateTime.now(),
+                    path = servlet.requestURI,
+                )
+
             is MethodArgumentNotValidException -> {
                 val map =
-                    e.allErrors.stream()
+                    e.fieldErrors.stream()
                         .collect(
                             Collectors.toMap(
-                                ObjectError::getObjectName,
-                                ObjectError::getDefaultMessage,
+                                FieldError::getField,
+                                FieldError::getDefaultMessage,
                             ),
                         )
                         .toMap()

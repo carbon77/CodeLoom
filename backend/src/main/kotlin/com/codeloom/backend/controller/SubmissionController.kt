@@ -1,8 +1,10 @@
 package com.codeloom.backend.controller
 
+import com.codeloom.backend.config.BAD_REQUEST_RESPONSE_REF
 import com.codeloom.backend.dto.SendSubmissionRequest
 import com.codeloom.backend.model.Submission
 import com.codeloom.backend.service.SubmissionService
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
@@ -21,6 +23,7 @@ class SubmissionController(
     }
 
     @PostMapping
+    @ApiResponse(responseCode = "400", ref = BAD_REQUEST_RESPONSE_REF)
     fun sendSubmission(
         @Valid @RequestBody request: SendSubmissionRequest,
         principal: Principal,

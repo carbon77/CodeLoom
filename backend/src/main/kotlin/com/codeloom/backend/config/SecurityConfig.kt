@@ -1,5 +1,6 @@
 package com.codeloom.backend.config
 
+import com.codeloom.backend.security.CustomAuthenticationEntryPoint
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -18,7 +19,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 @Profile("!test")
-class SecurityConfig {
+class SecurityConfig(
+    private val customAuthenticationEntryPoint: CustomAuthenticationEntryPoint,
+) {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http {
@@ -40,7 +43,13 @@ class SecurityConfig {
             }
 
             oauth2ResourceServer {
+                authenticationEntryPoint = customAuthenticationEntryPoint
                 jwt {}
+            }
+
+            exceptionHandling {
+                authenticationEntryPoint = customAuthenticationEntryPoint
+                accessDeniedHandler = customAuthenticationEntryPoint
             }
         }
 

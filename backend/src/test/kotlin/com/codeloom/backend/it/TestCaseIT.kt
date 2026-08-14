@@ -202,6 +202,44 @@ class TestCaseIT {
 
             assertEquals(1, testCaseRepository.count())
         }
+
+        @Test
+        fun `bad request should return body malformed`() {
+            mockMvc.post("/v1/testCases") {
+                contentType = MediaType.APPLICATION_JSON
+                content =
+                    """
+                    {
+                    """.trimIndent()
+            }
+                .andExpect {
+                    status { isBadRequest() }
+                    jsonPath("$.status", Matchers.equalTo(400))
+                    jsonPath("$.path", Matchers.equalTo("/v1/testCases"))
+                }
+        }
+
+        @Test
+        fun `bad request should return validation errors`() {
+            mockMvc.post("/v1/testCases") {
+                contentType = MediaType.APPLICATION_JSON
+                content =
+                    """
+                    {
+                      "problemId": 123,
+                      "input": "",
+                      "expectedOutput": "",
+                      "isPublic": true
+                    }
+                    """.trimIndent()
+            }
+                .andExpect {
+                    status { isBadRequest() }
+                    jsonPath("$.status", Matchers.equalTo(400))
+                    jsonPath("$.path", Matchers.equalTo("/v1/testCases"))
+                    jsonPath("$.payload", Matchers.notNullValue())
+                }
+        }
     }
 
     /* -------------------------------------------------------------

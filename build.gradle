@@ -28,6 +28,7 @@ subprojects {
     dependencies {
         implementation 'org.jetbrains.kotlin:kotlin-reflect'
         implementation 'tools.jackson.module:jackson-module-kotlin:3.2.1'
+        implementation 'io.github.oshai:kotlin-logging-jvm:8.0.4'
     }
 
     spotless {

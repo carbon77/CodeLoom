@@ -1,8 +1,11 @@
 package com.codeloom.backend.controller
 
+import com.codeloom.backend.config.BAD_REQUEST_RESPONSE_REF
+import com.codeloom.backend.config.NOT_FOUND_RESPONSE_REF
 import com.codeloom.backend.dto.CreateTopicRequest
 import com.codeloom.backend.model.Topic
 import com.codeloom.backend.service.TopicService
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
 import tools.jackson.databind.JsonNode
@@ -15,16 +18,19 @@ class TopicController(private val topicService: TopicService) {
     fun findAll(): Iterable<Topic> = topicService.findAll()
 
     @GetMapping("/{id}")
+    @ApiResponse(responseCode = "404", ref = NOT_FOUND_RESPONSE_REF)
     fun findAll(
         @PathVariable id: UUID,
     ): Topic = topicService.findById(id)
 
     @PostMapping
+    @ApiResponse(responseCode = "400", ref = BAD_REQUEST_RESPONSE_REF)
     fun create(
         @Valid @RequestBody request: CreateTopicRequest,
     ): Topic = topicService.create(request)
 
     @PatchMapping("/{id}")
+    @ApiResponse(responseCode = "404", ref = NOT_FOUND_RESPONSE_REF)
     fun patch(
         @PathVariable id: UUID,
         @RequestBody patchNode: JsonNode,

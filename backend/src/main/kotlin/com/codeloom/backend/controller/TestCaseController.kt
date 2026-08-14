@@ -1,8 +1,10 @@
 package com.codeloom.backend.controller
 
+import com.codeloom.backend.config.NOT_FOUND_RESPONSE_REF
 import com.codeloom.backend.dto.CreateTestCaseRequest
 import com.codeloom.backend.model.TestCase
 import com.codeloom.backend.service.TestCaseService
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
 import tools.jackson.databind.JsonNode
@@ -12,6 +14,7 @@ import java.util.*
 @RequestMapping("/v1/testCases")
 class TestCaseController(private val testCaseService: TestCaseService) {
     @GetMapping("/{id}")
+    @ApiResponse(responseCode = "404", ref = NOT_FOUND_RESPONSE_REF)
     fun findById(
         @PathVariable id: UUID,
     ): TestCase = testCaseService.findById(id)
@@ -33,6 +36,7 @@ class TestCaseController(private val testCaseService: TestCaseService) {
     ): TestCase = testCaseService.create(request)
 
     @PatchMapping("/{id}")
+    @ApiResponse(responseCode = "404", ref = NOT_FOUND_RESPONSE_REF)
     fun patch(
         @PathVariable id: UUID,
         @RequestBody patchNode: JsonNode,

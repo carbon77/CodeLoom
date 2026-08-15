@@ -109,7 +109,7 @@ class ProblemIT {
             initProblems()
 
             mockMvc.get("/v1/problems/items") {
-                initUser(role = UserRole.USER)
+                initUser(roles = arrayOf(UserRole.USER))
             }.andExpect {
                 status { isOk() }
                 jsonPath("$.length()", Matchers.equalTo(2))
@@ -121,7 +121,7 @@ class ProblemIT {
         @Test
         fun `user should not request unpublished problems`() {
             mockMvc.get("/v1/problems/items") {
-                initUser(role = UserRole.USER)
+                initUser(roles = arrayOf(UserRole.USER))
                 param("publishedOnly", "false")
             }.andExpect {
                 status { isForbidden() }
@@ -153,7 +153,7 @@ class ProblemIT {
             initProblems()
 
             mockMvc.get("/v1/problems/slug/two_sum") {
-                initUser(role = UserRole.USER)
+                initUser(roles = arrayOf(UserRole.USER))
             }.andExpect { status { isNotFound() } }
         }
     }
@@ -181,7 +181,7 @@ class ProblemIT {
             initProblems()
 
             mockMvc.get("/v1/problems/1") {
-                initUser(role = UserRole.USER)
+                initUser(roles = arrayOf(UserRole.USER))
             }.andExpect { status { isNotFound() } }
         }
     }

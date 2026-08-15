@@ -1,13 +1,12 @@
 package com.codeloom.backend.service
 
 import com.codeloom.backend.config.getUserId
-import com.codeloom.backend.config.hasRole
+import com.codeloom.backend.config.isRegularUser
 import com.codeloom.backend.dao.SubmissionRepository
 import com.codeloom.backend.dao.problem.ProblemRepository
 import com.codeloom.backend.dto.SendSubmissionRequest
 import com.codeloom.backend.exception.ProblemNotFoundException
 import com.codeloom.backend.model.Submission
-import com.codeloom.backend.security.UserRole
 import com.codeloom.common.SubmissionEvent
 import com.codeloom.common.SubmissionStatus
 import org.slf4j.LoggerFactory
@@ -45,11 +44,12 @@ class SubmissionService(
         auth: Authentication,
     ) {
         logger.info("Sending submission...")
-        val problem = problemRepository.findById(request.problemId).orElseThrow {
-            ProblemNotFoundException(request.problemId)
-        }
+        val problem =
+            problemRepository.findById(request.problemId).orElseThrow {
+                ProblemNotFoundException(request.problemId)
+            }
 
-        if (auth.hasRole(UserRole.USER) && !problem.isPublished()) {
+        if (auth.isRegularUser() && !problem.isPublished()) {
             // We don't want to expose information about unpublished problems
             throw ProblemNotFoundException(request.problemId)
         }

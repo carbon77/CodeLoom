@@ -5,5 +5,5 @@ import org.springframework.web.server.ResponseStatusException
 
 class ForbiddenActionException : ResponseStatusException(
     HttpStatus.FORBIDDEN,
-    "This actions is forbidden"
+    "This actions is forbidden",
 )

@@ -16,6 +16,7 @@ import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 
 const val BAD_REQUEST_RESPONSE_REF = "#/components/responses/BadRequest"
 const val NOT_FOUND_RESPONSE_REF = "#/components/responses/NotFound"
+const val FORBIDDEN_RESPONSE_REF = "#/components/responses/Forbidden"
 
 @Configuration
 class OpenApiConfig {

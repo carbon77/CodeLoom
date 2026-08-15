@@ -1,6 +1,7 @@
 package com.codeloom.backend.controller
 
 import com.codeloom.backend.config.BAD_REQUEST_RESPONSE_REF
+import com.codeloom.backend.config.FORBIDDEN_RESPONSE_REF
 import com.codeloom.backend.config.NOT_FOUND_RESPONSE_REF
 import com.codeloom.backend.dto.CreateProblemRequest
 import com.codeloom.backend.dto.ProblemDto
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import tools.jackson.databind.JsonNode
 
@@ -23,19 +25,21 @@ class ProblemController(
     private val problemService: ProblemService,
 ) {
     @Operation(summary = "Get all problem items")
+    @ApiResponse(responseCode = "403", ref = FORBIDDEN_RESPONSE_REF)
     @GetMapping("items")
     fun findAllItems(
+        auth: Authentication,
         @RequestParam(required = false) difficulties: Set<ProblemDifficulty>?,
         @RequestParam(required = false) topics: Set<String>?,
         @RequestParam(defaultValue = "true") publishedOnly: Boolean,
     ): List<ProblemListDto> {
         return problemService.findItemsByFilters(
-            filters =
-                ProblemFilters(
-                    difficulties = difficulties,
-                    topics = topics,
-                    publishedOnly = publishedOnly,
-                ),
+            auth,
+            ProblemFilters(
+                difficulties = difficulties,
+                topics = topics,
+                publishedOnly = publishedOnly,
+            ),
         )
     }
 
@@ -43,17 +47,19 @@ class ProblemController(
     @ApiResponse(responseCode = "404", ref = NOT_FOUND_RESPONSE_REF)
     @GetMapping("{problemId}")
     fun findById(
+        auth: Authentication,
         @PathVariable("problemId") problemId: Long,
     ): Problem {
-        return problemService.findById(problemId)
+        return problemService.findById(auth, problemId)
     }
 
     @Operation(summary = "Get problem dto by slug")
     @ApiResponse(responseCode = "404", ref = NOT_FOUND_RESPONSE_REF)
     @GetMapping("slug/{problemSlug}")
     fun findDtoBySlug(
+        auth: Authentication,
         @PathVariable("problemSlug") problemSlug: String,
-    ): ProblemDto = problemService.findDtoBySlug(problemSlug)
+    ): ProblemDto = problemService.findDtoBySlug(auth, problemSlug)
 
     @Operation(summary = "Delete problem by id")
     @DeleteMapping("{problemId}")

@@ -6,8 +6,8 @@ import com.codeloom.backend.model.Submission
 import com.codeloom.backend.service.SubmissionService
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import java.security.Principal
 
 @RestController
 @RequestMapping("/v1/submissions")
@@ -16,18 +16,18 @@ class SubmissionController(
 ) {
     @GetMapping
     fun findSubmissions(
+        auth: Authentication,
         @RequestParam("problemId") problemId: Long,
-        principal: Principal,
     ): Collection<Submission> {
-        return submissionService.findSubmissions(problemId, principal)
+        return submissionService.findSubmissions(problemId, auth)
     }
 
     @PostMapping
     @ApiResponse(responseCode = "400", ref = BAD_REQUEST_RESPONSE_REF)
     fun sendSubmission(
+        auth: Authentication,
         @Valid @RequestBody request: SendSubmissionRequest,
-        principal: Principal,
     ) {
-        submissionService.sendSubmission(request, principal)
+        submissionService.sendSubmission(request, auth)
     }
 }

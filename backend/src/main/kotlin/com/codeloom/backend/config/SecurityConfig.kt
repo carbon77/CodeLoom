@@ -1,6 +1,7 @@
 package com.codeloom.backend.config
 
 import com.codeloom.backend.security.CustomAuthenticationEntryPoint
+import com.codeloom.backend.security.UserRole
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -8,13 +9,16 @@ import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.invoke
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import java.util.*
 
 @Configuration
 @EnableWebSecurity
@@ -93,4 +97,14 @@ class SecurityConfig(
 
         return converter
     }
+}
+
+fun Authentication.getUserId(): UUID {
+    val jwt = this as (JwtAuthenticationToken)
+    return UUID.fromString(jwt.token.subject)
+}
+
+fun Authentication.hasRole(role: UserRole): Boolean {
+    return this.authorities.stream()
+        .anyMatch { auth -> auth.authority.equals(role.roleName) }
 }

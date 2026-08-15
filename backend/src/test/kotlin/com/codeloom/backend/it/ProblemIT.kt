@@ -4,6 +4,7 @@ import com.codeloom.backend.dao.problem.ProblemRepository
 import com.codeloom.backend.dao.topic.TopicRepository
 import com.codeloom.backend.dao.topic.TopicRepositoryCustomImpl
 import com.codeloom.backend.model.*
+import com.codeloom.backend.security.UserRole
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -68,7 +69,7 @@ class ProblemIT {
     inner class FindAllItems {
         @Test
         fun `test with no problems should return empty array`() {
-            mockMvc.get("/v1/problems/items").andExpect {
+            mockMvc.get("/v1/problems/items") { initUser() }.andExpect {
                 status { isOk() }
                 content { contentType(MediaType.APPLICATION_JSON) }
                 jsonPath("$.length()", Matchers.equalTo(0))
@@ -78,7 +79,10 @@ class ProblemIT {
         @Test
         fun `test with problem should return array`() {
             initProblems()
-            mockMvc.get("/v1/problems/items") { param("publishedOnly", "false") }.andExpect {
+            mockMvc.get("/v1/problems/items") {
+                initUser()
+                param("publishedOnly", "false")
+            }.andExpect {
                 status { isOk() }
                 content { contentType(MediaType.APPLICATION_JSON) }
                 jsonPath("$.length()", Matchers.equalTo(3))
@@ -99,6 +103,31 @@ class ProblemIT {
                 jsonPath("$[2].publishedAt", Matchers.notNullValue())
             }
         }
+
+        @Test
+        fun `user should only see published problems`() {
+            initProblems()
+
+            mockMvc.get("/v1/problems/items") {
+                initUser(role = UserRole.USER)
+            }.andExpect {
+                status { isOk() }
+                jsonPath("$.length()", Matchers.equalTo(2))
+                jsonPath("$[0].slug", Matchers.equalTo("sort"))
+                jsonPath("$[1].slug", Matchers.equalTo("b-tree_sort"))
+            }
+        }
+
+        @Test
+        fun `user should not request unpublished problems`() {
+            mockMvc.get("/v1/problems/items") {
+                initUser(role = UserRole.USER)
+                param("publishedOnly", "false")
+            }.andExpect {
+                status { isForbidden() }
+                jsonPath("$.status", Matchers.equalTo(403))
+            }
+        }
     }
 
     @Nested
@@ -106,7 +135,7 @@ class ProblemIT {
         @Test
         fun `test should return problem`() {
             initProblems()
-            mockMvc.get("/v1/problems/slug/two_sum").andExpect {
+            mockMvc.get("/v1/problems/slug/two_sum") { initUser() }.andExpect {
                 status { isOk() }
                 content { contentTypeCompatibleWith(MediaType.APPLICATION_JSON) }
                 jsonPath("$.id", Matchers.equalTo(1))
@@ -116,7 +145,16 @@ class ProblemIT {
 
         @Test
         fun `test with non-existing slug should return 404`() {
-            mockMvc.get("/v1/problems/slug/1j2hn").andExpect { status { isNotFound() } }
+            mockMvc.get("/v1/problems/slug/1j2hn") { initUser() }.andExpect { status { isNotFound() } }
+        }
+
+        @Test
+        fun `user should not see unpublished problem by slug`() {
+            initProblems()
+
+            mockMvc.get("/v1/problems/slug/two_sum") {
+                initUser(role = UserRole.USER)
+            }.andExpect { status { isNotFound() } }
         }
     }
 
@@ -125,7 +163,7 @@ class ProblemIT {
         @Test
         fun `test should return problem`() {
             initProblems()
-            mockMvc.get("/v1/problems/1").andExpect {
+            mockMvc.get("/v1/problems/1") { initUser() }.andExpect {
                 status { isOk() }
                 content { contentTypeCompatibleWith(MediaType.APPLICATION_JSON) }
                 jsonPath("$.id", Matchers.equalTo(1))
@@ -135,7 +173,16 @@ class ProblemIT {
 
         @Test
         fun `test with non-existing id should return 404`() {
-            mockMvc.get("/v1/problems/3123").andExpect { status { isNotFound() } }
+            mockMvc.get("/v1/problems/3123") { initUser() }.andExpect { status { isNotFound() } }
+        }
+
+        @Test
+        fun `user should not see unpublished problem by id`() {
+            initProblems()
+
+            mockMvc.get("/v1/problems/1") {
+                initUser(role = UserRole.USER)
+            }.andExpect { status { isNotFound() } }
         }
     }
 
@@ -144,7 +191,7 @@ class ProblemIT {
         @Test
         fun `test should delete`() {
             initProblems()
-            mockMvc.delete("/v1/problems/1").andExpect { status { isOk() } }
+            mockMvc.delete("/v1/problems/1") { initUser() }.andExpect { status { isOk() } }
             assertEquals(2, problemRepository.count())
         }
     }
@@ -155,6 +202,7 @@ class ProblemIT {
         fun `test should create`() {
             mockMvc
                 .post("/v1/problems") {
+                    initUser()
                     contentType = MediaType.APPLICATION_JSON
                     content = """{ "title": "Merge two Arrays" }"""
                 }
@@ -177,6 +225,7 @@ class ProblemIT {
         fun `test with duplicated slug should return bad request`() {
             mockMvc
                 .post("/v1/problems") {
+                    initUser()
                     contentType = MediaType.APPLICATION_JSON
                     content = """{ "title": "Merge two Arrays" }"""
                 }
@@ -184,6 +233,7 @@ class ProblemIT {
 
             mockMvc
                 .post("/v1/problems") {
+                    initUser()
                     contentType = MediaType.APPLICATION_JSON
                     content = """{ "title": "Merge two Arrays" }"""
                 }
@@ -202,6 +252,7 @@ class ProblemIT {
 
             mockMvc
                 .put("/v1/problems/1") {
+                    initUser()
                     contentType = MediaType.APPLICATION_JSON
                     content =
                         """
@@ -274,6 +325,7 @@ class ProblemIT {
         fun `test with non-existing id should return 404`() {
             mockMvc
                 .put("/v1/problems/999") {
+                    initUser()
                     contentType = MediaType.APPLICATION_JSON
                     content =
                         """
@@ -291,6 +343,7 @@ class ProblemIT {
             initProblems()
             mockMvc
                 .put("/v1/problems/1") {
+                    initUser()
                     contentType = MediaType.APPLICATION_JSON
                     content =
                         """
@@ -321,6 +374,7 @@ class ProblemIT {
 
             mockMvc
                 .put("/v1/problems/1") {
+                    initUser()
                     contentType = MediaType.APPLICATION_JSON
                     content =
                         """
@@ -366,7 +420,7 @@ class ProblemIT {
             val problemBefore = problemRepository.findById(1).get()
             assertNull(problemBefore.publishedAt)
             assertEquals(problemBefore.createdAt, problemBefore.updatedAt)
-            mockMvc.patch("/v1/problems/1/publish").andExpect { status { isOk() } }
+            mockMvc.patch("/v1/problems/1/publish") { initUser() }.andExpect { status { isOk() } }
             val problemAfter = problemRepository.findById(1).get()
             assertNotNull(problemAfter.publishedAt)
             assertNotEquals(problemAfter.createdAt, problemAfter.updatedAt)
@@ -378,7 +432,7 @@ class ProblemIT {
             val problemBefore = problemRepository.findById(2).get()
             assertNotNull(problemBefore.publishedAt)
             assertEquals(problemBefore.createdAt, problemBefore.updatedAt)
-            mockMvc.patch("/v1/problems/2/unpublish").andExpect { status { isOk() } }
+            mockMvc.patch("/v1/problems/2/unpublish") { initUser() }.andExpect { status { isOk() } }
             val problemAfter = problemRepository.findById(2).get()
             assertNull(problemAfter.publishedAt)
             assertNotEquals(problemAfter.createdAt, problemAfter.updatedAt)

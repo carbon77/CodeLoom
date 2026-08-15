@@ -1,20 +1,22 @@
 package com.codeloom.backend.service
 
+import com.codeloom.backend.config.getUserId
+import com.codeloom.backend.config.hasRole
 import com.codeloom.backend.dao.SubmissionRepository
 import com.codeloom.backend.dao.problem.ProblemRepository
 import com.codeloom.backend.dto.SendSubmissionRequest
+import com.codeloom.backend.exception.ProblemNotFoundException
 import com.codeloom.backend.model.Submission
-import com.codeloom.backend.userId
+import com.codeloom.backend.security.UserRole
 import com.codeloom.common.SubmissionEvent
 import com.codeloom.common.SubmissionStatus
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpStatus
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
-import org.springframework.web.server.ResponseStatusException
+import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
-import java.security.Principal
 
 @Service
 class SubmissionService(
@@ -29,27 +31,33 @@ class SubmissionService(
 
     fun findSubmissions(
         problemId: Long,
-        principal: Principal,
+        auth: Authentication,
     ): Collection<Submission> {
         return submissionRepository.findByUserIdAndProblemId(
-            userId = principal.userId,
+            userId = auth.getUserId(),
             problemId = problemId,
         )
     }
 
+    @Transactional
     fun sendSubmission(
         request: SendSubmissionRequest,
-        principal: Principal,
+        auth: Authentication,
     ) {
         logger.info("Sending submission...")
-        if (!problemRepository.existsById(request.problemId)) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Problem with id=${request.problemId} does not exist")
+        val problem = problemRepository.findById(request.problemId).orElseThrow {
+            ProblemNotFoundException(request.problemId)
+        }
+
+        if (auth.hasRole(UserRole.USER) && !problem.isPublished()) {
+            // We don't want to expose information about unpublished problems
+            throw ProblemNotFoundException(request.problemId)
         }
 
         val submission =
             submissionRepository.save(
                 Submission(
-                    userId = principal.userId,
+                    userId = auth.getUserId(),
                     problemId = request.problemId,
                     language = request.language,
                     code = request.code,

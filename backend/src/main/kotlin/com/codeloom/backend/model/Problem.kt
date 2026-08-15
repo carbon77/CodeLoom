@@ -34,4 +34,6 @@ data class Problem(
     val updatedAt: Instant = Instant.now(),
     @Column("published_at")
     val publishedAt: Instant? = null,
-)
+) {
+    fun isPublished(): Boolean = this.publishedAt != null
+}

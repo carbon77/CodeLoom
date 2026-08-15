@@ -1,6 +1,6 @@
 package com.codeloom.backend.service
 
-import com.codeloom.backend.config.hasRole
+import com.codeloom.backend.config.isRegularUser
 import com.codeloom.backend.dao.problem.ProblemRepository
 import com.codeloom.backend.dto.CreateProblemRequest
 import com.codeloom.backend.dto.ProblemDto
@@ -9,7 +9,6 @@ import com.codeloom.backend.dto.ProblemListDto
 import com.codeloom.backend.exception.ForbiddenActionException
 import com.codeloom.backend.exception.ProblemNotFoundException
 import com.codeloom.backend.model.Problem
-import com.codeloom.backend.security.UserRole
 import com.codeloom.backend.transformer.ProblemTransformer
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
@@ -27,17 +26,23 @@ class ProblemService(
     private val topicService: TopicService,
 ) {
     @Transactional(readOnly = true)
-    fun findItemsByFilters(auth: Authentication, filters: ProblemFilters): List<ProblemListDto> {
-        if (auth.hasRole(UserRole.USER) && !filters.publishedOnly) {
+    fun findItemsByFilters(
+        auth: Authentication,
+        filters: ProblemFilters,
+    ): List<ProblemListDto> {
+        if (auth.isRegularUser() && !filters.publishedOnly) {
             throw ForbiddenActionException()
         }
         return problemRepository.findProblemListDtos(filters)
     }
 
     @Transactional(readOnly = true)
-    fun findDtoBySlug(auth: Authentication, slug: String): ProblemDto {
+    fun findDtoBySlug(
+        auth: Authentication,
+        slug: String,
+    ): ProblemDto {
         val problem = problemRepository.findBySlug(slug)
-        if (problem == null || (auth.hasRole(UserRole.USER) && !problem.isPublished())) {
+        if (problem == null || (auth.isRegularUser() && !problem.isPublished())) {
             throw if (problem == null) {
                 ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with slug $slug not found")
             } else {
@@ -50,9 +55,12 @@ class ProblemService(
     }
 
     @Transactional(readOnly = true)
-    fun findById(auth: Authentication, id: Long): Problem {
+    fun findById(
+        auth: Authentication,
+        id: Long,
+    ): Problem {
         val problem = findOrThrow(id)
-        if (auth.hasRole(UserRole.USER) && !problem.isPublished()) {
+        if (auth.isRegularUser() && !problem.isPublished()) {
             throw ProblemNotFoundException(id)
         }
         return problem

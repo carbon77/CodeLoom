@@ -108,3 +108,11 @@ fun Authentication.hasRole(role: UserRole): Boolean {
     return this.authorities.stream()
         .anyMatch { auth -> auth.authority.equals(role.roleName) }
 }
+
+fun Authentication.isAdmin(): Boolean {
+    return hasRole(UserRole.ADMIN) && hasRole(UserRole.USER)
+}
+
+fun Authentication.isRegularUser(): Boolean {
+    return !hasRole(UserRole.ADMIN) && hasRole(UserRole.USER)
+}

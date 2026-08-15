@@ -10,11 +10,7 @@ import com.codeloom.common.SubmissionStatus
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.any
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.never
-import org.mockito.kotlin.verify
+import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
@@ -31,7 +27,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.postgresql.PostgreSQLContainer
 import tools.jackson.databind.ObjectMapper
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 import kotlin.test.assertEquals
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -120,7 +116,7 @@ class SubmissionIT {
             val problem = initProblem(published = true)
 
             mockMvc.post("/v1/submissions") {
-                initUser(role = UserRole.USER)
+                initUser(roles = arrayOf(UserRole.USER))
                 contentType = MediaType.APPLICATION_JSON
                 content = requestBody(problem.id!!)
             }.andExpect { status { isOk() } }
@@ -147,7 +143,7 @@ class SubmissionIT {
             val problem = initProblem(published = false)
 
             mockMvc.post("/v1/submissions") {
-                initUser(role = UserRole.ADMIN)
+                initUser()
                 contentType = MediaType.APPLICATION_JSON
                 content = requestBody(problem.id!!)
             }.andExpect { status { isOk() } }
@@ -161,7 +157,7 @@ class SubmissionIT {
             val problem = initProblem(published = false)
 
             mockMvc.post("/v1/submissions") {
-                initUser(role = UserRole.USER)
+                initUser(roles = arrayOf(UserRole.USER))
                 contentType = MediaType.APPLICATION_JSON
                 content = requestBody(problem.id!!)
             }.andExpect {
@@ -176,7 +172,7 @@ class SubmissionIT {
         @Test
         fun `should return not found for missing problem`() {
             mockMvc.post("/v1/submissions") {
-                initUser(role = UserRole.USER)
+                initUser(roles = arrayOf(UserRole.USER))
                 contentType = MediaType.APPLICATION_JSON
                 content = requestBody(999)
             }.andExpect { status { isNotFound() } }
@@ -190,7 +186,7 @@ class SubmissionIT {
             val problem = initProblem(published = true)
 
             mockMvc.post("/v1/submissions") {
-                initUser(role = UserRole.USER)
+                initUser(roles = arrayOf(UserRole.USER))
                 contentType = MediaType.APPLICATION_JSON
                 content =
                     """

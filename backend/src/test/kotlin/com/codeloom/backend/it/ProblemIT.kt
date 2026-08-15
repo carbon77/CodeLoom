@@ -339,6 +339,23 @@ class ProblemIT {
         }
 
         @Test
+        fun `test changing slug to existing slug should return bad request`() {
+            initProblems()
+
+            mockMvc
+                .put("/v1/problems/1") {
+                    initUser()
+                    contentType = MediaType.APPLICATION_JSON
+                    content = """{ "slug": "sort" }"""
+                }
+                .andExpect { status { isBadRequest() } }
+
+            assertEquals("two_sum", problemRepository.findById(1).get().slug)
+            assertEquals("sort", problemRepository.findById(2).get().slug)
+            assertEquals(3, problemRepository.count())
+        }
+
+        @Test
         fun `test should partially update problem fields`() {
             initProblems()
             mockMvc

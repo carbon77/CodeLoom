@@ -98,7 +98,12 @@ class ProblemService(
             topicService.createManyWithProblem(problemId, patchNode.get("topics"))
         }
 
-        return problemRepository.save(updated)
+        try {
+            return problemRepository.save(updated)
+        } catch (e: DuplicateKeyException) {
+            // User can update slug to already existed slug, we need to catch this
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Problem already exists")
+        }
     }
 
     @Transactional

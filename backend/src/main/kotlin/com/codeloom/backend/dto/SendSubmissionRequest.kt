@@ -1,5 +1,6 @@
 package com.codeloom.backend.dto
 
+import com.codeloom.common.language.ValidLanguage
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 
@@ -8,6 +9,6 @@ data class SendSubmissionRequest(
     val problemId: Long,
     @NotBlank
     val code: String,
-    @NotBlank
+    @ValidLanguage
     val language: String,
 )

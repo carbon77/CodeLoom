@@ -1,4 +1,4 @@
-package com.codeloom.executor.languages
+package com.codeloom.common.language
 
 enum class LanguageSpec(
     val id: String,
@@ -37,6 +37,6 @@ enum class LanguageSpec(
 
         fun fromLanguage(language: String): LanguageSpec =
             byId[language.lowercase()]
-                ?: throw IllegalArgumentException("Unknown language: $language")
+                ?: throw InvalidLanguageException(language)
     }
 }

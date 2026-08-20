@@ -1,8 +1,8 @@
 package com.codeloom.executor.service
 
 import com.codeloom.common.SubmissionStatus
-import com.codeloom.common.SubmissionStatusChangedEvent
-import com.codeloom.common.SubmissionStatusPayload
+import com.codeloom.common.event.SubmissionStatusChangedEvent
+import com.codeloom.common.event.SubmissionStatusPayload
 import com.codeloom.executor.engine.SubmissionContext
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate

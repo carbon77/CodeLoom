@@ -82,7 +82,7 @@ class SubmissionProcessingService(
                     return
                 }
 
-                if (runResult.stdout != testCase.expectedOutput) {
+                if (runResult.stdout.trim() != testCase.expectedOutput.trim()) {
                     changeSubmissionStatus(
                         context,
                         SubmissionStatus.WRONG_ANSWER,

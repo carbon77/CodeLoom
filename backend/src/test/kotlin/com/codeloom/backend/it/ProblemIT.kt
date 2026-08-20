@@ -1,6 +1,7 @@
 package com.codeloom.backend.it
 
 import com.codeloom.backend.dao.problem.ProblemRepository
+import com.codeloom.backend.dao.testcase.TestCaseRepository
 import com.codeloom.backend.dao.topic.TopicRepository
 import com.codeloom.backend.dao.topic.TopicRepositoryCustomImpl
 import com.codeloom.backend.model.*
@@ -55,6 +56,9 @@ class ProblemIT {
 
     @Autowired
     private lateinit var problemRepository: ProblemRepository
+
+    @Autowired
+    private lateinit var testCaseRepository: TestCaseRepository
 
     @Autowired
     private lateinit var topicRepository: TopicRepository
@@ -435,12 +439,29 @@ class ProblemIT {
         fun `test publish should publish`() {
             initProblems()
             val problemBefore = problemRepository.findById(1).get()
+            testCaseRepository.save(TestCase(problemId = problemBefore.id, input = "1 2", expectedOutput = "3"))
             assertNull(problemBefore.publishedAt)
             assertEquals(problemBefore.createdAt, problemBefore.updatedAt)
             mockMvc.patch("/v1/problems/1/publish") { initUser() }.andExpect { status { isOk() } }
             val problemAfter = problemRepository.findById(1).get()
             assertNotNull(problemAfter.publishedAt)
             assertNotEquals(problemAfter.createdAt, problemAfter.updatedAt)
+        }
+
+        @Test
+        fun `test publish should reject problem with no test cases`() {
+            initProblems()
+            val problemBefore = problemRepository.findById(1).get()
+            assertNull(problemBefore.publishedAt)
+
+            mockMvc.patch("/v1/problems/1/publish") { initUser() }.andExpect {
+                status { isBadRequest() }
+                jsonPath("$.status", Matchers.equalTo(400))
+                jsonPath("$.message", Matchers.containsString("Problem id=1 does not have any test cases"))
+                jsonPath("$.path", Matchers.equalTo("/v1/problems/1/publish"))
+            }
+
+            assertNull(problemRepository.findById(1).get().publishedAt)
         }
 
         @Test

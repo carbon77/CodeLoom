@@ -2,8 +2,10 @@ package com.codeloom.backend.it
 
 import com.codeloom.backend.dao.SubmissionRepository
 import com.codeloom.backend.dao.problem.ProblemRepository
+import com.codeloom.backend.dao.testcase.TestCaseRepository
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.model.Submission
+import com.codeloom.backend.model.TestCase
 import com.codeloom.backend.security.UserRole
 import com.codeloom.common.SubmissionEvent
 import com.codeloom.common.SubmissionStatus
@@ -63,6 +65,9 @@ class SubmissionIT {
 
     @Autowired
     private lateinit var submissionRepository: SubmissionRepository
+
+    @Autowired
+    private lateinit var testCaseRepository: TestCaseRepository
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper
@@ -182,6 +187,28 @@ class SubmissionIT {
         }
 
         @Test
+        fun `should reject submission when problem has no test cases`() {
+            val problem = initProblem(published = true, withTestCase = false)
+
+            mockMvc.post("/v1/submissions") {
+                initUser(roles = arrayOf(UserRole.USER))
+                contentType = MediaType.APPLICATION_JSON
+                content = requestBody(problem.id!!)
+            }.andExpect {
+                status { isBadRequest() }
+                jsonPath("$.status", Matchers.equalTo(400))
+                jsonPath(
+                    "$.message",
+                    Matchers.containsString("Problem id=${problem.id} does not have any test cases"),
+                )
+                jsonPath("$.path", Matchers.equalTo("/v1/submissions"))
+            }
+
+            assertEquals(0, submissionRepository.count())
+            verify(kafkaTemplate, never()).send(eq("test-submissions"), any(), any())
+        }
+
+        @Test
         fun `should reject blank code and language`() {
             val problem = initProblem(published = true)
 
@@ -237,14 +264,23 @@ class SubmissionIT {
         published: Boolean,
         title: String = "Two Sum",
         slug: String = "two_sum",
-    ): Problem =
-        problemRepository.save(
-            Problem(
-                title = title,
-                slug = slug,
-                publishedAt = if (published) Instant.now() else null,
-            ),
-        )
+        withTestCase: Boolean = true,
+    ): Problem {
+        val problem =
+            problemRepository.save(
+                Problem(
+                    title = title,
+                    slug = slug,
+                    publishedAt = if (published) Instant.now() else null,
+                ),
+            )
+        if (withTestCase) {
+            testCaseRepository.save(
+                TestCase(problemId = problem.id, input = "1 2", expectedOutput = "3"),
+            )
+        }
+        return problem
+    }
 
     private fun initSubmission(
         problemId: Long,

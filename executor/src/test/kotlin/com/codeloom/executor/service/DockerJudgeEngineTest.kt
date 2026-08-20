@@ -1,7 +1,7 @@
 package com.codeloom.executor.service
 
 import com.codeloom.executor.engine.SubmissionContext
-import com.codeloom.executor.languages.LanguageSpec
+import com.codeloom.common.language.LanguageSpec
 import com.codeloom.executor.model.TestCase
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Nested

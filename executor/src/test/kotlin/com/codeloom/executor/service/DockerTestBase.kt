@@ -2,7 +2,7 @@ package com.codeloom.executor.service
 
 import com.codeloom.executor.engine.DockerJudgeEngine
 import com.codeloom.executor.engine.HELPER_CONTAINER_IMAGE_NAME
-import com.codeloom.executor.languages.LanguageSpec
+import com.codeloom.common.language.LanguageSpec
 import com.github.dockerjava.api.DockerClient
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach

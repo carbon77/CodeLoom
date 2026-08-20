@@ -3,7 +3,7 @@ package com.codeloom.backend.service
 import com.codeloom.backend.dao.SubmissionRepository
 import com.codeloom.backend.dao.testcase.TestCaseResultRepository
 import com.codeloom.backend.model.TestCaseResult
-import com.codeloom.common.SubmissionStatusChangedEvent
+import com.codeloom.common.event.SubmissionStatusChangedEvent
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service

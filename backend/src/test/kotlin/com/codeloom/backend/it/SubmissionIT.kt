@@ -206,6 +206,31 @@ class SubmissionIT {
             assertEquals(0, submissionRepository.count())
             verify(kafkaTemplate, never()).send(eq("test-submissions"), any(), any())
         }
+
+        @Test
+        fun `should reject unsupported submission language`() {
+            val problem = initProblem(published = true)
+
+            mockMvc.post("/v1/submissions") {
+                initUser(roles = arrayOf(UserRole.USER))
+                contentType = MediaType.APPLICATION_JSON
+                content =
+                    """
+                    {
+                      "problemId": ${problem.id},
+                      "code": "puts 42",
+                      "language": "unknown"
+                    }
+                    """.trimIndent()
+            }.andExpect {
+                status { isBadRequest() }
+                jsonPath("$.status", Matchers.equalTo(400))
+                jsonPath("$.payload.language", Matchers.equalTo("Invalid submission language"))
+            }
+
+            assertEquals(0, submissionRepository.count())
+            verify(kafkaTemplate, never()).send(eq("test-submissions"), any(), any())
+        }
     }
 
     private fun initProblem(

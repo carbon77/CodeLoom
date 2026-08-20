@@ -1,2 +1,8 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+description = 'Codeloom Common'
+
 dependencies {
 }

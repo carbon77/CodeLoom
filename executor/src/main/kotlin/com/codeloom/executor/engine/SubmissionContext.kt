@@ -1,6 +1,6 @@
 package com.codeloom.executor.engine
 
-import com.codeloom.executor.languages.LanguageSpec
+import com.codeloom.common.language.LanguageSpec
 import java.util.*
 
 data class SubmissionContext(

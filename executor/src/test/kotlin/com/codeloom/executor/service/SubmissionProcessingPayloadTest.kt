@@ -2,7 +2,7 @@ package com.codeloom.executor.service
 
 import com.codeloom.common.SubmissionEvent
 import com.codeloom.common.SubmissionStatus
-import com.codeloom.common.SubmissionStatusPayload
+import com.codeloom.common.event.SubmissionStatusPayload
 import com.codeloom.executor.engine.CompilationResult
 import com.codeloom.executor.engine.DockerJudgeEngine
 import com.codeloom.executor.engine.RunResult

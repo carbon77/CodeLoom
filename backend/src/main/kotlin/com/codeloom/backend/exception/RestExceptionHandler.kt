@@ -7,13 +7,11 @@ import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.AuthenticationException
-import org.springframework.validation.FieldError
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDateTime
-import java.util.stream.Collectors
 
 private val logger = KotlinLogging.logger { }
 
@@ -80,65 +78,51 @@ class RestExceptionHandler {
         logger.error(e) {
             "Exception from ${servlet.method} ${servlet.requestURI}"
         }
-        return when (e) {
+        var errorResponse = ErrorResponse(
+            status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            message = "Something went wrong",
+            timestamp = LocalDateTime.now(),
+            path = servlet.requestURI,
+        )
+        errorResponse = when (e) {
             is AuthenticationException ->
-                ErrorResponse(
+                errorResponse.copy(
                     status = HttpStatus.UNAUTHORIZED.value(),
                     message = "Authentication required",
-                    timestamp = LocalDateTime.now(),
-                    path = servlet.requestURI,
                 )
 
             is AccessDeniedException ->
-                ErrorResponse(
+                errorResponse.copy(
                     status = HttpStatus.FORBIDDEN.value(),
                     message = "Access denied",
-                    timestamp = LocalDateTime.now(),
-                    path = servlet.requestURI,
                 )
 
             is ResponseStatusException ->
-                ErrorResponse(
+                errorResponse.copy(
                     status = e.statusCode.value(),
                     message = e.message,
-                    timestamp = LocalDateTime.now(),
-                    path = servlet.requestURI,
                 )
 
             is HttpMessageNotReadableException ->
-                ErrorResponse(
+                errorResponse.copy(
                     status = HttpStatus.BAD_REQUEST.value(),
                     message = "Body is malformed",
-                    timestamp = LocalDateTime.now(),
-                    path = servlet.requestURI,
                 )
 
             is MethodArgumentNotValidException -> {
-                val map =
-                    e.fieldErrors.stream()
-                        .collect(
-                            Collectors.toMap(
-                                FieldError::getField,
-                                FieldError::getDefaultMessage,
-                            ),
-                        )
-                        .toMap()
-                ErrorResponse(
+                errorResponse.copy(
                     status = e.statusCode.value(),
                     message = "Validation failed: ${e.fieldError?.defaultMessage ?: "Unknown error"}",
-                    timestamp = LocalDateTime.now(),
-                    path = servlet.requestURI,
-                    payload = map,
+                    payload =
+                        e.fieldErrors.associate { fieldError ->
+                            fieldError.field to fieldError.defaultMessage
+                        },
                 )
             }
 
-            else ->
-                ErrorResponse(
-                    status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    message = "Something went wrong",
-                    timestamp = LocalDateTime.now(),
-                    path = servlet.requestURI,
-                )
+            else -> errorResponse
         }
+
+        return errorResponse
     }
 }

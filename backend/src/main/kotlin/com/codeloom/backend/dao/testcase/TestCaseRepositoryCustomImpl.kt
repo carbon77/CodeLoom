@@ -27,7 +27,10 @@ class TestCaseRepositoryCustomImpl(
         return stmt.fetchInto(TestCase::class.java)
     }
 
-    override fun countAllByProblemId(problemId: Long, isPublic: Boolean?): Int {
+    override fun countAllByProblemId(
+        problemId: Long,
+        isPublic: Boolean?,
+    ): Int {
         val conditions =
             mutableListOf(
                 TEST_CASES.PROBLEM_ID.eq(problemId.toInt()),

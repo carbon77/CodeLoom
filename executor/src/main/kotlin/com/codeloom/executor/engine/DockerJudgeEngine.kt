@@ -40,7 +40,7 @@ class DockerJudgeEngine(
                 return CompilationResult(true, "")
             }
 
-            val containerId = createContainer(context, context.language.compileCommand)
+            val containerId = createContainer(context, context.language.compileCommand!!)
             val outcome = runContainer(context, containerId)
 
             if (outcome.exitCode == 0L) {

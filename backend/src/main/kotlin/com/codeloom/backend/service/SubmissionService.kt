@@ -4,7 +4,9 @@ import com.codeloom.backend.config.getUserId
 import com.codeloom.backend.config.isRegularUser
 import com.codeloom.backend.dao.SubmissionRepository
 import com.codeloom.backend.dao.problem.ProblemRepository
+import com.codeloom.backend.dao.testcase.TestCaseRepository
 import com.codeloom.backend.dto.SendSubmissionRequest
+import com.codeloom.backend.exception.NoTestCasesException
 import com.codeloom.backend.exception.ProblemNotFoundException
 import com.codeloom.backend.model.Submission
 import com.codeloom.common.SubmissionEvent
@@ -21,6 +23,7 @@ import tools.jackson.databind.ObjectMapper
 class SubmissionService(
     private val submissionRepository: SubmissionRepository,
     private val problemRepository: ProblemRepository,
+    private val testCaseRepository: TestCaseRepository,
     private val kafkaTemplate: KafkaTemplate<String, String>,
     private val objectMapper: ObjectMapper,
     @Value("\${codeloom.kafka.submission-topic}")
@@ -52,6 +55,10 @@ class SubmissionService(
         if (auth.isRegularUser() && !problem.isPublished()) {
             // We don't want to expose information about unpublished problems
             throw ProblemNotFoundException(request.problemId)
+        }
+
+        if (testCaseRepository.countAllByProblemId(request.problemId) == 0) {
+            throw NoTestCasesException(request.problemId)
         }
 
         val submission =

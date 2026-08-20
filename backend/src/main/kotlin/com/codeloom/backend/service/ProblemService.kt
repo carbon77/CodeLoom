@@ -2,11 +2,13 @@ package com.codeloom.backend.service
 
 import com.codeloom.backend.config.isRegularUser
 import com.codeloom.backend.dao.problem.ProblemRepository
+import com.codeloom.backend.dao.testcase.TestCaseRepository
 import com.codeloom.backend.dto.CreateProblemRequest
 import com.codeloom.backend.dto.ProblemDto
 import com.codeloom.backend.dto.ProblemFilters
 import com.codeloom.backend.dto.ProblemListDto
 import com.codeloom.backend.exception.ForbiddenActionException
+import com.codeloom.backend.exception.NoTestCasesException
 import com.codeloom.backend.exception.ProblemNotFoundException
 import com.codeloom.backend.model.Problem
 import com.codeloom.backend.transformer.ProblemTransformer
@@ -23,6 +25,7 @@ import java.time.Instant
 class ProblemService(
     private val problemRepository: ProblemRepository,
     private val problemTransformer: ProblemTransformer,
+    private val testCaseRepository: TestCaseRepository,
     private val topicService: TopicService,
 ) {
     @Transactional(readOnly = true)
@@ -109,6 +112,11 @@ class ProblemService(
     @Transactional
     fun publish(problemId: Long) {
         val problem = findOrThrow(problemId)
+
+        if (testCaseRepository.countAllByProblemId(problemId) == 0) {
+            throw NoTestCasesException(problemId)
+        }
+
         problemRepository.save(
             problem.copy(
                 publishedAt = Instant.now(),

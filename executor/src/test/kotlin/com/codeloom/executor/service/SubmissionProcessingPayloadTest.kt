@@ -91,6 +91,21 @@ class SubmissionProcessingPayloadTest {
     }
 
     @Test
+    fun `output comparison ignores surrounding whitespace`() {
+        whenever(testCaseRepository.findByProblemId(problemId)).thenReturn(listOf(publicTestCase))
+        whenever(dockerJudgeEngine.runTestCase(any(), any())).thenReturn(
+            RunResult(exitCode = 0L, stdout = "\t1  \r\n", stderr = "", executionTimeMs = 10, memoryUsageBytes = 100),
+        )
+
+        service.process(event)
+
+        val payload = capturedPayload(SubmissionStatus.ACCEPTED)
+        assertNotNull(payload)
+        assertEquals("1", payload.testCaseResults!!.single().expectedOutput)
+        assertEquals("\t1  \r\n", payload.testCaseResults!!.single().stdout)
+    }
+
+    @Test
     fun `compile error carries no payload`() {
         whenever(testCaseRepository.findByProblemId(problemId)).thenReturn(listOf(publicTestCase))
         whenever(dockerJudgeEngine.compile(any())).thenReturn(

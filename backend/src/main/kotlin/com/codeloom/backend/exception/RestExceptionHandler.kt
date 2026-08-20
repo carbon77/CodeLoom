@@ -78,50 +78,52 @@ class RestExceptionHandler {
         logger.error(e) {
             "Exception from ${servlet.method} ${servlet.requestURI}"
         }
-        var errorResponse = ErrorResponse(
-            status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            message = "Something went wrong",
-            timestamp = LocalDateTime.now(),
-            path = servlet.requestURI,
-        )
-        errorResponse = when (e) {
-            is AuthenticationException ->
-                errorResponse.copy(
-                    status = HttpStatus.UNAUTHORIZED.value(),
-                    message = "Authentication required",
-                )
+        var errorResponse =
+            ErrorResponse(
+                status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                message = "Something went wrong",
+                timestamp = LocalDateTime.now(),
+                path = servlet.requestURI,
+            )
+        errorResponse =
+            when (e) {
+                is AuthenticationException ->
+                    errorResponse.copy(
+                        status = HttpStatus.UNAUTHORIZED.value(),
+                        message = "Authentication required",
+                    )
 
-            is AccessDeniedException ->
-                errorResponse.copy(
-                    status = HttpStatus.FORBIDDEN.value(),
-                    message = "Access denied",
-                )
+                is AccessDeniedException ->
+                    errorResponse.copy(
+                        status = HttpStatus.FORBIDDEN.value(),
+                        message = "Access denied",
+                    )
 
-            is ResponseStatusException ->
-                errorResponse.copy(
-                    status = e.statusCode.value(),
-                    message = e.message,
-                )
+                is ResponseStatusException ->
+                    errorResponse.copy(
+                        status = e.statusCode.value(),
+                        message = e.message,
+                    )
 
-            is HttpMessageNotReadableException ->
-                errorResponse.copy(
-                    status = HttpStatus.BAD_REQUEST.value(),
-                    message = "Body is malformed",
-                )
+                is HttpMessageNotReadableException ->
+                    errorResponse.copy(
+                        status = HttpStatus.BAD_REQUEST.value(),
+                        message = "Body is malformed",
+                    )
 
-            is MethodArgumentNotValidException -> {
-                errorResponse.copy(
-                    status = e.statusCode.value(),
-                    message = "Validation failed: ${e.fieldError?.defaultMessage ?: "Unknown error"}",
-                    payload =
-                        e.fieldErrors.associate { fieldError ->
-                            fieldError.field to fieldError.defaultMessage
-                        },
-                )
+                is MethodArgumentNotValidException -> {
+                    errorResponse.copy(
+                        status = e.statusCode.value(),
+                        message = "Validation failed: ${e.fieldError?.defaultMessage ?: "Unknown error"}",
+                        payload =
+                            e.fieldErrors.associate { fieldError ->
+                                fieldError.field to fieldError.defaultMessage
+                            },
+                    )
+                }
+
+                else -> errorResponse
             }
-
-            else -> errorResponse
-        }
 
         return errorResponse
     }

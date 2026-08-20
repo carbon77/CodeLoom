@@ -5,5 +5,5 @@ import org.springframework.web.server.ResponseStatusException
 
 class NoTestCasesException(val problemId: Long) : ResponseStatusException(
     HttpStatus.BAD_REQUEST,
-    "Problem id=$problemId does not have any test cases"
+    "Problem id=$problemId does not have any test cases",
 )

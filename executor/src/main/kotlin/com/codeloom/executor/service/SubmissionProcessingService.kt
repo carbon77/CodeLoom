@@ -4,11 +4,11 @@ import com.codeloom.common.SubmissionEvent
 import com.codeloom.common.SubmissionStatus
 import com.codeloom.common.event.SubmissionStatusPayload
 import com.codeloom.common.event.TestCaseResult
+import com.codeloom.common.language.LanguageSpec
 import com.codeloom.executor.engine.DockerJudgeEngine
 import com.codeloom.executor.engine.MEMORY_LIMIT_EXCEEDED_EXIT_CODE
 import com.codeloom.executor.engine.SubmissionContext
 import com.codeloom.executor.engine.TIMEOUT_EXIT_CODE
-import com.codeloom.common.language.LanguageSpec
 import com.codeloom.executor.repository.TestCaseRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

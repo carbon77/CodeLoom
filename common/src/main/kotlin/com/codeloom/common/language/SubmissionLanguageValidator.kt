@@ -6,16 +6,16 @@ import jakarta.validation.ConstraintValidatorContext
 class SubmissionLanguageValidator : ConstraintValidator<ValidLanguage, String> {
     override fun isValid(
         value: String?,
-        context: ConstraintValidatorContext?
+        context: ConstraintValidatorContext?,
     ): Boolean {
         if (value == null) {
-            return false;
+            return false
         }
 
         try {
             LanguageSpec.fromLanguage(value)
         } catch (_: InvalidLanguageException) {
-            return false;
+            return false
         }
 
         return true

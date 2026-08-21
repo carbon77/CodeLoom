@@ -18,34 +18,40 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(classes = DockerTestConfiguration.class)
 @TestPropertySource("classpath:application.properties")
 abstract class DockerTestBase {
-  @Autowired protected DockerJudgeEngine dockerJudgeEngine;
-  @Autowired protected DockerClient dockerClient;
-  protected UUID submissionId;
+    @Autowired
+    protected DockerJudgeEngine dockerJudgeEngine;
 
-  @BeforeEach
-  void generateSubmissionId() {
-    submissionId = UUID.randomUUID();
-  }
+    @Autowired
+    protected DockerClient dockerClient;
 
-  @AfterEach
-  void assertDockerClean() {
-    for (LanguageSpec s : LanguageSpec.values()) assertContainersRemoved(s.getImage());
-    assertContainersRemoved(HELPER_CONTAINER_IMAGE_NAME);
-    assertVolumesRemoved(submissionId);
-  }
+    protected UUID submissionId;
 
-  void assertVolumesRemoved(UUID id) {
-    var v =
-        dockerClient
-            .listVolumesCmd()
-            .withFilter("name", List.of("submission-" + id))
-            .exec()
-            .getVolumes();
-    assertFalse(v != null && !v.isEmpty());
-  }
+    @BeforeEach
+    void generateSubmissionId() {
+        submissionId = UUID.randomUUID();
+    }
 
-  void assertContainersRemoved(String image) {
-    assertFalse(
-        !dockerClient.listContainersCmd().withAncestorFilter(List.of(image)).exec().isEmpty());
-  }
+    @AfterEach
+    void assertDockerClean() {
+        for (LanguageSpec s : LanguageSpec.values()) assertContainersRemoved(s.getImage());
+        assertContainersRemoved(HELPER_CONTAINER_IMAGE_NAME);
+        assertVolumesRemoved(submissionId);
+    }
+
+    void assertVolumesRemoved(UUID id) {
+        var v = dockerClient
+                .listVolumesCmd()
+                .withFilter("name", List.of("submission-" + id))
+                .exec()
+                .getVolumes();
+        assertFalse(v != null && !v.isEmpty());
+    }
+
+    void assertContainersRemoved(String image) {
+        assertFalse(!dockerClient
+                .listContainersCmd()
+                .withAncestorFilter(List.of(image))
+                .exec()
+                .isEmpty());
+    }
 }

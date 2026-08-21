@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class ExecutorApplication {
-  public static void main(String[] a) {
-    SpringApplication.run(ExecutorApplication.class, a);
-  }
+    public static void main(String[] a) {
+        SpringApplication.run(ExecutorApplication.class, a);
+    }
 }

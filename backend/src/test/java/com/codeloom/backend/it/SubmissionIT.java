@@ -15,44 +15,41 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 
-@Sql(
-    statements = "TRUNCATE TABLE problems CASCADE",
-    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(statements = "TRUNCATE TABLE problems CASCADE", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class SubmissionIT extends BackendIntegrationTestSupport {
-  @Autowired ProblemRepository problems;
-  @Autowired TestCaseRepository tests;
-  @MockitoBean KafkaTemplate<String, String> kafka;
+    @Autowired
+    ProblemRepository problems;
 
-  @Test
-  void sendsAndPersistsSubmission() throws Exception {
-    Problem p = problems.save(new Problem("Sum", "sum"));
-    tests.save(new TestCase(p.getId(), "1 2", "3", true));
-    String body = "{\"problemId\":" + p.getId() + ",\"code\":\"print(3)\",\"language\":\"python\"}";
-    mockMvc
-        .perform(
-            post("/v1/submissions")
-                .principal(TestAuthentication.admin())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
-        .andExpect(status().isOk());
-    verify(kafka).send(anyString(), anyString(), contains("print(3)"));
-    mockMvc
-        .perform(
-            get("/v1/submissions")
-                .principal(TestAuthentication.admin())
-                .param("problemId", p.getId().toString()))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].status").value("PENDING"));
-  }
+    @Autowired
+    TestCaseRepository tests;
 
-  @Test
-  void rejectsUnknownLanguage() throws Exception {
-    mockMvc
-        .perform(
-            post("/v1/submissions")
-                .principal(TestAuthentication.admin())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"problemId\":1,\"code\":\"x\",\"language\":\"ruby\"}"))
-        .andExpect(status().isBadRequest());
-  }
+    @MockitoBean
+    KafkaTemplate<String, String> kafka;
+
+    @Test
+    void sendsAndPersistsSubmission() throws Exception {
+        Problem p = problems.save(new Problem("Sum", "sum"));
+        tests.save(new TestCase(p.getId(), "1 2", "3", true));
+        String body = "{\"problemId\":" + p.getId() + ",\"code\":\"print(3)\",\"language\":\"python\"}";
+        mockMvc.perform(post("/v1/submissions")
+                        .principal(TestAuthentication.admin())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
+        verify(kafka).send(anyString(), anyString(), contains("print(3)"));
+        mockMvc.perform(get("/v1/submissions")
+                        .principal(TestAuthentication.admin())
+                        .param("problemId", p.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].status").value("PENDING"));
+    }
+
+    @Test
+    void rejectsUnknownLanguage() throws Exception {
+        mockMvc.perform(post("/v1/submissions")
+                        .principal(TestAuthentication.admin())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"problemId\":1,\"code\":\"x\",\"language\":\"ruby\"}"))
+                .andExpect(status().isBadRequest());
+    }
 }

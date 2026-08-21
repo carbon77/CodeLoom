@@ -7,5 +7,4 @@ import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Standard API error response")
-public record ErrorResponse(
-    int status, String message, LocalDateTime timestamp, String path, Map<String, ?> payload) {}
+public record ErrorResponse(int status, String message, LocalDateTime timestamp, String path, Map<String, ?> payload) {}

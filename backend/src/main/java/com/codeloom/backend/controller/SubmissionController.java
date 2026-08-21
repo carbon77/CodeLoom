@@ -11,19 +11,19 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/v1/submissions")
 public class SubmissionController {
-  private final SubmissionService service;
+    private final SubmissionService service;
 
-  public SubmissionController(SubmissionService s) {
-    service = s;
-  }
+    public SubmissionController(SubmissionService s) {
+        service = s;
+    }
 
-  @GetMapping
-  public Collection<Submission> findSubmissions(Authentication a, @RequestParam long problemId) {
-    return service.findSubmissions(problemId, a);
-  }
+    @GetMapping
+    public Collection<Submission> findSubmissions(Authentication a, @RequestParam long problemId) {
+        return service.findSubmissions(problemId, a);
+    }
 
-  @PostMapping
-  public void sendSubmission(Authentication a, @Valid @RequestBody SendSubmissionRequest q) {
-    service.sendSubmission(q, a);
-  }
+    @PostMapping
+    public void sendSubmission(Authentication a, @Valid @RequestBody SendSubmissionRequest q) {
+        service.sendSubmission(q, a);
+    }
 }

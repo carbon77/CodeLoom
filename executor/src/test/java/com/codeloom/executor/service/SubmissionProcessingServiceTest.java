@@ -3,21 +3,26 @@ package com.codeloom.executor.service;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.codeloom.common.*;
+import com.codeloom.common.SubmissionEvent;
+import com.codeloom.common.SubmissionStatus;
+import com.codeloom.common.event.SubmissionStatusPayload;
 import com.codeloom.executor.model.TestCase;
 import com.codeloom.executor.repository.TestCaseRepository;
-import java.util.*;
-import org.junit.jupiter.api.*;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 class SubmissionProcessingServiceTest extends DockerTestBase {
     @MockitoBean
-    TestCaseRepository testCaseRepository;
+    private TestCaseRepository testCaseRepository;
 
     @MockitoBean
-    EventService eventService;
+    private EventService eventService;
 
-    SubmissionProcessingService service;
+    private SubmissionProcessingService service;
 
     @BeforeEach
     void setUp() {
@@ -30,14 +35,20 @@ class SubmissionProcessingServiceTest extends DockerTestBase {
                         new TestCase(UUID.randomUUID(), 1, "-45 -60", "-105", true)));
     }
 
-    SubmissionEvent event(String code, Long time, Long memory) {
-        return new SubmissionEvent(submissionId, UUID.randomUUID(), 1, code, "java", time, memory);
+    private SubmissionEvent event(String code, Long time, Long memory) {
+        return SubmissionEvent.builder()
+                .submissionId(submissionId)
+                .userId(UUID.randomUUID())
+                .problemId(1)
+                .code(code)
+                .language("java")
+                .executionTimeLimitMs(time)
+                .memoryUsageLimitBytes(memory)
+                .build();
     }
 
-    void occurred(SubmissionStatus status) {
-        verify(service)
-                .changeSubmissionStatus(
-                        any(), eq(status), nullable(com.codeloom.common.event.SubmissionStatusPayload.class));
+    private void occurred(SubmissionStatus status) {
+        verify(service).changeSubmissionStatus(any(), eq(status), nullable(SubmissionStatusPayload.class));
     }
 
     @Nested

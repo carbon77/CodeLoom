@@ -3,17 +3,15 @@ package com.codeloom.executor.engine;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.exception.NotFoundException;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class DockerImageManager {
-    private static final Logger log = LoggerFactory.getLogger(DockerImageManager.class);
     private final DockerClient docker;
-
-    public DockerImageManager(DockerClient d) {
-        docker = d;
-    }
 
     public void pullImageIfAbsent(String image) {
         pullImageIfAbsent(image, 120);

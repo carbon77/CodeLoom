@@ -1,23 +1,27 @@
 package com.codeloom.executor.engine;
 
-import static com.codeloom.executor.engine.CodeExecutionConstants.*;
+import static com.codeloom.executor.engine.CodeExecutionConstants.HELPER_CONTAINER_IMAGE_NAME;
+import static com.codeloom.executor.engine.CodeExecutionConstants.WORKSPACE_DIR;
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.model.*;
-import java.io.*;
+import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.Mount;
+import com.github.dockerjava.api.model.MountType;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
-import org.apache.commons.compress.archivers.tar.*;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class DockerVolumeFileIO {
     private final DockerClient docker;
     private final DockerImageManager images;
-
-    public DockerVolumeFileIO(DockerClient d, DockerImageManager i) {
-        docker = d;
-        images = i;
-    }
 
     public void writeFile(String volume, String file, byte[] content) {
         images.pullImageIfAbsent(HELPER_CONTAINER_IMAGE_NAME);

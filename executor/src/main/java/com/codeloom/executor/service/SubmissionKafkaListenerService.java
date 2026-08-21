@@ -1,22 +1,19 @@
 package com.codeloom.executor.service;
 
 import com.codeloom.common.SubmissionEvent;
-import org.slf4j.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
+@Slf4j
+@RequiredArgsConstructor
 @Service
 public class SubmissionKafkaListenerService {
-    private static final Logger log = LoggerFactory.getLogger(SubmissionKafkaListenerService.class);
     private final ObjectMapper mapper;
     private final SubmissionProcessingService processing;
-
-    public SubmissionKafkaListenerService(ObjectMapper m, SubmissionProcessingService p) {
-        mapper = m;
-        processing = p;
-    }
 
     @KafkaListener(topics = "submissions", groupId = "codeloom")
     public void listenSubmission(String message) {

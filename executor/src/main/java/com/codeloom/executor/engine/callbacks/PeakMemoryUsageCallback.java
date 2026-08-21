@@ -8,14 +8,19 @@ public class PeakMemoryUsageCallback extends ResultCallbackTemplate<PeakMemoryUs
     private final AtomicLong peak = new AtomicLong();
 
     @Override
-    public void onNext(Statistics s) {
-        if (s.getMemoryStats() == null || s.getMemoryStats().getUsage() == null) return;
-        Long cache = s.getMemoryStats().getStats() == null
+    public void onNext(Statistics stats) {
+        if (stats.getMemoryStats() == null || stats.getMemoryStats().getUsage() == null) {
+            return;
+        }
+
+        Long cache = stats.getMemoryStats().getStats() == null
                 ? null
-                : s.getMemoryStats().getStats().getCache();
-        if (cache == null && s.getMemoryStats().getStats() != null)
-            cache = s.getMemoryStats().getStats().getInactiveFile();
-        long use = Math.max(0, s.getMemoryStats().getUsage() - (cache == null ? 0 : cache));
+                : stats.getMemoryStats().getStats().getCache();
+        if (cache == null && stats.getMemoryStats().getStats() != null) {
+            cache = stats.getMemoryStats().getStats().getInactiveFile();
+        }
+
+        long use = Math.max(0, stats.getMemoryStats().getUsage() - (cache == null ? 0 : cache));
         peak.accumulateAndGet(use, Math::max);
     }
 

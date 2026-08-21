@@ -1,7 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.plugin.spring'
     id 'org.springframework.boot'
-    id 'org.jetbrains.kotlin.kapt'
     id 'nu.studer.jooq' version '10.2.1'
     id 'org.flywaydb.flyway' version '13.1.0'
 }
@@ -42,20 +40,12 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-kafka-test'
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
     testImplementation 'org.testcontainers:testcontainers-kafka'
-    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.4.0'
-    testImplementation 'org.jetbrains.kotlin:kotlin-test'
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll '-Xjsr305=strict'
-    }
+    testImplementation 'org.mockito:mockito-core'
 }
 
 tasks.named('test') {
@@ -80,7 +70,7 @@ jooq {
             generationTool {
                 logging = Logging.WARN
                 generator {
-                    name = 'org.jooq.codegen.KotlinGenerator'
+                    name = 'org.jooq.codegen.JavaGenerator'
                     database {
                         name = 'org.jooq.meta.extensions.ddl.DDLDatabase'
                         inputSchema = 'PUBLIC'
@@ -104,8 +94,6 @@ jooq {
                     }
                     generate {
                         deprecated = false
-                        kotlinSetterJvmNameAnnotationsOnIsPrefix = true
-                        pojosAsKotlinDataClasses = true
                         fluentSetters = true
                     }
                     target {

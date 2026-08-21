@@ -1,19 +1,22 @@
 package com.codeloom.backend.dao.topic;
 
-import static com.codeloom.backend.jooq.Tables.*;
-
-import com.codeloom.backend.model.*;
-import java.util.*;
-import org.jooq.*;
+import com.codeloom.backend.model.ProblemTopicRelationship;
+import com.codeloom.backend.model.Topic;
+import lombok.RequiredArgsConstructor;
+import org.jooq.DSLContext;
+import org.jooq.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
+
+import static com.codeloom.backend.jooq.Tables.PROBLEM_TOPICS;
+import static com.codeloom.backend.jooq.Tables.TOPICS;
+
 @Repository
+@RequiredArgsConstructor
 public class TopicRepositoryCustomImpl implements TopicRepositoryCustom {
     private final DSLContext dsl;
-
-    public TopicRepositoryCustomImpl(DSLContext dsl) {
-        this.dsl = dsl;
-    }
 
     public Iterable<Topic> findByProblemId(long id) {
         return dsl.select(TOPICS.asterisk())
@@ -24,14 +27,14 @@ public class TopicRepositoryCustomImpl implements TopicRepositoryCustom {
                 .fetchInto(Topic.class);
     }
 
-    public void saveAllProblemRelationships(Collection<ProblemTopicRelationship> rs) {
-        List<Query> q = rs.stream()
-                .map(r -> dsl.insertInto(PROBLEM_TOPICS)
-                        .set(PROBLEM_TOPICS.TOPIC_ID, r.topicId())
-                        .set(PROBLEM_TOPICS.PROBLEM_ID, (int) r.problemId()))
+    public void saveAllProblemRelationships(Collection<ProblemTopicRelationship> relationships) {
+        List<Query> queries = relationships.stream()
+                .map(relationship -> dsl.insertInto(PROBLEM_TOPICS)
+                        .set(PROBLEM_TOPICS.TOPIC_ID, relationship.topicId())
+                        .set(PROBLEM_TOPICS.PROBLEM_ID, (int) relationship.problemId()))
                 .map(Query.class::cast)
                 .toList();
-        dsl.batch(q).execute();
+        dsl.batch(queries).execute();
     }
 
     public void deleteRelationshipsWithProblem(long id) {

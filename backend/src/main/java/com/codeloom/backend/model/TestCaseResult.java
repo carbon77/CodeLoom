@@ -1,9 +1,17 @@
 package com.codeloom.backend.model;
 
-import java.util.UUID;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.*;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
+import java.util.UUID;
+
+@Getter
+@Builder
+@RequiredArgsConstructor
 @Table("test_case_results")
 public class TestCaseResult {
     @Id
@@ -32,25 +40,6 @@ public class TestCaseResult {
     private final Long bytesUsed;
 
     public TestCaseResult(
-            UUID id,
-            UUID submissionId,
-            String input,
-            String expectedOutput,
-            String stdout,
-            String stderr,
-            Long executionTimeMs,
-            Long bytesUsed) {
-        this.id = id;
-        this.submissionId = submissionId;
-        this.input = input;
-        this.expectedOutput = expectedOutput;
-        this.stdout = stdout;
-        this.stderr = stderr;
-        this.executionTimeMs = executionTimeMs;
-        this.bytesUsed = bytesUsed;
-    }
-
-    public TestCaseResult(
             UUID submissionId,
             String input,
             String expectedOutput,
@@ -59,37 +48,5 @@ public class TestCaseResult {
             Long executionTimeMs,
             Long bytesUsed) {
         this(null, submissionId, input, expectedOutput, stdout, stderr, executionTimeMs, bytesUsed);
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getSubmissionId() {
-        return submissionId;
-    }
-
-    public String getInput() {
-        return input;
-    }
-
-    public String getExpectedOutput() {
-        return expectedOutput;
-    }
-
-    public String getStdout() {
-        return stdout;
-    }
-
-    public String getStderr() {
-        return stderr;
-    }
-
-    public Long getExecutionTimeMs() {
-        return executionTimeMs;
-    }
-
-    public Long getBytesUsed() {
-        return bytesUsed;
     }
 }

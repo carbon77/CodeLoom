@@ -9,19 +9,21 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 
 class RestExceptionHandlerTest {
-    RestExceptionHandler handler = new RestExceptionHandler();
-    MockHttpServletRequest request = new MockHttpServletRequest();
+    private final RestExceptionHandler restExceptionHandler = new RestExceptionHandler();
+    private final MockHttpServletRequest httpServletRequest = new MockHttpServletRequest();
+
 
     @BeforeEach
     void setup() {
-        request.setMethod("GET");
-        request.setRequestURI("/v1/problems");
+        httpServletRequest.setMethod("GET");
+        httpServletRequest.setRequestURI("/v1/problems");
     }
 
     @Test
     void authenticationExceptionsReturnUnauthorized() {
-        var r = handler.handleException(new InsufficientAuthenticationException("detail"), request);
+        var r = restExceptionHandler.handleException(new InsufficientAuthenticationException("detail"), httpServletRequest);
         assertEquals(HttpStatus.UNAUTHORIZED, r.getStatusCode());
+        assert r.getBody() != null;
         assertEquals("Authentication required", r.getBody().message());
         assertEquals("/v1/problems", r.getBody().path());
         assertNull(r.getBody().payload());
@@ -29,8 +31,9 @@ class RestExceptionHandlerTest {
 
     @Test
     void accessDeniedReturnsForbidden() {
-        var r = handler.handleException(new AccessDeniedException("detail"), request);
+        var r = restExceptionHandler.handleException(new AccessDeniedException("detail"), httpServletRequest);
         assertEquals(HttpStatus.FORBIDDEN, r.getStatusCode());
+        assert r.getBody() != null;
         assertEquals("Access denied", r.getBody().message());
     }
 }

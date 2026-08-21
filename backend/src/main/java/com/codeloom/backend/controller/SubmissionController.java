@@ -4,26 +4,25 @@ import com.codeloom.backend.dto.SendSubmissionRequest;
 import com.codeloom.backend.model.Submission;
 import com.codeloom.backend.service.SubmissionService;
 import jakarta.validation.Valid;
-import java.util.Collection;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
+
 @RestController
 @RequestMapping("/v1/submissions")
+@RequiredArgsConstructor
 public class SubmissionController {
     private final SubmissionService service;
 
-    public SubmissionController(SubmissionService s) {
-        service = s;
-    }
-
     @GetMapping
-    public Collection<Submission> findSubmissions(Authentication a, @RequestParam long problemId) {
-        return service.findSubmissions(problemId, a);
+    public Collection<Submission> findSubmissions(Authentication authentication, @RequestParam long problemId) {
+        return service.findSubmissions(problemId, authentication);
     }
 
     @PostMapping
-    public void sendSubmission(Authentication a, @Valid @RequestBody SendSubmissionRequest q) {
-        service.sendSubmission(q, a);
+    public void sendSubmission(Authentication authentication, @Valid @RequestBody SendSubmissionRequest request) {
+        service.sendSubmission(request, authentication);
     }
 }

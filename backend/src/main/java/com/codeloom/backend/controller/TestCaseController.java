@@ -4,18 +4,18 @@ import com.codeloom.backend.dto.CreateTestCaseRequest;
 import com.codeloom.backend.model.TestCase;
 import com.codeloom.backend.service.TestCaseService;
 import jakarta.validation.Valid;
-import java.util.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import tools.jackson.databind.JsonNode;
 
+import java.util.List;
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/v1/testCases")
+@RequiredArgsConstructor
 public class TestCaseController {
     private final TestCaseService service;
-
-    public TestCaseController(TestCaseService s) {
-        service = s;
-    }
 
     @GetMapping("/{id}")
     public TestCase findById(@PathVariable UUID id) {
@@ -29,18 +29,19 @@ public class TestCaseController {
 
     @GetMapping("/by-problem-id/{problemId}")
     public Iterable<TestCase> findByProblemId(
-            @PathVariable long problemId, @RequestParam(required = false) Boolean isPublic) {
+            @PathVariable long problemId,
+            @RequestParam(required = false) Boolean isPublic) {
         return service.findAllByProblemId(problemId, isPublic);
     }
 
     @PostMapping
-    public TestCase create(@Valid @RequestBody CreateTestCaseRequest q) {
-        return service.create(q);
+    public TestCase create(@Valid @RequestBody CreateTestCaseRequest request) {
+        return service.create(request);
     }
 
     @PatchMapping("/{id}")
-    public TestCase patch(@PathVariable UUID id, @RequestBody JsonNode n) {
-        return service.patch(id, n);
+    public TestCase patch(@PathVariable UUID id, @RequestBody JsonNode patchJsonNode) {
+        return service.patch(id, patchJsonNode);
     }
 
     @DeleteMapping("/{id}")

@@ -1,81 +1,96 @@
 package com.codeloom.backend.config;
 
 import com.codeloom.backend.security.CustomAuthenticationEntryPoint;
-import java.util.*;
-import org.springframework.context.annotation.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.server.resource.authentication.*;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.*;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
 @Profile("!test")
+@RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomAuthenticationEntryPoint entry;
 
-    public SecurityConfig(CustomAuthenticationEntryPoint e) {
-        entry = e;
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .cors(configurer -> {
+                })
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(registry ->
+                        registry.requestMatchers(HttpMethod.OPTIONS, "/**")
+                                .permitAll()
+                                .requestMatchers("/error", "/docs/**")
+                                .permitAll()
+                                .requestMatchers("/v1/submissions/**")
+                                .hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/v1/topics/**", "/v1/problems/**")
+                                .hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/v1/problems/**")
+                                .hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/v1/problems/**")
+                                .hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.PATCH, "/v1/problems/**")
+                                .hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/v1/problems/**")
+                                .hasRole("ADMIN")
+                                .anyRequest()
+                                .hasRole("ADMIN"))
+                .oauth2ResourceServer(configurer -> configurer.authenticationEntryPoint(entry).jwt(jwtConfigurer -> {
+                }))
+                .exceptionHandling(configurer -> configurer.authenticationEntryPoint(entry).accessDeniedHandler(entry));
+        return http.build();
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity h) throws Exception {
-        h.cors(c -> {})
-                .csrf(c -> c.disable())
-                .authorizeHttpRequests(a -> a.requestMatchers(HttpMethod.OPTIONS, "/**")
-                        .permitAll()
-                        .requestMatchers("/error", "/docs/**")
-                        .permitAll()
-                        .requestMatchers("/v1/submissions/**")
-                        .hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/v1/topics/**", "/v1/problems/**")
-                        .hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/v1/problems/**")
-                        .hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/v1/problems/**")
-                        .hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/v1/problems/**")
-                        .hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/v1/problems/**")
-                        .hasRole("ADMIN")
-                        .anyRequest()
-                        .hasRole("ADMIN"))
-                .oauth2ResourceServer(o -> o.authenticationEntryPoint(entry).jwt(j -> {}))
-                .exceptionHandling(e -> e.authenticationEntryPoint(entry).accessDeniedHandler(entry));
-        return h.build();
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedMethods(List.of("*"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration c = new CorsConfiguration();
-        c.setAllowedOrigins(List.of("http://localhost:5173"));
-        c.setAllowedMethods(List.of("*"));
-        c.setAllowedHeaders(List.of("*"));
-        c.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource s = new UrlBasedCorsConfigurationSource();
-        s.registerCorsConfiguration("/**", c);
-        return s;
-    }
-
-    @Bean
-    JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtAuthenticationConverter c = new JwtAuthenticationConverter();
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         JwtGrantedAuthoritiesConverter base = new JwtGrantedAuthoritiesConverter();
-        c.setPrincipalClaimName("preferred_username");
-        c.setJwtGrantedAuthoritiesConverter(jwt -> {
-            Collection<org.springframework.security.core.GrantedAuthority> a = new ArrayList<>(base.convert(jwt));
-            Map<String, Object> realm = jwt.getClaimAsMap("realm_access");
-            if (realm != null && realm.get("roles") instanceof Collection<?> roles)
+
+        converter.setPrincipalClaimName("preferred_username");
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            Collection<GrantedAuthority> authorities = new ArrayList<>(base.convert(jwt));
+            Map<String, Object> claims = jwt.getClaimAsMap("realm_access");
+
+            if (claims != null && claims.get("roles") instanceof Collection<?> roles)
                 roles.stream()
                         .map(Object::toString)
-                        .filter(x -> x.startsWith("ROLE_"))
+                        .filter(role -> role.startsWith("ROLE_"))
                         .map(SimpleGrantedAuthority::new)
-                        .forEach(a::add);
-            return a;
+                        .forEach(authorities::add);
+            return authorities;
         });
-        return c;
+        return converter;
     }
 }

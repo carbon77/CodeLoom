@@ -1,5 +1,4 @@
 plugins {
-    id 'org.jetbrains.kotlin.plugin.spring'
     id 'org.springframework.boot'
 }
 
@@ -21,15 +20,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jdbc-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-kafka-test'
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'org.mockito.kotlin:mockito-kotlin:6.3.0'
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll '-Xjsr305=strict', '-Xannotation-default-target=param-property'
-    }
+    testImplementation 'org.mockito:mockito-core'
 }
 
 tasks.named('test') {

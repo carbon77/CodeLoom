@@ -4,13 +4,8 @@ import com.codeloom.common.SubmissionStatus;
 import java.util.UUID;
 
 public record SubmissionStatusChangedEvent(
-    UUID submissionId,
-    UUID userId,
-    long problemId,
-    SubmissionStatus newStatus,
-    SubmissionStatusPayload payload) {
-  public SubmissionStatusChangedEvent(
-      UUID submissionId, UUID userId, long problemId, SubmissionStatus newStatus) {
-    this(submissionId, userId, problemId, newStatus, null);
-  }
+        UUID submissionId, UUID userId, long problemId, SubmissionStatus newStatus, SubmissionStatusPayload payload) {
+    public SubmissionStatusChangedEvent(UUID submissionId, UUID userId, long problemId, SubmissionStatus newStatus) {
+        this(submissionId, userId, problemId, newStatus, null);
+    }
 }

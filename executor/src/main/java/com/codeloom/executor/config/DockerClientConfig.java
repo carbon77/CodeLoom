@@ -9,23 +9,24 @@ import org.springframework.context.annotation.*;
 
 @Configuration
 public class DockerClientConfig {
-  private final String host;
+    private final String host;
 
-  public DockerClientConfig(@Value("${codeloom.docker.host}") String h) {
-    host = h;
-  }
+    public DockerClientConfig(@Value("${codeloom.docker.host}") String h) {
+        host = h;
+    }
 
-  @Bean
-  DockerClient dockerClient() {
-    var c = DefaultDockerClientConfig.createDefaultConfigBuilder().withDockerHost(host).build();
-    var http =
-        new ApacheDockerHttpClient.Builder()
-            .dockerHost(c.getDockerHost())
-            .sslConfig(c.getSSLConfig())
-            .maxConnections(10)
-            .connectionTimeout(Duration.ofSeconds(10))
-            .responseTimeout(Duration.ofSeconds(30))
-            .build();
-    return DockerClientBuilder.getInstance(c).withDockerHttpClient(http).build();
-  }
+    @Bean
+    DockerClient dockerClient() {
+        var c = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                .withDockerHost(host)
+                .build();
+        var http = new ApacheDockerHttpClient.Builder()
+                .dockerHost(c.getDockerHost())
+                .sslConfig(c.getSSLConfig())
+                .maxConnections(10)
+                .connectionTimeout(Duration.ofSeconds(10))
+                .responseTimeout(Duration.ofSeconds(30))
+                .build();
+        return DockerClientBuilder.getInstance(c).withDockerHttpClient(http).build();
+    }
 }

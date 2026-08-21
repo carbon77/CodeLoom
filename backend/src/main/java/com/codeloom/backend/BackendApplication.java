@@ -9,12 +9,12 @@ import tools.jackson.databind.ObjectMapper;
 @SpringBootApplication
 @EnableJdbcAuditing
 public class BackendApplication {
-  public static void main(String[] args) {
-    SpringApplication.run(BackendApplication.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(BackendApplication.class, args);
+    }
 
-  @Bean
-  ObjectMapper objectMapper() {
-    return new ObjectMapper();
-  }
+    @Bean
+    ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
 }

@@ -5,5 +5,5 @@ import java.util.UUID;
 import org.springframework.data.repository.CrudRepository;
 
 public interface TestCaseResultRepository extends CrudRepository<TestCaseResult, UUID> {
-  void deleteBySubmissionId(UUID id);
+    void deleteBySubmissionId(UUID id);
 }

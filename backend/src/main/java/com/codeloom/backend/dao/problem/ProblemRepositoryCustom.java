@@ -4,5 +4,5 @@ import com.codeloom.backend.dto.*;
 import java.util.List;
 
 public interface ProblemRepositoryCustom {
-  List<ProblemListDto> findProblemListDtos(ProblemFilters filters);
+    List<ProblemListDto> findProblemListDtos(ProblemFilters filters);
 }

@@ -5,5 +5,5 @@ import java.util.*;
 import org.springframework.data.repository.CrudRepository;
 
 public interface SubmissionRepository extends CrudRepository<Submission, UUID> {
-  Collection<Submission> findByUserIdAndProblemId(UUID userId, long problemId);
+    Collection<Submission> findByUserIdAndProblemId(UUID userId, long problemId);
 }

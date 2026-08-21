@@ -1,11 +1,20 @@
 package com.codeloom.backend.model;
 
 import com.codeloom.common.SubmissionStatus;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
 import java.time.Instant;
 import java.util.UUID;
-import org.springframework.data.annotation.*;
-import org.springframework.data.relational.core.mapping.*;
 
+@Getter
+@Builder
+@RequiredArgsConstructor
 @Table("submissions")
 public class Submission {
     @Id
@@ -31,53 +40,9 @@ public class Submission {
     @Column("created_at")
     private final Instant createdAt;
 
-    public Submission(
-            UUID id,
-            UUID userId,
-            long problemId,
-            String code,
-            SubmissionStatus status,
-            String language,
-            Instant createdAt) {
-        this.id = id;
-        this.userId = userId;
-        this.problemId = problemId;
-        this.code = code;
-        this.status = status;
-        this.language = language;
-        this.createdAt = createdAt;
-    }
 
     public Submission(UUID userId, long problemId, String code, SubmissionStatus status, String language) {
         this(null, userId, problemId, code, status, language, Instant.now());
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getUserId() {
-        return userId;
-    }
-
-    public long getProblemId() {
-        return problemId;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public SubmissionStatus getStatus() {
-        return status;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
     }
 
     public Submission withStatus(SubmissionStatus s) {

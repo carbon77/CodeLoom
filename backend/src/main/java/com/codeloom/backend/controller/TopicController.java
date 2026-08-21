@@ -4,18 +4,17 @@ import com.codeloom.backend.dto.CreateTopicRequest;
 import com.codeloom.backend.model.Topic;
 import com.codeloom.backend.service.TopicService;
 import jakarta.validation.Valid;
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import tools.jackson.databind.JsonNode;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/v1/topics")
+@RequiredArgsConstructor
 public class TopicController {
     private final TopicService service;
-
-    public TopicController(TopicService s) {
-        service = s;
-    }
 
     @GetMapping
     public Iterable<Topic> findAll() {
@@ -28,13 +27,13 @@ public class TopicController {
     }
 
     @PostMapping
-    public Topic create(@Valid @RequestBody CreateTopicRequest q) {
-        return service.create(q);
+    public Topic create(@Valid @RequestBody CreateTopicRequest request) {
+        return service.create(request);
     }
 
     @PatchMapping("/{id}")
-    public Topic patch(@PathVariable UUID id, @RequestBody JsonNode n) {
-        return service.patch(id, n);
+    public Topic patch(@PathVariable UUID id, @RequestBody JsonNode patchJsonNode) {
+        return service.patch(id, patchJsonNode);
     }
 
     @DeleteMapping("/{id}")

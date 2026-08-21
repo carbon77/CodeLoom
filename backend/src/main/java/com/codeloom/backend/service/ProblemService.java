@@ -1,15 +1,17 @@
 package com.codeloom.backend.service;
 
-import static com.codeloom.backend.config.AuthenticationUtils.isRegularUser;
-
 import com.codeloom.backend.dao.problem.ProblemRepository;
 import com.codeloom.backend.dao.testcase.TestCaseRepository;
-import com.codeloom.backend.dto.*;
-import com.codeloom.backend.exception.*;
+import com.codeloom.backend.dto.CreateProblemRequest;
+import com.codeloom.backend.dto.ProblemDto;
+import com.codeloom.backend.dto.ProblemFilters;
+import com.codeloom.backend.dto.ProblemListDto;
+import com.codeloom.backend.exception.ForbiddenActionException;
+import com.codeloom.backend.exception.NoTestCasesException;
+import com.codeloom.backend.exception.ProblemNotFoundException;
 import com.codeloom.backend.model.Problem;
 import com.codeloom.backend.transformer.ProblemTransformer;
-import java.time.Instant;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -18,79 +20,103 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.JsonNode;
 
+import java.time.Instant;
+import java.util.List;
+
+import static com.codeloom.backend.security.AuthenticationUtils.isRegularUser;
+
 @Service
+@RequiredArgsConstructor
 public class ProblemService {
-    private final ProblemRepository repo;
-    private final ProblemTransformer transformer;
-    private final TestCaseRepository tests;
-    private final TopicService topics;
+    private final ProblemRepository problemRepository;
+    private final ProblemTransformer problemTransformer;
+    private final TestCaseRepository testCaseRepository;
+    private final TopicService topicService;
 
-    public ProblemService(ProblemRepository r, ProblemTransformer t, TestCaseRepository c, TopicService s) {
-        repo = r;
-        transformer = t;
-        tests = c;
-        topics = s;
+    @Transactional(readOnly = true)
+    public List<ProblemListDto> findItemsByFilters(Authentication authentication, ProblemFilters filters) {
+        if (isRegularUser(authentication) && !filters.publishedOnly()) {
+            throw new ForbiddenActionException();
+        }
+        return problemRepository.findProblemListDtos(filters);
     }
 
     @Transactional(readOnly = true)
-    public List<ProblemListDto> findItemsByFilters(Authentication a, ProblemFilters f) {
-        if (isRegularUser(a) && !f.publishedOnly()) throw new ForbiddenActionException();
-        return repo.findProblemListDtos(f);
-    }
-
-    @Transactional(readOnly = true)
-    public ProblemDto findDtoBySlug(Authentication a, String slug) {
-        Problem p = repo.findBySlug(slug);
-        if (p == null)
+    public ProblemDto findDtoBySlug(Authentication authentication, String slug) {
+        Problem problem = problemRepository.findBySlug(slug);
+        if (problem == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Problem with slug " + slug + " not found");
-        if (isRegularUser(a) && !p.isPublished()) throw new ProblemNotFoundException(p.getId());
-        return transformer.getDtoFromEntity(p);
+        }
+
+        if (isRegularUser(authentication) && problem.isDraft()) {
+            throw new ProblemNotFoundException(problem.getId());
+        }
+
+        return problemTransformer.getDtoFromEntity(problem);
     }
 
     @Transactional(readOnly = true)
-    public Problem findById(Authentication a, long id) {
-        Problem p = find(id);
-        if (isRegularUser(a) && !p.isPublished()) throw new ProblemNotFoundException(id);
-        return p;
+    public Problem findById(Authentication authentication, long problemId) {
+        Problem problem = findOrThrow(problemId);
+
+        if (isRegularUser(authentication) && problem.isDraft()) {
+            throw new ProblemNotFoundException(problemId);
+        }
+
+        return problem;
     }
 
     @Transactional
-    public void deleteById(long id) {
-        repo.deleteById(id);
+    public void deleteById(long problemId) {
+        problemRepository.deleteById(problemId);
     }
 
     @Transactional
-    public Problem create(CreateProblemRequest q) {
+    public Problem create(CreateProblemRequest request) {
         try {
-            return repo.save(new Problem(q.title(), q.title().toLowerCase().replace(" ", "_")));
+            String slug = request.title().toLowerCase().replace(" ", "_");
+            return problemRepository.save(
+                    Problem.builder()
+                            .title(request.title())
+                            .slug(slug)
+                            .build()
+            );
         } catch (DuplicateKeyException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Problem already exists");
         }
     }
 
     @Transactional
-    public Problem update(long id, JsonNode n) {
-        Problem p = transformer.updateEntityFromPatchNode(find(id), n);
-        if (n.has("topics")) topics.createManyWithProblem(id, n.get("topics"));
+    public Problem update(long problemId, JsonNode patchNode) {
+        Problem problem = problemTransformer.updateEntityFromPatchNode(findOrThrow(problemId), patchNode);
+
+        if (patchNode.has("topics")) {
+            topicService.createManyWithProblem(problemId, patchNode.get("topics"));
+        }
+
         try {
-            return repo.save(p);
+            return problemRepository.save(problem);
         } catch (DuplicateKeyException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Problem already exists");
         }
     }
 
     @Transactional
-    public void publish(long id) {
-        if (tests.countAllByProblemId(id) == 0) throw new NoTestCasesException(id);
-        repo.save(find(id).withPublishedAt(Instant.now()));
+    public void publish(long problemId) {
+        if (testCaseRepository.countAllByProblemId(problemId) == 0) {
+            throw new NoTestCasesException(problemId);
+        }
+
+        problemRepository.save(findOrThrow(problemId).withPublishedAt(Instant.now()));
     }
 
     @Transactional
-    public void unpublish(long id) {
-        repo.save(find(id).withPublishedAt(null));
+    public void unpublish(long problemId) {
+        problemRepository.save(findOrThrow(problemId).withPublishedAt(null));
     }
 
-    private Problem find(long id) {
-        return repo.findById(id).orElseThrow(() -> new ProblemNotFoundException(id));
+    private Problem findOrThrow(long problemid) {
+        return problemRepository.findById(problemid)
+                .orElseThrow(() -> new ProblemNotFoundException(problemid));
     }
 }

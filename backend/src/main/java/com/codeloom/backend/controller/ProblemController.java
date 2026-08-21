@@ -1,40 +1,49 @@
 package com.codeloom.backend.controller;
 
-import com.codeloom.backend.dto.*;
-import com.codeloom.backend.model.*;
+import com.codeloom.backend.dto.CreateProblemRequest;
+import com.codeloom.backend.dto.ProblemDto;
+import com.codeloom.backend.dto.ProblemFilters;
+import com.codeloom.backend.dto.ProblemListDto;
+import com.codeloom.backend.model.Problem;
+import com.codeloom.backend.model.ProblemDifficulty;
 import com.codeloom.backend.service.ProblemService;
 import jakarta.validation.Valid;
-import java.util.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import tools.jackson.databind.JsonNode;
 
+import java.util.List;
+import java.util.Set;
+
 @RestController
 @RequestMapping("/v1/problems")
+@RequiredArgsConstructor
 public class ProblemController {
     private final ProblemService service;
 
-    public ProblemController(ProblemService s) {
-        service = s;
-    }
-
     @GetMapping("items")
     public List<ProblemListDto> findAllItems(
-            Authentication a,
+            Authentication authentication,
             @RequestParam(required = false) Set<ProblemDifficulty> difficulties,
             @RequestParam(required = false) Set<String> topics,
             @RequestParam(defaultValue = "true") boolean publishedOnly) {
-        return service.findItemsByFilters(a, new ProblemFilters(difficulties, publishedOnly, topics));
+        var filters = ProblemFilters.builder()
+                .difficulties(difficulties)
+                .publishedOnly(publishedOnly)
+                .topics(topics)
+                .build();
+        return service.findItemsByFilters(authentication, filters);
     }
 
     @GetMapping("{problemId}")
-    public Problem findById(Authentication a, @PathVariable long problemId) {
-        return service.findById(a, problemId);
+    public Problem findById(Authentication authentication, @PathVariable long problemId) {
+        return service.findById(authentication, problemId);
     }
 
     @GetMapping("slug/{problemSlug}")
-    public ProblemDto findDtoBySlug(Authentication a, @PathVariable String problemSlug) {
-        return service.findDtoBySlug(a, problemSlug);
+    public ProblemDto findDtoBySlug(Authentication authentication, @PathVariable String problemSlug) {
+        return service.findDtoBySlug(authentication, problemSlug);
     }
 
     @DeleteMapping("{problemId}")
@@ -43,13 +52,13 @@ public class ProblemController {
     }
 
     @PostMapping
-    public Problem create(@Valid @RequestBody CreateProblemRequest q) {
-        return service.create(q);
+    public Problem create(@Valid @RequestBody CreateProblemRequest request) {
+        return service.create(request);
     }
 
     @PutMapping("/{problemId}")
-    public Problem update(@PathVariable long problemId, @RequestBody JsonNode n) {
-        return service.update(problemId, n);
+    public Problem update(@PathVariable long problemId, @RequestBody JsonNode patchJsonNode) {
+        return service.update(problemId, patchJsonNode);
     }
 
     @PatchMapping("/{problemId}/publish")

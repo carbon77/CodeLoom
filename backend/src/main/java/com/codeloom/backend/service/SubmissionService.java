@@ -1,16 +1,17 @@
 package com.codeloom.backend.service;
 
-import static com.codeloom.backend.config.AuthenticationUtils.*;
-
 import com.codeloom.backend.dao.SubmissionRepository;
 import com.codeloom.backend.dao.problem.ProblemRepository;
 import com.codeloom.backend.dao.testcase.TestCaseRepository;
 import com.codeloom.backend.dto.SendSubmissionRequest;
-import com.codeloom.backend.exception.*;
-import com.codeloom.backend.model.*;
-import com.codeloom.common.*;
-import java.util.Collection;
-import org.slf4j.*;
+import com.codeloom.backend.exception.NoTestCasesException;
+import com.codeloom.backend.exception.ProblemNotFoundException;
+import com.codeloom.backend.model.Problem;
+import com.codeloom.backend.model.Submission;
+import com.codeloom.common.SubmissionEvent;
+import com.codeloom.common.SubmissionStatus;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
@@ -18,44 +19,60 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.Collection;
+
+import static com.codeloom.backend.security.AuthenticationUtils.getUserId;
+import static com.codeloom.backend.security.AuthenticationUtils.isRegularUser;
+
+@Slf4j
+@RequiredArgsConstructor
 @Service
 public class SubmissionService {
-    private static final Logger log = LoggerFactory.getLogger(SubmissionService.class);
-    private final SubmissionRepository repo;
-    private final ProblemRepository problems;
-    private final TestCaseRepository tests;
-    private final KafkaTemplate<String, String> kafka;
-    private final ObjectMapper mapper;
+    private final SubmissionRepository submissionRepository;
+    private final ProblemRepository problemRepository;
+    private final TestCaseRepository testCaseRepository;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
+
+    @Value("${codeloom.kafka.submission-topic}")
     private final String topic;
 
-    public SubmissionService(
-            SubmissionRepository r,
-            ProblemRepository p,
-            TestCaseRepository t,
-            KafkaTemplate<String, String> k,
-            ObjectMapper m,
-            @Value("${codeloom.kafka.submission-topic}") String x) {
-        repo = r;
-        problems = p;
-        tests = t;
-        kafka = k;
-        mapper = m;
-        topic = x;
-    }
-
-    public Collection<Submission> findSubmissions(long id, Authentication a) {
-        return repo.findByUserIdAndProblemId(getUserId(a), id);
+    public Collection<Submission> findSubmissions(long problemId, Authentication authentication) {
+        return submissionRepository.findByUserIdAndProblemId(getUserId(authentication), problemId);
     }
 
     @Transactional
-    public void sendSubmission(SendSubmissionRequest q, Authentication a) {
-        Problem p = problems.findById(q.problemId()).orElseThrow(() -> new ProblemNotFoundException(q.problemId()));
-        if (isRegularUser(a) && !p.isPublished()) throw new ProblemNotFoundException(q.problemId());
-        if (tests.countAllByProblemId(q.problemId()) == 0) throw new NoTestCasesException(q.problemId());
-        Submission s = repo.save(
-                new Submission(getUserId(a), q.problemId(), q.code(), SubmissionStatus.PENDING, q.language()));
-        SubmissionEvent e = new SubmissionEvent(s.getId(), s.getUserId(), q.problemId(), q.code(), q.language());
-        kafka.send(topic, s.getId().toString(), mapper.writeValueAsString(e));
-        log.info("Submission sent: submissionId={}", s.getId());
+    public void sendSubmission(SendSubmissionRequest request, Authentication authentication) {
+        Problem problem = problemRepository
+                .findById(request.problemId())
+                .orElseThrow(() -> new ProblemNotFoundException(request.problemId()));
+
+        if (isRegularUser(authentication) && problem.isDraft()) {
+            throw new ProblemNotFoundException(request.problemId());
+        }
+
+        if (testCaseRepository.countAllByProblemId(request.problemId()) == 0) {
+            throw new NoTestCasesException(request.problemId());
+        }
+
+        Submission submission = submissionRepository.save(
+                Submission.builder()
+                        .userId(getUserId(authentication))
+                        .problemId(request.problemId())
+                        .code(request.code())
+                        .status(SubmissionStatus.PENDING)
+                        .language(request.language())
+                        .build()
+        );
+        SubmissionEvent event = SubmissionEvent.builder()
+                .submissionId(submission.getId())
+                .userId(submission.getUserId())
+                .problemId(request.problemId())
+                .code(request.code())
+                .language(request.language())
+                .build();
+
+        kafkaTemplate.send(topic, submission.getId().toString(), objectMapper.writeValueAsString(event));
+        log.info("Submission sent: submissionId={}", submission.getId());
     }
 }

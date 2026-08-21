@@ -5,6 +5,8 @@ import com.codeloom.backend.model.*;
 import com.codeloom.common.SubmissionStatus;
 import java.sql.JDBCType;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.convert.*;
 import org.springframework.data.jdbc.core.mapping.JdbcValue;
@@ -12,20 +14,17 @@ import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration
 import tools.jackson.databind.ObjectMapper;
 
 @Configuration
+@RequiredArgsConstructor
 public class JdbcConfig extends AbstractJdbcConfiguration {
-    private final ObjectMapper mapper;
-
-    public JdbcConfig(ObjectMapper m) {
-        mapper = m;
-    }
+    private final ObjectMapper objectMapper;
 
     @Override
     protected List<?> userConverters() {
         return List.of(
-                new ExamplesRead(mapper),
-                new ExamplesWrite(mapper),
-                new ConstraintsRead(mapper),
-                new ConstraintsWrite(mapper),
+                new ExamplesRead(objectMapper),
+                new ExamplesWrite(objectMapper),
+                new ConstraintsRead(objectMapper),
+                new ConstraintsWrite(objectMapper),
                 new DifficultyWrite(),
                 new StatusWrite());
     }

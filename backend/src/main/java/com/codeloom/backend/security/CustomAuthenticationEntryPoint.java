@@ -1,7 +1,9 @@
 package com.codeloom.backend.security;
 
-import jakarta.servlet.http.*;
-import org.springframework.beans.factory.annotation.Qualifier;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -10,18 +12,23 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Component
+@RequiredArgsConstructor
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint, AccessDeniedHandler {
-    private final HandlerExceptionResolver resolver;
+    private final HandlerExceptionResolver handlerExceptionResolver;
 
-    public CustomAuthenticationEntryPoint(@Qualifier("handlerExceptionResolver") HandlerExceptionResolver r) {
-        resolver = r;
+    @Override
+    public void commence(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull AuthenticationException exception) {
+        handlerExceptionResolver.resolveException(request, response, null, exception);
     }
 
-    public void commence(HttpServletRequest q, HttpServletResponse s, AuthenticationException e) {
-        resolver.resolveException(q, s, null, e);
-    }
-
-    public void handle(HttpServletRequest q, HttpServletResponse s, AccessDeniedException e) {
-        resolver.resolveException(q, s, null, e);
+    @Override
+    public void handle(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull AccessDeniedException exception) {
+        handlerExceptionResolver.resolveException(request, response, null, exception);
     }
 }

@@ -2,53 +2,54 @@ package com.codeloom.backend.service;
 
 import com.codeloom.backend.dao.SubmissionRepository;
 import com.codeloom.backend.dao.testcase.TestCaseResultRepository;
-import com.codeloom.backend.model.*;
+import com.codeloom.backend.model.Submission;
+import com.codeloom.backend.model.TestCaseResult;
 import com.codeloom.common.event.SubmissionStatusChangedEvent;
-import java.util.*;
-import org.slf4j.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.Optional;
+
+@Slf4j
+@RequiredArgsConstructor
 @Service
 public class SubmissionStatusKafkaListenerService {
-    private static final Logger log = LoggerFactory.getLogger(SubmissionStatusKafkaListenerService.class);
-    private final SubmissionRepository submissions;
-    private final TestCaseResultRepository results;
-    private final ObjectMapper mapper;
-
-    public SubmissionStatusKafkaListenerService(SubmissionRepository s, TestCaseResultRepository r, ObjectMapper m) {
-        submissions = s;
-        results = r;
-        mapper = m;
-    }
+    private final SubmissionRepository submissionRepository;
+    private final TestCaseResultRepository testCaseResultRepository;
+    private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "${codeloom.kafka.submission-status-topic}")
     public void listenSubmissionStatus(String message) {
         try {
-            SubmissionStatusChangedEvent e = mapper.readValue(message, SubmissionStatusChangedEvent.class);
-            Optional<Submission> s = submissions.findById(e.submissionId());
-            if (s.isEmpty()) {
-                log.warn("Submission not found: submissionId={}", e.submissionId());
+            SubmissionStatusChangedEvent event = objectMapper.readValue(message, SubmissionStatusChangedEvent.class);
+            Optional<Submission> submission = submissionRepository.findById(event.submissionId());
+            if (submission.isEmpty()) {
+                log.warn("Submission not found: submissionId={}", event.submissionId());
                 return;
             }
-            submissions.save(s.get().withStatus(e.newStatus()));
-            if (e.payload() != null && e.payload().testCaseResults() != null) {
-                results.deleteBySubmissionId(e.submissionId());
-                results.saveAll(e.payload().testCaseResults().stream()
-                        .map(r -> new TestCaseResult(
-                                e.submissionId(),
-                                r.input(),
-                                r.expectedOutput(),
-                                r.stdout(),
-                                r.stderr(),
-                                r.executionTimeMs(),
-                                r.memoryUsageBytes()))
+
+            submissionRepository.save(submission.get().withStatus(event.newStatus()));
+            if (event.payload() != null && event.payload().testCaseResults() != null) {
+                testCaseResultRepository.deleteBySubmissionId(event.submissionId());
+                testCaseResultRepository.saveAll(event.payload().testCaseResults().stream()
+                        .map(result -> TestCaseResult.builder()
+                                .id(result.id())
+                                .submissionId(submission.get().getId())
+                                .input(result.input())
+                                .stdout(result.stdout())
+                                .stderr(result.stderr())
+                                .bytesUsed(result.memoryUsageBytes())
+                                .executionTimeMs(result.executionTimeMs())
+                                .expectedOutput(result.expectedOutput())
+                                .build())
                         .toList());
             }
-        } catch (JacksonException ex) {
-            log.error("Failed to parse submission status event", ex);
+        } catch (JacksonException e) {
+            log.error("Failed to parse submission status event", e);
         }
     }
 }

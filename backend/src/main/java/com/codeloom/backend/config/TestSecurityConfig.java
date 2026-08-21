@@ -1,6 +1,8 @@
 package com.codeloom.backend.config;
 
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -8,8 +10,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @Profile("test")
 public class TestSecurityConfig {
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity h) throws Exception {
-        h.authorizeHttpRequests(a -> a.anyRequest().authenticated());
-        return h.build();
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        http.authorizeHttpRequests(registry -> registry.anyRequest().authenticated());
+        return http.build();
     }
 }

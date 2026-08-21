@@ -1,10 +1,22 @@
 package com.codeloom.backend.model;
 
-import java.time.Instant;
-import org.springframework.data.annotation.*;
-import org.springframework.data.relational.core.mapping.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.With;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.Instant;
+
+@Getter
 @Table("problems")
+@RequiredArgsConstructor
+@Builder
+@With
 public class Problem {
     @Id
     @Column("problem_id")
@@ -42,31 +54,6 @@ public class Problem {
     @Column("published_at")
     private final Instant publishedAt;
 
-    public Problem(
-            Long id,
-            String slug,
-            String title,
-            String description,
-            ProblemDifficulty difficulty,
-            ProblemConstraints constraints,
-            ProblemExamples examples,
-            String[] hints,
-            Instant createdAt,
-            Instant updatedAt,
-            Instant publishedAt) {
-        this.id = id;
-        this.slug = slug;
-        this.title = title;
-        this.description = description;
-        this.difficulty = difficulty;
-        this.constraints = constraints;
-        this.examples = examples;
-        this.hints = hints;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.publishedAt = publishedAt;
-    }
-
     public Problem(String title, String slug) {
         this(
                 null,
@@ -82,78 +69,7 @@ public class Problem {
                 null);
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public String getSlug() {
-        return slug;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public ProblemDifficulty getDifficulty() {
-        return difficulty;
-    }
-
-    public ProblemConstraints getConstraints() {
-        return constraints;
-    }
-
-    public ProblemExamples getExamples() {
-        return examples;
-    }
-
-    public String[] getHints() {
-        return hints;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public Instant getPublishedAt() {
-        return publishedAt;
-    }
-
-    public boolean isPublished() {
-        return publishedAt != null;
-    }
-
-    public Problem updated(
-            String slug,
-            String title,
-            String description,
-            ProblemDifficulty difficulty,
-            ProblemConstraints constraints,
-            ProblemExamples examples,
-            String[] hints) {
-        return new Problem(
-                id,
-                slug,
-                title,
-                description,
-                difficulty,
-                constraints,
-                examples,
-                hints,
-                createdAt,
-                updatedAt,
-                publishedAt);
-    }
-
-    public Problem withPublishedAt(Instant value) {
-        return new Problem(
-                id, slug, title, description, difficulty, constraints, examples, hints, createdAt, updatedAt, value);
+    public boolean isDraft() {
+        return publishedAt == null;
     }
 }

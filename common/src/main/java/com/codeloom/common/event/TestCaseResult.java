@@ -1,7 +1,9 @@
 package com.codeloom.common.event;
 
 import java.util.UUID;
+import lombok.Builder;
 
+@Builder
 public record TestCaseResult(
         UUID id,
         long problemId,

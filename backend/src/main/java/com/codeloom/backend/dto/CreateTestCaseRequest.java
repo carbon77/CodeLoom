@@ -1,7 +1,9 @@
 package com.codeloom.backend.dto;
 
 import jakarta.validation.constraints.*;
+import lombok.Builder;
 
+@Builder
 public record CreateTestCaseRequest(
         @NotNull(message = "problemId must not be null") Long problemId,
         @NotBlank(message = "input can't be blank") String input,

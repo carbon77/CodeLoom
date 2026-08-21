@@ -1,9 +1,16 @@
 package com.codeloom.executor.model;
 
 import java.util.UUID;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.*;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
+@Getter
+@RequiredArgsConstructor
+@Builder
 @Table("test_cases")
 public class TestCase {
     @Id
@@ -21,32 +28,4 @@ public class TestCase {
 
     @Column("is_public")
     private final boolean isPublic;
-
-    public TestCase(UUID id, long problemId, String input, String expectedOutput, boolean isPublic) {
-        this.id = id;
-        this.problemId = problemId;
-        this.input = input;
-        this.expectedOutput = expectedOutput;
-        this.isPublic = isPublic;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public long getProblemId() {
-        return problemId;
-    }
-
-    public String getInput() {
-        return input;
-    }
-
-    public String getExpectedOutput() {
-        return expectedOutput;
-    }
-
-    public boolean isPublic() {
-        return isPublic;
-    }
 }

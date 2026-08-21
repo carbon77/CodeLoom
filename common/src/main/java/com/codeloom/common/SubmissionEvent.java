@@ -1,7 +1,9 @@
 package com.codeloom.common;
 
 import java.util.UUID;
+import lombok.Builder;
 
+@Builder
 public record SubmissionEvent(
         UUID submissionId,
         UUID userId,

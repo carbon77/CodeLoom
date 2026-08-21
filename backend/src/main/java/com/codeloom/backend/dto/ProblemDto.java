@@ -1,7 +1,9 @@
 package com.codeloom.backend.dto;
 
 import com.codeloom.backend.model.*;
+import lombok.Builder;
 
+@Builder
 public record ProblemDto(
         Long id,
         String slug,

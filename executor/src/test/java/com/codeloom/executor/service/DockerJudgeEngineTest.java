@@ -6,19 +6,26 @@ import com.codeloom.common.language.LanguageSpec;
 import com.codeloom.executor.engine.SubmissionContext;
 import com.codeloom.executor.model.TestCase;
 import java.util.UUID;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 class DockerJudgeEngineTest extends DockerTestBase {
     @AfterEach
     void removeVolume() {
-        try {
-            dockerClient.removeVolumeCmd("submission-" + submissionId).exec();
-        } catch (Exception ignored) {
-        }
+        dockerClient.removeVolumeCmd("submission-" + submissionId).exec();
     }
 
-    SubmissionContext context(LanguageSpec l, String code) {
-        return new SubmissionContext(submissionId, UUID.randomUUID(), 1, code, l, null, null);
+    SubmissionContext context(LanguageSpec language, String code) {
+        return SubmissionContext.builder()
+                .submissionId(submissionId)
+                .userId(UUID.randomUUID())
+                .problemId(1)
+                .code(code)
+                .language(language)
+                .executionTimeLimitMs(null)
+                .memoryUsageLimitBytes(null)
+                .build();
     }
 
     @Nested
@@ -54,32 +61,38 @@ class DockerJudgeEngineTest extends DockerTestBase {
 
     @Nested
     class Run {
-        TestCase test = new TestCase(UUID.randomUUID(), 1, "2 3", "5", true);
+        TestCase test = TestCase.builder()
+                .id(UUID.randomUUID())
+                .problemId(1)
+                .input("2 3")
+                .expectedOutput("5")
+                .isPublic(true)
+                .build();
 
         @Test
         void pythonReturnsOutput() {
-            var c = context(LanguageSpec.PYTHON, "print(sum(map(int,input().split())),end='')");
-            dockerJudgeEngine.compile(c);
-            var r = dockerJudgeEngine.runTestCase(c, test);
-            assertEquals(0, r.exitCode());
-            assertEquals("5", r.stdout());
+            var context = context(LanguageSpec.PYTHON, "print(sum(map(int,input().split())),end='')");
+            dockerJudgeEngine.compile(context);
+            var result = dockerJudgeEngine.runTestCase(context, test);
+            assertEquals(0, result.exitCode());
+            assertEquals("5", result.stdout());
         }
 
         @Test
         void javaReturnsOutput() {
-            var c = context(
+            var context = context(
                     LanguageSpec.JAVA,
                     "import java.util.*; public class Main {public static void main(String[]a){Scanner s=new Scanner(System.in);System.out.print(s.nextInt()+s.nextInt());}}");
-            assertTrue(dockerJudgeEngine.compile(c).isSuccessful());
-            assertEquals("5", dockerJudgeEngine.runTestCase(c, test).stdout());
+            assertTrue(dockerJudgeEngine.compile(context).isSuccessful());
+            assertEquals("5", dockerJudgeEngine.runTestCase(context, test).stdout());
         }
 
         @Test
         void cppReturnsOutput() {
-            var c = context(
+            var context = context(
                     LanguageSpec.CPP, "#include <iostream>\nint main(){int a,b;std::cin>>a>>b;std::cout<<a+b;}");
-            assertTrue(dockerJudgeEngine.compile(c).isSuccessful());
-            assertEquals("5", dockerJudgeEngine.runTestCase(c, test).stdout());
+            assertTrue(dockerJudgeEngine.compile(context).isSuccessful());
+            assertEquals("5", dockerJudgeEngine.runTestCase(context, test).stdout());
         }
     }
 }

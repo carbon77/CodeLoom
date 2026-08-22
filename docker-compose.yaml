@@ -1,65 +1,81 @@
 services:
+  codeloom-postgres:
+    image: postgres:18.1-alpine3.23
+    container_name: codeloom-postgres
+    environment:
+      POSTGRES_USER: codeloom
+      POSTGRES_PASSWORD: codeloom
+    ports:
+      - 5433:5432
+    volumes:
+      - ./infra/database:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U codeloom -p 5432" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.4.7
-    command:
-    - start-dev
+    container_name: codeloom-keycloak
+    command: start-dev --import-realm --metrics-enabled=true --verbose
     ports:
-    - 8080:8080
-    volumes:
-      - keycloak_data:/opt/keycloak/data
-    depends_on:
-    - db
+      - 8000:8080
+      - 9000:9000
     environment:
+      JAVA_OPTS: -Dkeycloak.migration.usersExportStrategy=REALM_FILE
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: password
+      KEYCLOAK_ADMIN_PASSWORD: admin
       KC_HTTP_PORT: 8080
       KC_DB: postgres
-      KC_DB_URL_HOST: db
-      KC_DB_URL_PORT: 5432
-      KC_DB_URL_DATABASE: keycloak
-      KC_DB_USERNAME: zakat
-      KC_DB_PASSWORD: zakat_pwd
-  
-  db:
-    image: postgres:18.1-alpine3.23
-    ports:
-    - 5433:5432
+      KC_DB_URL: jdbc:postgresql://codeloom-postgres:5432/keycloak
+      KC_DB_USERNAME: codeloom
+      KC_DB_PASSWORD: codeloom
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - db:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: zakat
-      POSTGRES_PASSWORD: zakat_pwd
-  
-  adminer:
-    image: adminer
-    ports:
-    - 8088:8080
+      - ./infra/keycloak/realm-config.json:/opt/keycloak/data/import/realm-config.json
+    depends_on:
+      codeloom-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:9000/health/ready || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.7.7
+
+  adminer:
+    image: adminer:latest
+    container_name: codeloom-adminer
     ports:
-    - 2181:2181
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+      - 8088:8080
+    depends_on:
+      codeloom-postgres:
+        condition: service_healthy
 
   kafka:
     image: confluentinc/cp-kafka:7.7.7
-    depends_on:
-      - zookeeper
+    container_name: codeloom-kafka
     ports:
       - 29092:29092
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://0.0.0.0:29092,CONTROLLER://kafka:29093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
-volumes:
-  db:
-  keycloak_data:
+
+  # codeloom-backend
+  # codeloom-executor
+  # codeloom-frontend

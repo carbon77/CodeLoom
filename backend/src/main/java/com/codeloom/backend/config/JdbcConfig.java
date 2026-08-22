@@ -4,9 +4,10 @@ import com.codeloom.backend.converter.*;
 import com.codeloom.backend.model.*;
 import com.codeloom.common.SubmissionStatus;
 import java.sql.JDBCType;
+import java.sql.SQLException;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
+import org.postgresql.util.PGobject;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.convert.*;
 import org.springframework.data.jdbc.core.mapping.JdbcValue;
@@ -39,7 +40,7 @@ public class JdbcConfig extends AbstractJdbcConfiguration {
     @WritingConverter
     static class ExamplesWrite extends AbstractJsonWritingConverter<ProblemExamples> {
         ExamplesWrite(ObjectMapper m) {
-            super(m, ProblemExamples.class);
+            super(m);
         }
     }
 
@@ -53,7 +54,7 @@ public class JdbcConfig extends AbstractJdbcConfiguration {
     @WritingConverter
     static class ConstraintsWrite extends AbstractJsonWritingConverter<ProblemConstraints> {
         ConstraintsWrite(ObjectMapper m) {
-            super(m, ProblemConstraints.class);
+            super(m);
         }
     }
 
@@ -61,7 +62,7 @@ public class JdbcConfig extends AbstractJdbcConfiguration {
     static class DifficultyWrite
             implements org.springframework.core.convert.converter.Converter<ProblemDifficulty, JdbcValue> {
         public JdbcValue convert(ProblemDifficulty s) {
-            return JdbcValue.of(s, JDBCType.OTHER);
+            return enumValue(s.name(), "problem_difficulty");
         }
     }
 
@@ -69,7 +70,18 @@ public class JdbcConfig extends AbstractJdbcConfiguration {
     static class StatusWrite
             implements org.springframework.core.convert.converter.Converter<SubmissionStatus, JdbcValue> {
         public JdbcValue convert(SubmissionStatus s) {
-            return JdbcValue.of(s, JDBCType.OTHER);
+            return JdbcValue.of(s.name(), JDBCType.VARCHAR);
+        }
+    }
+
+    private static JdbcValue enumValue(String value, String type) {
+        try {
+            var object = new PGobject();
+            object.setType(type);
+            object.setValue(value);
+            return JdbcValue.of(object, JDBCType.OTHER);
+        } catch (SQLException exception) {
+            throw new IllegalArgumentException(exception);
         }
     }
 }

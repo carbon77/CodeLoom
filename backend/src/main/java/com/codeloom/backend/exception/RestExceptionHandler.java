@@ -1,6 +1,9 @@
 package com.codeloom.backend.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -11,10 +14,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -27,11 +26,11 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler({
-            AuthenticationException.class,
-            AccessDeniedException.class,
-            ResponseStatusException.class,
-            MethodArgumentNotValidException.class,
-            HttpMessageNotReadableException.class
+        AuthenticationException.class,
+        AccessDeniedException.class,
+        ResponseStatusException.class,
+        MethodArgumentNotValidException.class,
+        HttpMessageNotReadableException.class
     })
     public ResponseEntity<ErrorResponse> handleKnown(Exception exception, HttpServletRequest request) {
         return handleException(exception, request);
@@ -64,8 +63,8 @@ public class RestExceptionHandler {
                 statusCode = x.getStatusCode().value();
                 message = "Validation failed: "
                         + (x.getFieldError() == null
-                        ? "Unknown error"
-                        : x.getFieldError().getDefaultMessage());
+                                ? "Unknown error"
+                                : x.getFieldError().getDefaultMessage());
                 payload = x.getFieldErrors().stream()
                         .collect(Collectors.toMap(
                                 FieldError::getField,

@@ -1,20 +1,20 @@
 package com.codeloom.backend.model;
 
 import com.codeloom.common.SubmissionStatus;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.Instant;
-import java.util.UUID;
-
 @Getter
 @Builder
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @PersistenceCreator)
 @Table("submissions")
 public class Submission {
     @Id
@@ -39,7 +39,6 @@ public class Submission {
     @CreatedDate
     @Column("created_at")
     private final Instant createdAt;
-
 
     public Submission(UUID userId, long problemId, String code, SubmissionStatus status, String language) {
         this(null, userId, problemId, code, status, language, Instant.now());

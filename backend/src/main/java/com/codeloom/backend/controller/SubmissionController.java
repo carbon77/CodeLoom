@@ -4,11 +4,10 @@ import com.codeloom.backend.dto.SendSubmissionRequest;
 import com.codeloom.backend.model.Submission;
 import com.codeloom.backend.service.SubmissionService;
 import jakarta.validation.Valid;
+import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Collection;
 
 @RestController
 @RequestMapping("/v1/submissions")

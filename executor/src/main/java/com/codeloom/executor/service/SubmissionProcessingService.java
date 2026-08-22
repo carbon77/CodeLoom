@@ -38,7 +38,7 @@ public class SubmissionProcessingService {
             changeSubmissionStatus(c, SubmissionStatus.ACCEPTED);
             return;
         }
-        List<TestCaseResult> results = new ArrayList<>();
+        List<TestCaseResultDto> results = new ArrayList<>();
         try {
             changeSubmissionStatus(c, SubmissionStatus.COMPILING);
             if (!judge.compile(c).isSuccessful()) {
@@ -49,7 +49,7 @@ public class SubmissionProcessingService {
             for (var t : cases) {
                 RunResult r = judge.runTestCase(c, t);
                 if (t.isPublic())
-                    results.add(new TestCaseResult(
+                    results.add(new TestCaseResultDto(
                             t.getId(),
                             t.getProblemId(),
                             t.getInput(),

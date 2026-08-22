@@ -1,18 +1,18 @@
 package com.codeloom.backend.model;
 
+import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.With;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.util.UUID;
-
 @Getter
 @Builder
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @PersistenceCreator)
 @With
 @Table("test_cases")
 public class TestCase {
@@ -31,4 +31,8 @@ public class TestCase {
 
     @Column("is_public")
     private final boolean isPublic;
+
+    public boolean getIsPublic() {
+        return isPublic;
+    }
 }

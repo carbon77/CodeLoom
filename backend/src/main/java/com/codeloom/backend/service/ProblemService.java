@@ -1,16 +1,21 @@
 package com.codeloom.backend.service;
 
+import static com.codeloom.backend.security.AuthenticationUtils.isRegularUser;
+
 import com.codeloom.backend.dao.problem.ProblemRepository;
 import com.codeloom.backend.dao.testcase.TestCaseRepository;
 import com.codeloom.backend.dto.CreateProblemRequest;
 import com.codeloom.backend.dto.ProblemDto;
 import com.codeloom.backend.dto.ProblemFilters;
 import com.codeloom.backend.dto.ProblemListDto;
+import com.codeloom.backend.dto.UpdateProblemRequest;
 import com.codeloom.backend.exception.ForbiddenActionException;
 import com.codeloom.backend.exception.NoTestCasesException;
 import com.codeloom.backend.exception.ProblemNotFoundException;
 import com.codeloom.backend.model.Problem;
 import com.codeloom.backend.transformer.ProblemTransformer;
+import java.time.Instant;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -18,12 +23,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import tools.jackson.databind.JsonNode;
-
-import java.time.Instant;
-import java.util.List;
-
-import static com.codeloom.backend.security.AuthenticationUtils.isRegularUser;
 
 @Service
 @RequiredArgsConstructor
@@ -76,23 +75,24 @@ public class ProblemService {
         try {
             String slug = request.title().toLowerCase().replace(" ", "_");
             return problemRepository.save(
-                    Problem.builder()
-                            .title(request.title())
-                            .slug(slug)
-                            .build()
-            );
+                    Problem.builder().title(request.title()).slug(slug).build());
         } catch (DuplicateKeyException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Problem already exists");
         }
     }
 
     @Transactional
-    public Problem update(long problemId, JsonNode patchNode) {
-        Problem problem = problemTransformer.updateEntityFromPatchNode(findOrThrow(problemId), patchNode);
+    public Problem update(long problemId, UpdateProblemRequest request) {
+        Problem problem = findOrThrow(problemId)
+                .withTitle(request.title())
+                .withSlug(request.slug())
+                .withDescription(request.description())
+                .withDifficulty(request.difficulty())
+                .withConstraints(request.constraints())
+                .withExamples(request.examples())
+                .withHints(request.hints());
 
-        if (patchNode.has("topics")) {
-            topicService.createManyWithProblem(problemId, patchNode.get("topics"));
-        }
+        topicService.createManyWithProblem(problemId, request.topics());
 
         try {
             return problemRepository.save(problem);
@@ -116,7 +116,6 @@ public class ProblemService {
     }
 
     private Problem findOrThrow(long problemid) {
-        return problemRepository.findById(problemid)
-                .orElseThrow(() -> new ProblemNotFoundException(problemid));
+        return problemRepository.findById(problemid).orElseThrow(() -> new ProblemNotFoundException(problemid));
     }
 }

@@ -5,14 +5,13 @@ import com.codeloom.backend.dao.testcase.TestCaseResultRepository;
 import com.codeloom.backend.model.Submission;
 import com.codeloom.backend.model.TestCaseResult;
 import com.codeloom.common.event.SubmissionStatusChangedEvent;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
-
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor

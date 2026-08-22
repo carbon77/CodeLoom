@@ -2,31 +2,28 @@ package com.codeloom.backend.service;
 
 import com.codeloom.backend.dao.testcase.TestCaseRepository;
 import com.codeloom.backend.dto.CreateTestCaseRequest;
+import com.codeloom.backend.dto.UpdateTestCaseRequest;
 import com.codeloom.backend.model.TestCase;
-import com.codeloom.backend.transformer.JsonTransformer;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import tools.jackson.databind.JsonNode;
-
-import java.util.List;
-import java.util.UUID;
-
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class TestCaseService {
     private final TestCaseRepository testCaseRepository;
-    private final JsonTransformer jsonTransformer;
 
     public TestCase findById(UUID testCaseId) {
-        return testCaseRepository.findById(testCaseId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with id `" + testCaseId + "` not found"));
+        return testCaseRepository
+                .findById(testCaseId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Entity with id `" + testCaseId + "` not found"));
     }
 
     public Iterable<TestCase> findAllByIds(List<UUID> ids) {
@@ -35,22 +32,21 @@ public class TestCaseService {
 
     @Transactional
     public TestCase create(CreateTestCaseRequest request) {
-        return testCaseRepository.save(
-                TestCase.builder()
-                        .problemId(request.problemId())
-                        .input(request.input())
-                        .expectedOutput(request.expectedOutput())
-                        .isPublic(request.isPublic())
-                        .build()
-        );
+        return testCaseRepository.save(TestCase.builder()
+                .problemId(request.problemId())
+                .input(request.input())
+                .expectedOutput(request.expectedOutput())
+                .isPublic(request.isPublic())
+                .build());
     }
 
     @Transactional
-    public TestCase patch(UUID testCaseId, JsonNode patchNode) {
+    public TestCase update(UUID testCaseId, UpdateTestCaseRequest request) {
         TestCase testCase = findById(testCaseId)
-                .withExpectedOutput(jsonTransformer.fromNodeToType(patchNode, "expectedOutput", String.class))
-                .withInput(jsonTransformer.fromNodeToType(patchNode, "input", String.class))
-                .withPublic(Boolean.TRUE.equals(jsonTransformer.fromNodeToType(patchNode, "isPublic", Boolean.class)));
+                .withProblemId(request.problemId())
+                .withExpectedOutput(request.expectedOutput())
+                .withInput(request.input())
+                .withPublic(request.isPublic());
         return testCaseRepository.save(testCase);
     }
 

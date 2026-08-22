@@ -1,7 +1,7 @@
 # Code executor
 
 Microservice that:
-1. Consumes submission events from Kafka (`submissions` by default).
+1. Consumes submission events from Kafka (`submissionRepository` by default).
 2. Loads test cases from PostgreSQL by `problem_id`.
 3. Process submission via state machine
 4. Publishes updated submission statuses to Kafka (`submission_statuses` by default)
@@ -33,7 +33,7 @@ stateDiagram-v2
 
 ## Event contract
 
-### Incoming (`submissions`)
+### Incoming (`submissionRepository`)
 ```json
 {
   "submissionId": "uuid",

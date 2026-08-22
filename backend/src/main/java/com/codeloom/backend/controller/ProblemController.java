@@ -4,17 +4,16 @@ import com.codeloom.backend.dto.CreateProblemRequest;
 import com.codeloom.backend.dto.ProblemDto;
 import com.codeloom.backend.dto.ProblemFilters;
 import com.codeloom.backend.dto.ProblemListDto;
+import com.codeloom.backend.dto.UpdateProblemRequest;
 import com.codeloom.backend.model.Problem;
 import com.codeloom.backend.model.ProblemDifficulty;
 import com.codeloom.backend.service.ProblemService;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import tools.jackson.databind.JsonNode;
-
-import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/v1/problems")
@@ -57,8 +56,8 @@ public class ProblemController {
     }
 
     @PutMapping("/{problemId}")
-    public Problem update(@PathVariable long problemId, @RequestBody JsonNode patchJsonNode) {
-        return service.update(problemId, patchJsonNode);
+    public Problem update(@PathVariable long problemId, @Valid @RequestBody UpdateProblemRequest request) {
+        return service.update(problemId, request);
     }
 
     @PatchMapping("/{problemId}/publish")

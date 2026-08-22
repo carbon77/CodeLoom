@@ -1,5 +1,7 @@
 import { apiFetch } from "./client";
 
+export type SubmissionLanguage = "java" | "cpp" | "python";
+
 export type SubmissionStatus =
   | "PENDING"
   | "COMPILING"
@@ -18,14 +20,14 @@ export interface Submission {
   problemId: number;
   code: string;
   status: SubmissionStatus;
-  language: string;
+  language: SubmissionLanguage;
   createdAt: string;
 }
 
 export interface SendSubmissionPayload {
   problemId: number;
   code: string;
-  language: string;
+  language: SubmissionLanguage;
 }
 
 export function fetchSubmissions(problemId: number): Promise<Submission[]> {
@@ -40,6 +42,9 @@ export function fetchSubmissions(problemId: number): Promise<Submission[]> {
 export function sendSubmission(
   payload: SendSubmissionPayload,
 ): Promise<void> {
+  if (payload.code.trim() === "") {
+    return Promise.reject(new Error("Code must not be blank."));
+  }
   return apiFetch<void>("/v1/submissions", {
     method: "POST",
     body: payload,

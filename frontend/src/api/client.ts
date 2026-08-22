@@ -1,7 +1,38 @@
 import { userManager } from "../auth/keycloak";
 
 export const apiBaseUrl =
-  import.meta.env.VITE_API_URL ?? "http://localhost:8080";
+  import.meta.env.VITE_API_URL ?? "http://localhost:8081";
+
+export interface ErrorResponse {
+  status: number;
+  message: string;
+  timestamp?: string;
+  path?: string;
+  payload?: Record<string, unknown>;
+}
+
+export class ApiError extends Error {
+  readonly status: number;
+  readonly path?: string;
+  readonly validation?: Record<string, unknown>;
+
+  constructor(
+    status: number,
+    message: string,
+    path?: string,
+    validation?: Record<string, unknown>,
+  ) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.path = path;
+    this.validation = validation;
+  }
+}
+
+export function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError && error.message ? error.message : fallback;
+}
 
 async function accessToken(): Promise<string> {
   const user = await userManager.getUser();
@@ -32,7 +63,18 @@ export async function apiFetch<T>(
   });
 
   if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
+    let error: ErrorResponse | undefined;
+    try {
+      error = (await response.json()) as ErrorResponse;
+    } catch {
+      // Empty and non-JSON error responses are valid fallbacks.
+    }
+    throw new ApiError(
+      response.status,
+      error?.message || `Request failed with status ${response.status}`,
+      error?.path,
+      error?.payload,
+    );
   }
 
   if (
@@ -42,5 +84,9 @@ export async function apiFetch<T>(
     return undefined as T;
   }
 
-  return (await response.json()) as T;
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new ApiError(response.status, "The server returned an invalid response.");
+  }
 }

@@ -36,6 +36,11 @@ export default function ProblemInfo({ problem }: ProblemInfoProps) {
           size="small"
         />
       </Box>
+      {problem.topics.length > 0 && (
+        <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 2, flexWrap: "wrap" }}>
+          {problem.topics.map((topic) => <Chip key={topic.id} label={topic.name} size="small" variant="outlined" />)}
+        </Stack>
+      )}
       <MarkdownView>{problem.description}</MarkdownView>
 
       {problem.constraints &&

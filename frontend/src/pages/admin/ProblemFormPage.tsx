@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   Checkbox,
@@ -25,13 +26,18 @@ import {
   createTestCase,
   deleteTestCase,
   fetchProblem,
+  fetchProblemBySlug,
   fetchTestCases,
-  patchTestCase,
+  fetchTopics,
+  updateTestCase as updateTestCaseApi,
   updateProblem,
   type Difficulty,
   type ProblemExample,
   type TestCase,
+  type Topic,
 } from '../../api/problems'
+import { errorMessage } from '../../api/client'
+import { serializeTopics } from './topicSerialization'
 
 interface ExampleRow {
   input: string
@@ -52,7 +58,7 @@ export default function ProblemFormPage() {
   const navigate = useNavigate()
   const isEdit = problemId !== undefined
 
-  const [loading, setLoading] = useState(isEdit)
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -67,18 +73,22 @@ export default function ProblemFormPage() {
   const [hints, setHints] = useState<string[]>([])
   const [testCases, setTestCases] = useState<TestCase[]>([])
   const [initialTestCases, setInitialTestCases] = useState<TestCase[]>([])
+  const [topics, setTopics] = useState<Topic[]>([])
+  const [selectedTopics, setSelectedTopics] = useState<Array<Topic | string>>([])
 
   useEffect(() => {
-    if (!isEdit) {
-      return
-    }
     let active = true
     const id = Number(problemId)
-    Promise.all([fetchProblem(id), fetchTestCases(id)])
-      .then(([problem, loadedTestCases]) => {
+    const problemPromise = isEdit
+      ? fetchProblem(id).then((raw) => fetchProblemBySlug(raw.slug))
+      : Promise.resolve(null)
+    Promise.all([fetchTopics(), problemPromise, isEdit ? fetchTestCases(id) : Promise.resolve([])])
+      .then(([loadedTopics, problem, loadedTestCases]) => {
         if (!active) {
           return
         }
+        setTopics(loadedTopics)
+        if (!problem) return
         setTitle(problem.title)
         setSlug(problem.slug)
         setDescription(problem.description)
@@ -95,10 +105,11 @@ export default function ProblemFormPage() {
         setHints(problem.hints)
         setTestCases(loadedTestCases)
         setInitialTestCases(loadedTestCases)
+        setSelectedTopics(problem.topics)
       })
-      .catch(() => {
+      .catch((cause: unknown) => {
         if (active) {
-          setError('Unable to load problem. Please try again.')
+          setError(errorMessage(cause, 'Unable to load problem data. Please try again.'))
         }
       })
       .finally(() => {
@@ -145,6 +156,7 @@ export default function ProblemFormPage() {
       },
       examples: { examples },
       hints,
+      topics: serializeTopics(selectedTopics, topics),
     }
     try {
       if (isEdit) {
@@ -163,7 +175,12 @@ export default function ProblemFormPage() {
         }
         for (const testCase of testCases) {
           if (testCase.id) {
-            await patchTestCase(testCase.id, testCase)
+            await updateTestCaseApi(testCase.id, {
+              problemId: id,
+              input: testCase.input,
+              expectedOutput: testCase.expectedOutput,
+              isPublic: testCase.isPublic,
+            })
           } else {
             await createTestCase({ ...testCase, problemId: id })
           }
@@ -176,8 +193,8 @@ export default function ProblemFormPage() {
         }
       }
       navigate('/admin/problems')
-    } catch {
-      setError('Unable to save problem. Please check the values and try again.')
+    } catch (cause) {
+      setError(errorMessage(cause, 'Unable to save problem. Please check the values and try again.'))
       setSaving(false)
     }
   }
@@ -245,6 +262,20 @@ export default function ProblemFormPage() {
               <MenuItem value="HARD">Hard</MenuItem>
             </Select>
           </FormControl>
+          <Autocomplete
+            multiple
+            freeSolo
+            options={topics}
+            value={selectedTopics}
+            getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
+            isOptionEqualToValue={(option, value) =>
+              typeof option !== 'string' && typeof value !== 'string' && option.id === value.id
+            }
+            onChange={(_, values) => setSelectedTopics(values)}
+            renderInput={(params) => (
+              <TextField {...params} label="Topics" helperText="Select existing topics or type a new one and press Enter" />
+            )}
+          />
           <Stack direction="row" spacing={2}>
             <TextField
               label="Time limit (ms)"
@@ -408,7 +439,7 @@ export default function ProblemFormPage() {
         <Button onClick={() => navigate('/admin/problems')} disabled={saving}>
           Cancel
         </Button>
-        <Button variant="contained" disabled={saving} onClick={() => void handleSave()}>
+        <Button variant="contained" disabled={saving || loading} onClick={() => void handleSave()}>
           {saving ? 'Saving…' : 'Save'}
         </Button>
       </Stack>

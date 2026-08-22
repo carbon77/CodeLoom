@@ -8,11 +8,10 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
+import java.util.Map;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
 
 @Configuration
 public class OpenApiConfig {
@@ -48,11 +47,13 @@ public class OpenApiConfig {
                         .filter(entry -> entry.getKey().startsWith("/v1"))
                         .flatMap(entry -> entry.getValue().readOperations().stream())
                         .forEach(operation -> {
-                            ApiResponses responses = operation.getResponses() == null ? new ApiResponses() : operation.getResponses();
+                            ApiResponses responses =
+                                    operation.getResponses() == null ? new ApiResponses() : operation.getResponses();
                             operation.setResponses(responses);
                             COMMON.forEach((statusCode, name) -> {
                                 if (!responses.containsKey(statusCode))
-                                    responses.addApiResponse(statusCode, new ApiResponse().$ref("#/components/responses/" + name));
+                                    responses.addApiResponse(
+                                            statusCode, new ApiResponse().$ref("#/components/responses/" + name));
                             });
                         });
         };

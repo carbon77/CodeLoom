@@ -1,14 +1,13 @@
 package com.codeloom.backend.controller;
 
 import com.codeloom.backend.dto.CreateTopicRequest;
+import com.codeloom.backend.dto.UpdateTopicRequest;
 import com.codeloom.backend.model.Topic;
 import com.codeloom.backend.service.TopicService;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import tools.jackson.databind.JsonNode;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/v1/topics")
@@ -31,9 +30,9 @@ public class TopicController {
         return service.create(request);
     }
 
-    @PatchMapping("/{id}")
-    public Topic patch(@PathVariable UUID id, @RequestBody JsonNode patchJsonNode) {
-        return service.patch(id, patchJsonNode);
+    @PutMapping("/{id}")
+    public Topic update(@PathVariable UUID id, @Valid @RequestBody UpdateTopicRequest request) {
+        return service.update(id, request);
     }
 
     @DeleteMapping("/{id}")

@@ -1,6 +1,10 @@
 package com.codeloom.backend.config;
 
 import com.codeloom.backend.security.CustomAuthenticationEntryPoint;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,11 +22,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
 @Configuration
 @EnableWebSecurity
 @Profile("!test")
@@ -32,32 +31,30 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(configurer -> {
-                })
+        http.cors(configurer -> {})
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(registry ->
-                        registry.requestMatchers(HttpMethod.OPTIONS, "/**")
-                                .permitAll()
-                                .requestMatchers("/error", "/docs/**")
-                                .permitAll()
-                                .requestMatchers("/v1/submissions/**")
-                                .hasAnyRole("USER", "ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/v1/topics/**", "/v1/problems/**")
-                                .hasAnyRole("USER", "ADMIN")
-                                .requestMatchers(HttpMethod.POST, "/v1/problems/**")
-                                .hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/v1/problems/**")
-                                .hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.PATCH, "/v1/problems/**")
-                                .hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/v1/problems/**")
-                                .hasRole("ADMIN")
-                                .anyRequest()
-                                .hasRole("ADMIN"))
-                .oauth2ResourceServer(configurer -> configurer.authenticationEntryPoint(entry).jwt(jwtConfigurer -> {
-                }))
-                .exceptionHandling(configurer -> configurer.authenticationEntryPoint(entry).accessDeniedHandler(entry));
+                .authorizeHttpRequests(registry -> registry.requestMatchers(HttpMethod.OPTIONS, "/**")
+                        .permitAll()
+                        .requestMatchers("/error", "/docs/**")
+                        .permitAll()
+                        .requestMatchers("/v1/submissions/**")
+                        .hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/v1/topics/**", "/v1/problems/**")
+                        .hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/v1/problems/**")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/v1/problems/**")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/v1/problems/**")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/v1/problems/**")
+                        .hasRole("ADMIN")
+                        .anyRequest()
+                        .hasRole("ADMIN"))
+                .oauth2ResourceServer(
+                        configurer -> configurer.authenticationEntryPoint(entry).jwt(jwtConfigurer -> {}))
+                .exceptionHandling(
+                        configurer -> configurer.authenticationEntryPoint(entry).accessDeniedHandler(entry));
         return http.build();
     }
 

@@ -4,7 +4,6 @@ import static com.codeloom.backend.jooq.Tables.*;
 
 import com.codeloom.backend.dto.*;
 import java.util.*;
-
 import lombok.RequiredArgsConstructor;
 import org.jooq.*;
 import org.springframework.stereotype.Repository;
@@ -16,11 +15,7 @@ public class ProblemRepositoryCustomImpl implements ProblemRepositoryCustom {
 
     public List<ProblemListDto> findProblemListDtos(ProblemFilters filters) {
         var stmt = dsl.select(
-                        PROBLEMS.PROBLEM_ID,
-                        PROBLEMS.SLUG,
-                        PROBLEMS.TITLE,
-                        PROBLEMS.DIFFICULTY,
-                        PROBLEMS.PUBLISHED_AT)
+                        PROBLEMS.PROBLEM_ID, PROBLEMS.TITLE, PROBLEMS.SLUG, PROBLEMS.DIFFICULTY, PROBLEMS.PUBLISHED_AT)
                 .from(PROBLEMS);
         List<Condition> conditions = new ArrayList<>();
 

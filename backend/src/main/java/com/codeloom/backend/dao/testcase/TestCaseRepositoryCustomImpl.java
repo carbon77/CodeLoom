@@ -1,16 +1,15 @@
 package com.codeloom.backend.dao.testcase;
 
+import static com.codeloom.backend.jooq.Tables.TEST_CASES;
+
 import com.codeloom.backend.model.TestCase;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static com.codeloom.backend.jooq.Tables.TEST_CASES;
 
 @Repository
 @RequiredArgsConstructor

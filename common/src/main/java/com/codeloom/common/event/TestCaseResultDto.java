@@ -4,7 +4,7 @@ import java.util.UUID;
 import lombok.Builder;
 
 @Builder
-public record TestCaseResult(
+public record TestCaseResultDto(
         UUID id,
         long problemId,
         String input,

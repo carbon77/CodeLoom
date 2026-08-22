@@ -12,7 +12,6 @@ class RestExceptionHandlerTest {
     private final RestExceptionHandler restExceptionHandler = new RestExceptionHandler();
     private final MockHttpServletRequest httpServletRequest = new MockHttpServletRequest();
 
-
     @BeforeEach
     void setup() {
         httpServletRequest.setMethod("GET");
@@ -21,7 +20,8 @@ class RestExceptionHandlerTest {
 
     @Test
     void authenticationExceptionsReturnUnauthorized() {
-        var r = restExceptionHandler.handleException(new InsufficientAuthenticationException("detail"), httpServletRequest);
+        var r = restExceptionHandler.handleException(
+                new InsufficientAuthenticationException("detail"), httpServletRequest);
         assertEquals(HttpStatus.UNAUTHORIZED, r.getStatusCode());
         assert r.getBody() != null;
         assertEquals("Authentication required", r.getBody().message());

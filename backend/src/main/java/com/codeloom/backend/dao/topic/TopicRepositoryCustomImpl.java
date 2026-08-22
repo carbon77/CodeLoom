@@ -1,17 +1,16 @@
 package com.codeloom.backend.dao.topic;
 
+import static com.codeloom.backend.jooq.Tables.PROBLEM_TOPICS;
+import static com.codeloom.backend.jooq.Tables.TOPICS;
+
 import com.codeloom.backend.model.ProblemTopicRelationship;
 import com.codeloom.backend.model.Topic;
+import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.Collection;
-import java.util.List;
-
-import static com.codeloom.backend.jooq.Tables.PROBLEM_TOPICS;
-import static com.codeloom.backend.jooq.Tables.TOPICS;
 
 @Repository
 @RequiredArgsConstructor

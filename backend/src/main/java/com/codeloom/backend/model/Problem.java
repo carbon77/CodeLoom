@@ -1,73 +1,59 @@
 package com.codeloom.backend.model;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.With;
+import java.time.Instant;
+import java.util.List;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.Instant;
-
 @Getter
 @Table("problems")
-@RequiredArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @With
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Problem {
+
     @Id
     @Column("problem_id")
-    private final Long id;
+    private Long id; // must be null for new entities so Spring Data JDBC does an INSERT
 
     @Column("slug")
-    private final String slug;
+    private String slug;
 
     @Column("title")
-    private final String title;
+    private String title;
 
+    @Builder.Default
     @Column("description")
-    private final String description;
+    private String description = "";
 
+    @Builder.Default
     @Column("difficulty")
-    private final ProblemDifficulty difficulty;
+    private ProblemDifficulty difficulty = ProblemDifficulty.EASY;
 
     @Column("constraints")
-    private final ProblemConstraints constraints;
+    private ProblemConstraints constraints;
 
     @Column("examples")
-    private final ProblemExamples examples;
+    private ProblemExamples examples;
 
+    @Builder.Default
     @Column("hints")
-    private final String[] hints;
+    private List<String> hints = List.of();
 
     @CreatedDate
     @Column("created_at")
-    private final Instant createdAt;
+    private Instant createdAt;
 
     @LastModifiedDate
     @Column("updated_at")
-    private final Instant updatedAt;
+    private Instant updatedAt;
 
     @Column("published_at")
-    private final Instant publishedAt;
-
-    public Problem(String title, String slug) {
-        this(
-                null,
-                slug,
-                title,
-                "",
-                ProblemDifficulty.EASY,
-                null,
-                null,
-                new String[0],
-                Instant.now(),
-                Instant.now(),
-                null);
-    }
+    private Instant publishedAt;
 
     public boolean isDraft() {
         return publishedAt == null;

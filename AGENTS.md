@@ -9,9 +9,9 @@ Gradle multi-module build (`settings.gradle` includes `common`, `backend`, `exec
 - `frontend/` — React 19 + Vite + TS SPA (MUI, react-router, oidc-client-ts). Package manager is **pnpm**. Auth via Keycloak (realm `codeloom`, client `codeloom-frontend`); OIDC config read from `VITE_*` env vars in `src/auth/keycloak.ts`.
 
 ## Infrastructure
-- `docker compose up -d` (repo root) starts Keycloak, Postgres, Kafka, Zookeeper, Adminer. `init.sql` creates DBs `codeloom_backend` and `keycloak`.
-- Host ports: Keycloak **8080**, Postgres **5433** (not 5432), Kafka **29092**, Adminer **8088**. Keycloak admin: `admin/password`.
-- Backend expects a Keycloak realm `codeloom` (issuer-uri hardcoded to `http://localhost:8080/realms/codeloom`) and maps only realm roles prefixed `ROLE_` (use `ADMIN`/`USER`).
+- `docker compose up -d` (repo root) starts Keycloak, Postgres, Kafka, Adminer. `infrastructure/database/init.sql` creates DBs `codeloom_backend` and `keycloak`.
+- Host ports: Keycloak **8000**, Postgres **5433** (not 5432), Kafka **29092**, Adminer **8088**. Keycloak admin: `admin/admin`.
+- Backend expects a Keycloak realm `codeloom` (issuer-uri hardcoded to `http://localhost:8000/realms/codeloom`) and maps only realm roles prefixed `ROLE_` (use `ADMIN`/`USER`).
 
 ## Commands
 - backend & executor: `./gradlew :backend:bootRun`, `./gradlew :executor:bootRun`, `./gradlew :backend:test`, `./gradlew :executor:test` (Java 21; Windows: `gradlew.bat`).

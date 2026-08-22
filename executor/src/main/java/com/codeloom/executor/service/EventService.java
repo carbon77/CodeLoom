@@ -17,7 +17,7 @@ public class EventService {
     private final ObjectMapper mapper;
 
     @Value("${codeloom.kafka.topics.submission-status}")
-    private final String topic;
+    private String topic;
 
     public void submissionStatusChanged(SubmissionContext c, SubmissionStatus s) {
         submissionStatusChanged(c, s, null);

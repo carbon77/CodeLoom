@@ -3,7 +3,8 @@ import type { User } from "oidc-client-ts";
 type UserRoles = string[];
 
 export function getRoles(user: User): UserRoles {
-  const roles = user.profile.roles as UserRoles | undefined ?? [];
+  const realmAccess = user.profile.realm_access as { roles?: UserRoles } | undefined;
+  const roles = realmAccess?.roles ?? (user.profile.roles as UserRoles | undefined) ?? [];
   return roles.filter((role) => role.startsWith("ROLE_"));
 }
 

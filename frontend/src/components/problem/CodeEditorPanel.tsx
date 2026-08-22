@@ -13,6 +13,7 @@ import { Send } from "@mui/icons-material";
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import { sendSubmission } from "../../api/submissions";
+import { errorMessage } from "../../api/client";
 
 loader.config({ monaco });
 
@@ -70,6 +71,10 @@ export default function CodeEditorPanel({
     if (problemId === null) {
       return;
     }
+    if (code.trim() === "") {
+      setSubmitError("Code must not be blank.");
+      return;
+    }
     setSubmitting(true);
     setSubmitError(null);
     setSubmitSuccess(false);
@@ -77,8 +82,8 @@ export default function CodeEditorPanel({
       await sendSubmission({ problemId, code, language });
       setSubmitSuccess(true);
       onSubmitted();
-    } catch {
-      setSubmitError("Failed to submit solution. Please try again.");
+    } catch (cause) {
+      setSubmitError(errorMessage(cause, "Failed to submit solution. Please try again."));
     } finally {
       setSubmitting(false);
     }

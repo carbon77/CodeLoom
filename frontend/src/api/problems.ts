@@ -21,7 +21,7 @@ export interface ProblemExample {
   explanation?: string | null;
 }
 
-export interface ProblemDetail {
+export interface Problem {
   id: number;
   slug: string;
   title: string;
@@ -32,13 +32,24 @@ export interface ProblemDetail {
   hints: string[];
 }
 
-export interface TestCase {
-  id?: string;
-  problemId?: number;
+export interface ProblemDto extends Problem {
+  testCases: TestCaseResponse[];
+  topics: Topic[];
+}
+
+export type ProblemDetail = ProblemDto;
+
+export interface TestCaseRequest {
+  problemId: number;
   input: string;
   expectedOutput: string;
   isPublic: boolean;
 }
+
+export interface TestCaseResponse extends TestCaseRequest { id: string }
+export type TestCase = Omit<TestCaseRequest, "problemId"> & { id?: string; problemId?: number };
+
+export type ProblemTopicRequest = { topic_id: string } | { name: string };
 
 export interface ProblemUpdatePayload {
   title: string;
@@ -48,6 +59,7 @@ export interface ProblemUpdatePayload {
   constraints: ProblemConstraints | null;
   examples: { examples: ProblemExample[] } | null;
   hints: string[];
+  topics: ProblemTopicRequest[];
 }
 
 export interface Topic {
@@ -84,8 +96,8 @@ export function fetchTopics(): Promise<Topic[]> {
   });
 }
 
-export function fetchProblem(problemId: number): Promise<ProblemDetail> {
-  return apiFetch<ProblemDetail>(`/v1/problems/${problemId}`).catch((error) => {
+export function fetchProblem(problemId: number): Promise<Problem> {
+  return apiFetch<Problem>(`/v1/problems/${problemId}`).catch((error) => {
     console.error("Error fetching problem:", error);
     throw error;
   });
@@ -93,8 +105,8 @@ export function fetchProblem(problemId: number): Promise<ProblemDetail> {
 
 export function fetchProblemBySlug(
   problemSlug: string,
-): Promise<ProblemDetail> {
-  return apiFetch<ProblemDetail>(`/v1/problems/slug/${problemSlug}`).catch(
+): Promise<ProblemDto> {
+  return apiFetch<ProblemDto>(`/v1/problems/slug/${problemSlug}`).catch(
     (error) => {
       console.error("Error fetching problem by slug:", error);
       throw error;
@@ -102,8 +114,8 @@ export function fetchProblemBySlug(
   );
 }
 
-export function createProblem(title: string): Promise<ProblemDetail> {
-  return apiFetch<ProblemDetail>("/v1/problems", {
+export function createProblem(title: string): Promise<Problem> {
+  return apiFetch<Problem>("/v1/problems", {
     method: "POST",
     body: { title },
   }).catch((error) => {
@@ -115,8 +127,8 @@ export function createProblem(title: string): Promise<ProblemDetail> {
 export function updateProblem(
   problemId: number,
   payload: ProblemUpdatePayload,
-): Promise<ProblemDetail> {
-  return apiFetch<ProblemDetail>(`/v1/problems/${problemId}`, {
+): Promise<Problem> {
+  return apiFetch<Problem>(`/v1/problems/${problemId}`, {
     method: "PUT",
     body: payload,
   }).catch((error) => {
@@ -134,8 +146,8 @@ export function deleteProblem(problemId: number): Promise<void> {
   });
 }
 
-export function publishProblem(problemId: number): Promise<ProblemDetail> {
-  return apiFetch<ProblemDetail>(`/v1/problems/${problemId}/publish`, {
+export function publishProblem(problemId: number): Promise<void> {
+  return apiFetch<void>(`/v1/problems/${problemId}/publish`, {
     method: "PATCH",
   }).catch((error) => {
     console.error("Error publishing problem:", error);
@@ -143,8 +155,8 @@ export function publishProblem(problemId: number): Promise<ProblemDetail> {
   });
 }
 
-export function unpublishProblem(problemId: number): Promise<ProblemDetail> {
-  return apiFetch<ProblemDetail>(`/v1/problems/${problemId}/unpublish`, {
+export function unpublishProblem(problemId: number): Promise<void> {
+  return apiFetch<void>(`/v1/problems/${problemId}/unpublish`, {
     method: "PATCH",
   }).catch((error) => {
     console.error("Error unpublishing problem:", error);
@@ -152,17 +164,18 @@ export function unpublishProblem(problemId: number): Promise<ProblemDetail> {
   });
 }
 
-export function fetchTestCases(problemId: number): Promise<TestCase[]> {
-  return apiFetch<TestCase[]>(
-    `/v1/testCases/by-problem-id/${problemId}?publicOnly=false`,
+export function fetchTestCases(problemId: number, isPublic?: boolean): Promise<TestCaseResponse[]> {
+  const query = isPublic === undefined ? "" : `?isPublic=${isPublic}`;
+  return apiFetch<TestCaseResponse[]>(
+    `/v1/testCases/by-problem-id/${problemId}${query}`,
   ).catch((error) => {
     console.error("Error fetching test cases:", error);
     throw error;
   });
 }
 
-export function createTestCase(testCase: TestCase): Promise<TestCase> {
-  return apiFetch<TestCase>("/v1/testCases", {
+export function createTestCase(testCase: TestCaseRequest): Promise<TestCaseResponse> {
+  return apiFetch<TestCaseResponse>("/v1/testCases", {
     method: "POST",
     body: testCase,
   }).catch((error) => {
@@ -171,12 +184,12 @@ export function createTestCase(testCase: TestCase): Promise<TestCase> {
   });
 }
 
-export function patchTestCase(
+export function updateTestCase(
   id: string,
-  testCase: TestCase,
-): Promise<TestCase> {
-  return apiFetch<TestCase>(`/v1/testCases/${id}`, {
-    method: "PATCH",
+  testCase: TestCaseRequest,
+): Promise<TestCaseResponse> {
+  return apiFetch<TestCaseResponse>(`/v1/testCases/${id}`, {
+    method: "PUT",
     body: testCase,
   }).catch((error) => {
     console.error("Error updating test case:", error);

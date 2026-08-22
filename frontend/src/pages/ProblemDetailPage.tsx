@@ -8,6 +8,9 @@ import {
 } from "../api/submissions";
 import ProblemTabs from "../components/problem/ProblemTabs";
 import CodeEditorPanel from "../components/problem/CodeEditorPanel";
+import { errorMessage } from "../api/client";
+
+const activeStatuses = new Set(["PENDING", "COMPILING", "RUNNING"]);
 
 export default function ProblemDetailPage() {
   const problem = useRouteLoaderData("problem") as ProblemDetail | undefined;
@@ -50,7 +53,8 @@ export default function ProblemDetailPage() {
     }
     let active = true;
     setSubmissionsError(null);
-    fetchSubmissions(problemId)
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const load = () => fetchSubmissions(problemId)
       .then((items) => {
         if (active) {
           const sorted = [...items].sort(
@@ -58,16 +62,21 @@ export default function ProblemDetailPage() {
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
           );
           setSubmissions(sorted);
+          if (items.some((item) => activeStatuses.has(item.status))) {
+            timer = setTimeout(load, 2000);
+          }
         }
       })
-      .catch(() => {
+      .catch((cause: unknown) => {
         if (active) {
           setSubmissions(null);
-          setSubmissionsError("Unable to load submissions.");
+          setSubmissionsError(errorMessage(cause, "Unable to load submissions."));
         }
       });
+    void load();
     return () => {
       active = false;
+      if (timer !== undefined) clearTimeout(timer);
     };
   }, [activeTab, problemId, refreshKey]);
 

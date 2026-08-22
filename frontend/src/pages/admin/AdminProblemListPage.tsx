@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Alert,
@@ -36,6 +36,7 @@ import {
   type Topic,
 } from "../../api/problems";
 import ProblemFilters from "../../components/problem/ProblemFilters";
+import { errorMessage } from "../../api/client";
 
 const difficultyColors: Record<Difficulty, "success" | "warning" | "error"> = {
   EASY: "success",
@@ -70,16 +71,7 @@ export default function AdminProblemListPage() {
     };
   }, []);
 
-  useEffect(() => {
-    let active = true;
-    setError(null);
-    void loadProblems(active);
-    return () => {
-      active = false;
-    };
-  }, [selectedDifficulties, selectedTopics]);
-
-  async function loadProblems(active: boolean): Promise<void> {
+  const loadProblems = useCallback(async (active: boolean): Promise<void> => {
     try {
       const params: Record<string, string | string[]> = {
         publishedOnly: "false",
@@ -94,12 +86,21 @@ export default function AdminProblemListPage() {
       if (active) {
         setProblems(items);
       }
-    } catch {
+    } catch (cause) {
       if (active) {
-        setError("Unable to load problems. Please try again.");
+        setError(errorMessage(cause, "Unable to load problems. Please try again."));
       }
     }
-  }
+  }, [selectedDifficulties, selectedTopics]);
+
+  useEffect(() => {
+    let active = true;
+    setError(null);
+    void loadProblems(active);
+    return () => {
+      active = false;
+    };
+  }, [loadProblems]);
 
   const normalizedSearch = search.trim().toLowerCase();
   const filtered =
@@ -128,8 +129,8 @@ export default function AdminProblemListPage() {
         await publishProblem(problem.problemId);
       }
       await loadProblems(true);
-    } catch {
-      setError("Unable to update publication status. Please try again.");
+    } catch (cause) {
+      setError(errorMessage(cause, "Unable to update publication status. Please try again."));
     } finally {
       setBusyId(null);
     }
@@ -145,8 +146,8 @@ export default function AdminProblemListPage() {
       await deleteProblem(deleteTarget.problemId);
       setDeleteTarget(null);
       await loadProblems(true);
-    } catch {
-      setError("Unable to delete problem. Please try again.");
+    } catch (cause) {
+      setError(errorMessage(cause, "Unable to delete problem. Please try again."));
     } finally {
       setDeleting(false);
     }

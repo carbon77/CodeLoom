@@ -7,6 +7,7 @@ import com.codeloom.backend.dao.SubmissionRepository;
 import com.codeloom.backend.dao.problem.ProblemRepository;
 import com.codeloom.backend.dao.testcase.TestCaseRepository;
 import com.codeloom.backend.dto.SendSubmissionRequest;
+import com.codeloom.backend.dto.SubmissionStatusDto;
 import com.codeloom.backend.exception.NoTestCasesException;
 import com.codeloom.backend.exception.ProblemNotFoundException;
 import com.codeloom.backend.model.Problem;
@@ -53,7 +54,7 @@ public class SubmissionService {
     }
 
     @Transactional
-    public void sendSubmission(SendSubmissionRequest request, Authentication authentication) {
+    public SubmissionStatusDto sendSubmission(SendSubmissionRequest request, Authentication authentication) {
         Problem problem = problemRepository
                 .findById(request.problemId())
                 .orElseThrow(() -> new ProblemNotFoundException(request.problemId()));
@@ -83,5 +84,9 @@ public class SubmissionService {
 
         kafkaTemplate.send(topic, submission.getId().toString(), objectMapper.writeValueAsString(event));
         log.info("Submission sent: submissionId={}", submission.getId());
+        return SubmissionStatusDto.builder()
+                .submissionId(submission.getId())
+                .status(submission.getStatus())
+                .build();
     }
 }

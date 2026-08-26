@@ -1,5 +1,29 @@
 package com.codeloom.backend.it;
 
+import com.codeloom.backend.dao.SubmissionRepository;
+import com.codeloom.backend.dao.problem.ProblemRepository;
+import com.codeloom.backend.dao.testcase.TestCaseRepository;
+import com.codeloom.backend.model.Problem;
+import com.codeloom.backend.model.ProblemDifficulty;
+import com.codeloom.backend.model.Submission;
+import com.codeloom.backend.model.TestCase;
+import com.codeloom.backend.security.UserRole;
+import com.codeloom.common.SubmissionEvent;
+import com.codeloom.common.SubmissionStatus;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.ObjectMapper;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,34 +35,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.codeloom.backend.dao.SubmissionRepository;
-import com.codeloom.backend.dao.problem.ProblemRepository;
-import com.codeloom.backend.dao.testcase.TestCaseRepository;
-import com.codeloom.backend.model.Problem;
-import com.codeloom.backend.model.ProblemDifficulty;
-import com.codeloom.backend.model.Submission;
-import com.codeloom.backend.model.TestCase;
-import com.codeloom.backend.security.UserRole;
-import com.codeloom.common.SubmissionEvent;
-import com.codeloom.common.SubmissionStatus;
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.jdbc.Sql;
-import tools.jackson.databind.ObjectMapper;
-
 @Sql(
         statements = {
-            "TRUNCATE TABLE test_case_results CASCADE",
-            "TRUNCATE TABLE submissions CASCADE",
-            "TRUNCATE TABLE problems RESTART IDENTITY CASCADE"
+                "TRUNCATE TABLE test_case_results CASCADE",
+                "TRUNCATE TABLE submissions CASCADE",
+                "TRUNCATE TABLE problems RESTART IDENTITY CASCADE"
         },
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class SubmissionIT extends BackendIntegrationTestSupport {
@@ -99,7 +100,10 @@ class SubmissionIT extends BackendIntegrationTestSupport {
                             .principal(user(UserRole.USER))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(request(problem.getId())))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.status").value("PENDING"))
+                    .andExpect(jsonPath("$.submissionId").exists());
 
             var submission = submissions.findAll().iterator().next();
             assertEquals(TEST_USER_ID, submission.getUserId());
@@ -125,7 +129,10 @@ class SubmissionIT extends BackendIntegrationTestSupport {
                             .principal(admin())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(request(problem.getId())))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.status").value("PENDING"))
+                    .andExpect(jsonPath("$.submissionId").exists());
             assertEquals(1, submissions.count());
             verify(kafka).send(eq("test-submissions"), anyString(), anyString());
         }

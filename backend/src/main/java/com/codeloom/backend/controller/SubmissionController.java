@@ -1,13 +1,15 @@
 package com.codeloom.backend.controller;
 
 import com.codeloom.backend.dto.SendSubmissionRequest;
+import com.codeloom.backend.dto.SubmissionStatusDto;
 import com.codeloom.backend.model.Submission;
 import com.codeloom.backend.service.SubmissionService;
 import jakarta.validation.Valid;
-import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collection;
 
 @RestController
 @RequestMapping("/v1/submissions")
@@ -21,7 +23,7 @@ public class SubmissionController {
     }
 
     @PostMapping
-    public void sendSubmission(Authentication authentication, @Valid @RequestBody SendSubmissionRequest request) {
-        service.sendSubmission(request, authentication);
+    public SubmissionStatusDto sendSubmission(Authentication authentication, @Valid @RequestBody SendSubmissionRequest request) {
+        return service.sendSubmission(request, authentication);
     }
 }

@@ -1,20 +1,13 @@
 package com.codeloom.backend.dto;
 
 import com.codeloom.backend.model.TestCase;
+import java.util.UUID;
 import lombok.Builder;
 
-import java.util.UUID;
-
 @Builder
-public record TestCaseDto(
-        UUID id,
-        String input,
-        String expectedOutput,
-        boolean isPublic,
-        String explanation
-) {
+public record TestCaseDto(UUID id, String input, String expectedOutput, boolean isPublic, String explanation) {
 
-    static public TestCaseDto fromEntity(TestCase testCase) {
+    public static TestCaseDto fromEntity(TestCase testCase) {
         return TestCaseDto.builder()
                 .id(testCase.getId())
                 .expectedOutput(testCase.getExpectedOutput())

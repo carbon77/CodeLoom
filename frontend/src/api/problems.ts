@@ -16,8 +16,10 @@ export interface ProblemConstraints {
 }
 
 export interface ProblemExample {
+  id: string;
   input: string;
-  output: string;
+  expectedOutput: string;
+  isPublic: boolean;
   explanation?: string | null;
 }
 
@@ -28,7 +30,7 @@ export interface Problem {
   description: string;
   difficulty: Difficulty;
   constraints: ProblemConstraints | null;
-  examples: { examples: ProblemExample[] } | null;
+  examples: ProblemExample[];
   hints: string[];
 }
 
@@ -44,6 +46,7 @@ export interface TestCaseRequest {
   input: string;
   expectedOutput: string;
   isPublic: boolean;
+  explanation?: string | null;
 }
 
 export interface TestCaseResponse extends TestCaseRequest { id: string }
@@ -57,7 +60,6 @@ export interface ProblemUpdatePayload {
   description: string;
   difficulty: Difficulty;
   constraints: ProblemConstraints | null;
-  examples: { examples: ProblemExample[] } | null;
   hints: string[];
   topics: ProblemTopicRequest[];
 }

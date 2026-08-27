@@ -15,13 +15,15 @@ export type SubmissionStatus =
   | "SYSTEM_ERROR";
 
 export interface Submission {
-  id: string;
-  userId: string;
-  problemId: number;
-  code: string;
+  submissionId: string;
   status: SubmissionStatus;
   language: SubmissionLanguage;
   createdAt: string;
+}
+
+export interface SubmissionStatusResponse {
+  submissionId: string;
+  status: SubmissionStatus;
 }
 
 export interface SendSubmissionPayload {
@@ -41,11 +43,11 @@ export function fetchSubmissions(problemId: number): Promise<Submission[]> {
 
 export function sendSubmission(
   payload: SendSubmissionPayload,
-): Promise<void> {
+): Promise<SubmissionStatusResponse> {
   if (payload.code.trim() === "") {
     return Promise.reject(new Error("Code must not be blank."));
   }
-  return apiFetch<void>("/v1/submissions", {
+  return apiFetch<SubmissionStatusResponse>("/v1/submissions", {
     method: "POST",
     body: payload,
   }).catch((error) => {

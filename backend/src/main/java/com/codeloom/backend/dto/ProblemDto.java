@@ -3,9 +3,8 @@ package com.codeloom.backend.dto;
 import com.codeloom.backend.model.ProblemConstraints;
 import com.codeloom.backend.model.ProblemDifficulty;
 import com.codeloom.backend.model.Topic;
-import lombok.Builder;
-
 import java.util.List;
+import lombok.Builder;
 
 @Builder
 public record ProblemDto(
@@ -17,5 +16,4 @@ public record ProblemDto(
         ProblemConstraints constraints,
         List<TestCaseDto> examples,
         List<String> hints,
-        Iterable<Topic> topics) {
-}
+        Iterable<Topic> topics) {}

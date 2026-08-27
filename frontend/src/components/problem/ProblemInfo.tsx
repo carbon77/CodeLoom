@@ -70,13 +70,13 @@ export default function ProblemInfo({ problem }: ProblemInfoProps) {
           </>
         )}
 
-      {problem.examples?.examples.length ? (
+      {problem.examples.length ? (
         <>
           <Divider sx={{ my: 2 }} />
           <Typography variant="h6" sx={{ mb: 1 }}>
             Examples
           </Typography>
-          {problem.examples.examples.map((example, index) => (
+          {problem.examples.map((example, index) => (
             <Paper key={index} variant="outlined" sx={{ p: 1.5, mb: 1.5 }}>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>
                 Example {index + 1}
@@ -108,7 +108,7 @@ export default function ProblemInfo({ problem }: ProblemInfoProps) {
                 }}
               >
                 <strong>Output:</strong>
-                {`\n${example.output}`}
+                {`\n${example.expectedOutput}`}
               </Typography>
               {example.explanation && (
                 <Typography

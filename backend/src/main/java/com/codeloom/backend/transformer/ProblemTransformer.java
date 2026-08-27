@@ -6,10 +6,9 @@ import com.codeloom.backend.dto.ProblemDto;
 import com.codeloom.backend.dto.TestCaseDto;
 import com.codeloom.backend.model.Problem;
 import com.codeloom.backend.model.Topic;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -21,8 +20,7 @@ public class ProblemTransformer {
         long problemId = problem.getId();
 
         Iterable<Topic> topics = topicRepository.findByProblemId(problemId);
-        List<TestCaseDto> examples = testCaseRepository.findAllByProblemId(problemId, true)
-                .stream()
+        List<TestCaseDto> examples = testCaseRepository.findAllByProblemId(problemId, true).stream()
                 .map(TestCaseDto::fromEntity)
                 .toList();
 

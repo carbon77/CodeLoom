@@ -1,31 +1,5 @@
 package com.codeloom.backend.it;
 
-import com.codeloom.backend.dao.submission.SubmissionRepository;
-import com.codeloom.backend.dao.problem.ProblemRepository;
-import com.codeloom.backend.dao.testcase.TestCaseRepository;
-import com.codeloom.backend.dao.testcase.TestCaseResultRepository;
-import com.codeloom.backend.model.Problem;
-import com.codeloom.backend.model.ProblemDifficulty;
-import com.codeloom.backend.model.Submission;
-import com.codeloom.backend.model.TestCase;
-import com.codeloom.backend.model.TestCaseResult;
-import com.codeloom.backend.security.UserRole;
-import com.codeloom.common.SubmissionEvent;
-import com.codeloom.common.SubmissionStatus;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.jdbc.Sql;
-import tools.jackson.databind.ObjectMapper;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
-
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -38,11 +12,36 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.codeloom.backend.dao.problem.ProblemRepository;
+import com.codeloom.backend.dao.submission.SubmissionRepository;
+import com.codeloom.backend.dao.testcase.TestCaseRepository;
+import com.codeloom.backend.dao.testcase.TestCaseResultRepository;
+import com.codeloom.backend.model.Problem;
+import com.codeloom.backend.model.ProblemDifficulty;
+import com.codeloom.backend.model.Submission;
+import com.codeloom.backend.model.TestCase;
+import com.codeloom.backend.model.TestCaseResult;
+import com.codeloom.backend.security.UserRole;
+import com.codeloom.common.SubmissionEvent;
+import com.codeloom.common.SubmissionStatus;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.ObjectMapper;
+
 @Sql(
         statements = {
-                "TRUNCATE TABLE test_case_results CASCADE",
-                "TRUNCATE TABLE submissions CASCADE",
-                "TRUNCATE TABLE problems RESTART IDENTITY CASCADE"
+            "TRUNCATE TABLE test_case_results CASCADE",
+            "TRUNCATE TABLE submissions CASCADE",
+            "TRUNCATE TABLE problems RESTART IDENTITY CASCADE"
         },
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class SubmissionIT extends BackendIntegrationTestSupport {
@@ -125,7 +124,8 @@ class SubmissionIT extends BackendIntegrationTestSupport {
             mockMvc.perform(get("/v1/submissions/{submissionId}", submission.getId())
                             .principal(admin()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.submissionId").value(submission.getId().toString()))
+                    .andExpect(
+                            jsonPath("$.submissionId").value(submission.getId().toString()))
                     .andExpect(jsonPath("$.status").value("ACCEPTED"))
                     .andExpect(jsonPath("$.language").value("java"))
                     .andExpect(jsonPath("$.code").value("println(42)"))
@@ -296,15 +296,13 @@ class SubmissionIT extends BackendIntegrationTestSupport {
     }
 
     private Submission submission(long problemId, UUID userId, String code) {
-        return submissions.save(
-                Submission.builder()
-                        .userId(userId)
-                        .problemId(problemId)
-                        .code(code)
-                        .status(SubmissionStatus.PENDING)
-                        .language("java")
-                        .build()
-        );
+        return submissions.save(Submission.builder()
+                .userId(userId)
+                .problemId(problemId)
+                .code(code)
+                .status(SubmissionStatus.PENDING)
+                .language("java")
+                .build());
     }
 
     private String request(long problemId) {

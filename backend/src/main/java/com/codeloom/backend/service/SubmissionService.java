@@ -1,5 +1,8 @@
 package com.codeloom.backend.service;
 
+import static com.codeloom.backend.security.AuthenticationUtils.getUserId;
+import static com.codeloom.backend.security.AuthenticationUtils.isRegularUser;
+
 import com.codeloom.backend.dao.problem.ProblemRepository;
 import com.codeloom.backend.dao.submission.SubmissionRepository;
 import com.codeloom.backend.dao.testcase.TestCaseRepository;
@@ -16,6 +19,8 @@ import com.codeloom.backend.model.Problem;
 import com.codeloom.backend.model.Submission;
 import com.codeloom.common.SubmissionEvent;
 import com.codeloom.common.SubmissionStatus;
+import java.util.Collection;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,12 +29,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
-
-import java.util.Collection;
-import java.util.UUID;
-
-import static com.codeloom.backend.security.AuthenticationUtils.getUserId;
-import static com.codeloom.backend.security.AuthenticationUtils.isRegularUser;
 
 @Slf4j
 @Service
@@ -87,7 +86,8 @@ public class SubmissionService {
     }
 
     public SubmissionDto findSubmissionDetails(Authentication authentication, UUID submissionId) {
-        Submission submission = submissionRepository.findById(submissionId)
+        Submission submission = submissionRepository
+                .findById(submissionId)
                 .orElseThrow(() -> new SubmissionNotFoundException(submissionId));
 
         if (!getUserId(authentication).equals(submission.getUserId())) {

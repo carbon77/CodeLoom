@@ -81,7 +81,7 @@ export default function SubmissionsList({
         </TableHead>
         <TableBody>
           {submissions?.map((submission) => (
-            <TableRow key={submission.id}>
+            <TableRow key={submission.submissionId}>
               <TableCell>
                 <Chip
                   label={submission.status}

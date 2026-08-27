@@ -9,12 +9,11 @@ import com.codeloom.executor.engine.DockerJudgeEngine;
 import com.codeloom.executor.engine.RunResult;
 import com.codeloom.executor.engine.SubmissionContext;
 import com.codeloom.executor.repository.TestCaseRepository;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -42,26 +41,23 @@ public class SubmissionProcessingService {
                         SubmissionStatus.COMPILE_ERROR,
                         SubmissionStatusPayload.builder()
                                 .error(compilationResult.stderr())
-                                .build()
-                );
+                                .build());
                 return;
             }
             changeSubmissionStatus(context, SubmissionStatus.RUNNING);
             for (var testCase : testCases) {
                 RunResult runResult = dockerJudgeEngine.runTestCase(context, testCase);
                 if (testCase.isPublic()) {
-                    results.add(
-                            TestCaseResultDto.builder()
-                                    .id(testCase.getId())
-                                    .problemId(testCase.getProblemId())
-                                    .input(testCase.getInput())
-                                    .expectedOutput(testCase.getExpectedOutput())
-                                    .stderr(runResult.stderr())
-                                    .stdout(runResult.stdout())
-                                    .executionTimeMs(runResult.executionTimeMs())
-                                    .memoryUsageBytes(runResult.memoryUsageBytes())
-                                    .build()
-                    );
+                    results.add(TestCaseResultDto.builder()
+                            .id(testCase.getId())
+                            .problemId(testCase.getProblemId())
+                            .input(testCase.getInput())
+                            .expectedOutput(testCase.getExpectedOutput())
+                            .stderr(runResult.stderr())
+                            .stdout(runResult.stdout())
+                            .executionTimeMs(runResult.executionTimeMs())
+                            .memoryUsageBytes(runResult.memoryUsageBytes())
+                            .build());
                 }
 
                 if (runResult.exitCode() != 0) {
@@ -72,31 +68,29 @@ public class SubmissionProcessingService {
                             SubmissionStatusPayload.builder()
                                     .error(runResult.stderr())
                                     .testCaseResults(results)
-                                    .build()
-                    );
+                                    .build());
                     return;
                 }
-                if (!runResult.stdout().trim().equals(testCase.getExpectedOutput().trim())) {
+                if (!runResult
+                        .stdout()
+                        .trim()
+                        .equals(testCase.getExpectedOutput().trim())) {
                     changeSubmissionStatus(
                             context,
                             SubmissionStatus.WRONG_ANSWER,
-                            SubmissionStatusPayload.builder().testCaseResults(results).build()
-                    );
+                            SubmissionStatusPayload.builder()
+                                    .testCaseResults(results)
+                                    .build());
                     return;
                 }
             }
             changeSubmissionStatus(
                     context,
                     SubmissionStatus.ACCEPTED,
-                    SubmissionStatusPayload.builder().testCaseResults(results).build()
-            );
+                    SubmissionStatusPayload.builder().testCaseResults(results).build());
         } catch (Exception x) {
             log.error("Error while processing submission={}", context, x);
-            changeSubmissionStatus(
-                    context,
-                    SubmissionStatus.SYSTEM_ERROR,
-                    new SubmissionStatusPayload(null, results)
-            );
+            changeSubmissionStatus(context, SubmissionStatus.SYSTEM_ERROR, new SubmissionStatusPayload(null, results));
         } finally {
             dockerJudgeEngine.cleanup(context.submissionId());
         }
@@ -107,9 +101,7 @@ public class SubmissionProcessingService {
     }
 
     public void changeSubmissionStatus(
-            SubmissionContext context,
-            SubmissionStatus newStatus,
-            SubmissionStatusPayload payload) {
+            SubmissionContext context, SubmissionStatus newStatus, SubmissionStatusPayload payload) {
         log.info("Submission(id={}) status changed to {}", context.submissionId(), newStatus);
         eventService.submissionStatusChanged(context, newStatus, payload);
     }

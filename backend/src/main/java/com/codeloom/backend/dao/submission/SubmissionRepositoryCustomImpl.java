@@ -1,14 +1,13 @@
 package com.codeloom.backend.dao.submission;
 
+import static com.codeloom.backend.jooq.Tables.SUBMISSIONS;
+
 import com.codeloom.backend.dto.SubmissionListDto;
+import java.util.Collection;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
-
-import java.util.Collection;
-import java.util.UUID;
-
-import static com.codeloom.backend.jooq.Tables.SUBMISSIONS;
 
 @Repository
 @RequiredArgsConstructor
@@ -21,13 +20,9 @@ public class SubmissionRepositoryCustomImpl implements SubmissionRepositoryCusto
                         SUBMISSIONS.SUBMISSION_ID,
                         SUBMISSIONS.STATUS,
                         SUBMISSIONS.LANGUAGE,
-                        SUBMISSIONS.CREATED_AT.as("createdAt")
-                )
+                        SUBMISSIONS.CREATED_AT.as("createdAt"))
                 .from(SUBMISSIONS)
-                .where(
-                        SUBMISSIONS.USER_ID.eq(userId),
-                        SUBMISSIONS.PROBLEM_ID.eq(Math.toIntExact(problemId))
-                )
+                .where(SUBMISSIONS.USER_ID.eq(userId), SUBMISSIONS.PROBLEM_ID.eq(Math.toIntExact(problemId)))
                 .fetchInto(SubmissionListDto.class);
     }
 }

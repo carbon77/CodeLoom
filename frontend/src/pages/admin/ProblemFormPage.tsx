@@ -32,18 +32,11 @@ import {
   updateTestCase as updateTestCaseApi,
   updateProblem,
   type Difficulty,
-  type ProblemExample,
   type TestCase,
   type Topic,
 } from '../../api/problems'
 import { errorMessage } from '../../api/client'
 import { serializeTopics } from './topicSerialization'
-
-interface ExampleRow {
-  input: string
-  output: string
-  explanation: string
-}
 
 function deriveSlug(title: string): string {
   return title.toLowerCase().replaceAll(' ', '_')
@@ -69,7 +62,6 @@ export default function ProblemFormPage() {
   const [difficulty, setDifficulty] = useState<Difficulty>('EASY')
   const [executionTimeLimitMs, setExecutionTimeLimitMs] = useState('')
   const [memoryUsageLimitBytes, setMemoryUsageLimitBytes] = useState('')
-  const [examples, setExamples] = useState<ExampleRow[]>([])
   const [hints, setHints] = useState<string[]>([])
   const [testCases, setTestCases] = useState<TestCase[]>([])
   const [initialTestCases, setInitialTestCases] = useState<TestCase[]>([])
@@ -95,13 +87,6 @@ export default function ProblemFormPage() {
         setDifficulty(problem.difficulty)
         setExecutionTimeLimitMs(problem.constraints?.executionTimeLimitMs?.toString() ?? '')
         setMemoryUsageLimitBytes(problem.constraints?.memoryUsageLimitBytes?.toString() ?? '')
-        setExamples(
-          (problem.examples?.examples ?? []).map((example: ProblemExample) => ({
-            input: example.input,
-            output: example.output,
-            explanation: example.explanation ?? '',
-          })),
-        )
         setHints(problem.hints)
         setTestCases(loadedTestCases)
         setInitialTestCases(loadedTestCases)
@@ -121,12 +106,6 @@ export default function ProblemFormPage() {
       active = false
     }
   }, [isEdit, problemId])
-
-  function updateExample(index: number, field: keyof ExampleRow, value: string): void {
-    setExamples((rows) =>
-      rows.map((row, i) => (i === index ? { ...row, [field]: value } : row)),
-    )
-  }
 
   function updateHint(index: number, value: string): void {
     setHints((items) => items.map((item, i) => (i === index ? value : item)))
@@ -154,7 +133,6 @@ export default function ProblemFormPage() {
         executionTimeLimitMs: toNullableNumber(executionTimeLimitMs),
         memoryUsageLimitBytes: toNullableNumber(memoryUsageLimitBytes),
       },
-      examples: { examples },
       hints,
       topics: serializeTopics(selectedTopics, topics),
     }
@@ -180,6 +158,7 @@ export default function ProblemFormPage() {
               input: testCase.input,
               expectedOutput: testCase.expectedOutput,
               isPublic: testCase.isPublic,
+              explanation: testCase.explanation,
             })
           } else {
             await createTestCase({ ...testCase, problemId: id })
@@ -297,54 +276,6 @@ export default function ProblemFormPage() {
 
           <Stack direction="row" sx={{ alignItems: 'center' }}>
             <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
-              Examples
-            </Typography>
-            <Button
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={() =>
-                setExamples((rows) => [...rows, { input: '', output: '', explanation: '' }])
-              }
-            >
-              Add example
-            </Button>
-          </Stack>
-          {examples.map((example, index) => (
-            <Stack key={index} direction="row" spacing={2} sx={{ alignItems: 'flex-start' }}>
-              <TextField
-                label="Input"
-                multiline
-                value={example.input}
-                onChange={(event) => updateExample(index, 'input', event.target.value)}
-                sx={{ flexGrow: 1 }}
-              />
-              <TextField
-                label="Expected output"
-                multiline
-                value={example.output}
-                onChange={(event) => updateExample(index, 'output', event.target.value)}
-                sx={{ flexGrow: 1 }}
-              />
-              <TextField
-                label="Explanation"
-                value={example.explanation}
-                onChange={(event) => updateExample(index, 'explanation', event.target.value)}
-                sx={{ flexGrow: 1 }}
-              />
-              <IconButton
-                aria-label="Remove example"
-                color="error"
-                onClick={() => setExamples((rows) => rows.filter((_, i) => i !== index))}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Stack>
-          ))}
-
-          <Divider />
-
-          <Stack direction="row" sx={{ alignItems: 'center' }}>
-            <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
               Hints
             </Typography>
             <Button size="small" startIcon={<AddIcon />} onClick={() => setHints((items) => [...items, ''])}>
@@ -382,7 +313,7 @@ export default function ProblemFormPage() {
             onClick={() =>
               setTestCases((cases) => [
                 ...cases,
-                { input: '', expectedOutput: '', isPublic: false },
+                { input: '', expectedOutput: '', isPublic: false, explanation: '' },
               ])
             }
           >
@@ -409,6 +340,12 @@ export default function ProblemFormPage() {
                 multiline
                 value={testCase.expectedOutput}
                 onChange={(event) => updateTestCase(index, { expectedOutput: event.target.value })}
+                sx={{ flexGrow: 1 }}
+              />
+              <TextField
+                label="Explanation"
+                value={testCase.explanation ?? ''}
+                onChange={(event) => updateTestCase(index, { explanation: event.target.value })}
                 sx={{ flexGrow: 1 }}
               />
               <FormControlLabel

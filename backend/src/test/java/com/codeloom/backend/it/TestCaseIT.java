@@ -40,7 +40,7 @@ class TestCaseIT extends BackendIntegrationTestSupport {
                 .input(input)
                 .expectedOutput(output)
                 .isPublic(isPublic)
-                        .explanation(explanation)
+                .explanation(explanation)
                 .build());
     }
 

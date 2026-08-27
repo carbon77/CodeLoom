@@ -33,8 +33,7 @@ public class SubmissionStatusKafkaListenerService {
                 return;
             }
 
-            Submission submission = submissionOptional.get()
-                    .withStatus(event.newStatus());
+            Submission submission = submissionOptional.get().withStatus(event.newStatus());
             if (event.payload() != null && event.payload().error() != null) {
                 submission = submission.withErrorMessage(event.payload().error());
             }

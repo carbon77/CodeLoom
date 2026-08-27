@@ -3,10 +3,12 @@ package com.codeloom.backend.service;
 import com.codeloom.backend.dao.problem.ProblemRepository;
 import com.codeloom.backend.dao.submission.SubmissionRepository;
 import com.codeloom.backend.dao.testcase.TestCaseRepository;
+import com.codeloom.backend.dao.testcase.TestCaseResultRepository;
 import com.codeloom.backend.dto.SendSubmissionRequest;
 import com.codeloom.backend.dto.SubmissionDto;
 import com.codeloom.backend.dto.SubmissionListDto;
 import com.codeloom.backend.dto.SubmissionStatusDto;
+import com.codeloom.backend.dto.TestCaseResultListDto;
 import com.codeloom.backend.exception.NoTestCasesException;
 import com.codeloom.backend.exception.ProblemNotFoundException;
 import com.codeloom.backend.exception.SubmissionNotFoundException;
@@ -17,12 +19,10 @@ import com.codeloom.common.SubmissionStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.Collection;
@@ -38,6 +38,7 @@ public class SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final ProblemRepository problemRepository;
     private final TestCaseRepository testCaseRepository;
+    private final TestCaseResultRepository testCaseResultRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
@@ -86,13 +87,23 @@ public class SubmissionService {
     }
 
     public SubmissionDto findSubmissionDetails(Authentication authentication, UUID submissionId) {
-        var submission = submissionRepository.findById(submissionId)
+        Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new SubmissionNotFoundException(submissionId));
 
         if (!getUserId(authentication).equals(submission.getUserId())) {
             throw new SubmissionNotFoundException(submissionId);
         }
 
-
+        return SubmissionDto.builder()
+                .submissionId(submission.getId())
+                .status(submission.getStatus())
+                .language(submission.getLanguage())
+                .code(submission.getCode())
+                .errorMessage(submission.getErrorMessage())
+                .createdAt(submission.getCreatedAt())
+                .results(testCaseResultRepository.findAllBySubmissionId(submissionId).stream()
+                        .map(TestCaseResultListDto::fromEntity)
+                        .toList())
+                .build();
     }
 }

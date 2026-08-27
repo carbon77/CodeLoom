@@ -117,7 +117,7 @@ class SubmissionProcessingPayloadTest {
     }
 
     @Test
-    void compileErrorHasNoPayload() {
+    void compileErrorContainsCompilerOutput() {
         when(repo.findByProblemId(problemId)).thenReturn(List.of(publicCase));
         when(judge.compile(any()))
                 .thenReturn(CompilationResult.builder()
@@ -125,7 +125,7 @@ class SubmissionProcessingPayloadTest {
                         .stderr("compile error")
                         .build());
         service.process(event);
-        verify(events).submissionStatusChanged(any(), eq(SubmissionStatus.COMPILE_ERROR), isNull());
+        assertEquals("compile error", payload(SubmissionStatus.COMPILE_ERROR).error());
     }
 
     private SubmissionStatusPayload payload(SubmissionStatus s) {

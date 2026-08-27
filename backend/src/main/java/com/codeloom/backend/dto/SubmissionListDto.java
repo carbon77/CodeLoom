@@ -11,6 +11,6 @@ public record SubmissionListDto(
         UUID submissionId,
         SubmissionStatus status,
         String language,
-        Instant created_at
+        Instant createdAt
 ) {
 }

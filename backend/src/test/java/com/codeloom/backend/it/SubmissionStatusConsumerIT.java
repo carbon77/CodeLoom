@@ -126,6 +126,27 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
     }
 
     @Test
+    void persistsSubmissionError() throws Exception {
+        var event = SubmissionStatusChangedEvent.builder()
+                .submissionId(submissionId)
+                .problemId(problemId)
+                .userId(UUID.randomUUID())
+                .newStatus(SubmissionStatus.COMPILE_ERROR)
+                .payload(SubmissionStatusPayload.builder()
+                        .error("compiler failed")
+                        .build())
+                .build();
+
+        kafkaTemplate.send(topic, submissionId.toString(), objectMapper.writeValueAsString(event))
+                .get(20, TimeUnit.SECONDS);
+        awaitStatus(SubmissionStatus.COMPILE_ERROR);
+
+        assertEquals(
+                "compiler failed",
+                submissionRepository.findById(submissionId).orElseThrow().getErrorMessage());
+    }
+
+    @Test
     void laterEventReplacesPersistedResults() throws Exception {
         kafkaTemplate.send(topic, submissionId.toString(), wrongAnswerEvent()).get(20, TimeUnit.SECONDS);
         awaitStatus(SubmissionStatus.WRONG_ANSWER);

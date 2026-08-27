@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -22,6 +23,7 @@ public class SubmissionStatusKafkaListenerService {
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "${codeloom.kafka.submission-status-topic}")
+    @Transactional
     public void listenSubmissionStatus(String message) {
         try {
             SubmissionStatusChangedEvent event = objectMapper.readValue(message, SubmissionStatusChangedEvent.class);
@@ -39,6 +41,7 @@ public class SubmissionStatusKafkaListenerService {
             submissionRepository.save(submission);
 
             if (event.payload() != null && event.payload().testCaseResults() != null) {
+                testCaseResultRepository.deleteBySubmissionId(event.submissionId());
                 testCaseResultRepository.saveAll(event.payload().testCaseResults().stream()
                         .map(result -> TestCaseResult.builder()
                                 .id(result.id())

@@ -49,18 +49,20 @@ public class SubmissionProcessingService {
             changeSubmissionStatus(context, SubmissionStatus.RUNNING);
             for (var testCase : testCases) {
                 RunResult runResult = dockerJudgeEngine.runTestCase(context, testCase);
-                results.add(
-                        TestCaseResultDto.builder()
-                                .id(testCase.getId())
-                                .problemId(testCase.getProblemId())
-                                .input(testCase.getInput())
-                                .expectedOutput(testCase.getExpectedOutput())
-                                .stderr(runResult.stderr())
-                                .stdout(runResult.stdout())
-                                .executionTimeMs(runResult.executionTimeMs())
-                                .memoryUsageBytes(runResult.memoryUsageBytes())
-                                .build()
-                );
+                if (testCase.isPublic()) {
+                    results.add(
+                            TestCaseResultDto.builder()
+                                    .id(testCase.getId())
+                                    .problemId(testCase.getProblemId())
+                                    .input(testCase.getInput())
+                                    .expectedOutput(testCase.getExpectedOutput())
+                                    .stderr(runResult.stderr())
+                                    .stdout(runResult.stdout())
+                                    .executionTimeMs(runResult.executionTimeMs())
+                                    .memoryUsageBytes(runResult.memoryUsageBytes())
+                                    .build()
+                    );
+                }
 
                 if (runResult.exitCode() != 0) {
                     SubmissionStatus newStatus = runResult.statusFromExitCode();

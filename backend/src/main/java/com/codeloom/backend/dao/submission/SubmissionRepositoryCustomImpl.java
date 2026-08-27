@@ -21,7 +21,7 @@ public class SubmissionRepositoryCustomImpl implements SubmissionRepositoryCusto
                         SUBMISSIONS.SUBMISSION_ID,
                         SUBMISSIONS.STATUS,
                         SUBMISSIONS.LANGUAGE,
-                        SUBMISSIONS.CREATED_AT
+                        SUBMISSIONS.CREATED_AT.as("createdAt")
                 )
                 .from(SUBMISSIONS)
                 .where(

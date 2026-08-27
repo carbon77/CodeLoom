@@ -3,10 +3,12 @@ package com.codeloom.backend.it;
 import com.codeloom.backend.dao.submission.SubmissionRepository;
 import com.codeloom.backend.dao.problem.ProblemRepository;
 import com.codeloom.backend.dao.testcase.TestCaseRepository;
+import com.codeloom.backend.dao.testcase.TestCaseResultRepository;
 import com.codeloom.backend.model.Problem;
 import com.codeloom.backend.model.ProblemDifficulty;
 import com.codeloom.backend.model.Submission;
 import com.codeloom.backend.model.TestCase;
+import com.codeloom.backend.model.TestCaseResult;
 import com.codeloom.backend.security.UserRole;
 import com.codeloom.common.SubmissionEvent;
 import com.codeloom.common.SubmissionStatus;
@@ -26,6 +28,7 @@ import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -53,6 +56,9 @@ class SubmissionIT extends BackendIntegrationTestSupport {
     TestCaseRepository testCases;
 
     @Autowired
+    TestCaseResultRepository testCaseResults;
+
+    @Autowired
     ObjectMapper mapper;
 
     @MockitoBean
@@ -74,10 +80,12 @@ class SubmissionIT extends BackendIntegrationTestSupport {
                     .andExpect(status().isOk())
                     .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.length()").value(1))
-                    .andExpect(jsonPath("$[0].id").value(own.getId().toString()))
-                    .andExpect(jsonPath("$[0].userId").value(TEST_USER_ID.toString()))
-                    .andExpect(jsonPath("$[0].problemId").value(problem.getId()))
-                    .andExpect(jsonPath("$[0].code").value("own code"));
+                    .andExpect(jsonPath("$[0].submissionId").value(own.getId().toString()))
+                    .andExpect(jsonPath("$[0].status").value("PENDING"))
+                    .andExpect(jsonPath("$[0].language").value("java"))
+                    .andExpect(jsonPath("$[0].createdAt", notNullValue()))
+                    .andExpect(jsonPath("$[0].userId").doesNotExist())
+                    .andExpect(jsonPath("$[0].code").doesNotExist());
         }
 
         @Test
@@ -88,6 +96,62 @@ class SubmissionIT extends BackendIntegrationTestSupport {
                             .param("problemId", problem.getId().toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.length()").value(0));
+        }
+    }
+
+    @Nested
+    class FindSubmissionDetails {
+        @Test
+        void returnsOwnedSubmissionWithResults() throws Exception {
+            var problem = problem(true, "Two Sum", "two_sum", true);
+            var submission = submissions.save(Submission.builder()
+                    .userId(TEST_USER_ID)
+                    .problemId(problem.getId())
+                    .code("println(42)")
+                    .status(SubmissionStatus.ACCEPTED)
+                    .language("java")
+                    .errorMessage(null)
+                    .build());
+            testCaseResults.save(TestCaseResult.builder()
+                    .submissionId(submission.getId())
+                    .input("1 2")
+                    .expectedOutput("3")
+                    .stdout("3")
+                    .stderr("")
+                    .executionTimeMs(12L)
+                    .bytesUsed(1024L)
+                    .build());
+
+            mockMvc.perform(get("/v1/submissions/{submissionId}", submission.getId())
+                            .principal(admin()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.submissionId").value(submission.getId().toString()))
+                    .andExpect(jsonPath("$.status").value("ACCEPTED"))
+                    .andExpect(jsonPath("$.language").value("java"))
+                    .andExpect(jsonPath("$.code").value("println(42)"))
+                    .andExpect(jsonPath("$.errorMessage").value(nullValue()))
+                    .andExpect(jsonPath("$.createdAt", notNullValue()))
+                    .andExpect(jsonPath("$.results.length()").value(1))
+                    .andExpect(jsonPath("$.results[0].input").value("1 2"))
+                    .andExpect(jsonPath("$.results[0].expectedOutput").value("3"))
+                    .andExpect(jsonPath("$.results[0].stdout").value("3"));
+        }
+
+        @Test
+        void returnsNotFoundForAnotherUsersSubmission() throws Exception {
+            var problem = problem(true, "Two Sum", "two_sum", true);
+            var submission = submission(problem.getId(), UUID.randomUUID(), "other code");
+
+            mockMvc.perform(get("/v1/submissions/{submissionId}", submission.getId())
+                            .principal(admin()))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void returnsNotFoundForMissingSubmission() throws Exception {
+            mockMvc.perform(get("/v1/submissions/{submissionId}", UUID.randomUUID())
+                            .principal(admin()))
+                    .andExpect(status().isNotFound());
         }
     }
 

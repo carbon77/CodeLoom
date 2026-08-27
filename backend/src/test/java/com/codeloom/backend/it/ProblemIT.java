@@ -226,10 +226,6 @@ class ProblemIT extends BackendIntegrationTestSupport {
                     .andExpect(jsonPath("$.hints[0]").value("hint #1"))
                     .andExpect(jsonPath("$.hints[1]").value("hint #2"))
                     .andExpect(jsonPath("$.hints[2]").value("hint #3"))
-                    .andExpect(jsonPath("$.examples.examples.length()").value(1))
-                    .andExpect(jsonPath("$.examples.examples[0].input").value("nums = [-1,0,1,2,-1,-4]"))
-                    .andExpect(jsonPath("$.examples.examples[0].output").value("[[-1,-1,2],[-1,0,1]]"))
-                    .andExpect(jsonPath("$.examples.examples[0].explanation").value("These triplets sum to zero"))
                     .andExpect(jsonPath("$.constraints.executionTimeLimitMs").value(3000))
                     .andExpect(jsonPath("$.constraints.memoryUsageLimitBytes").value(4))
                     .andExpect(jsonPath("$.createdAt", notNullValue()))
@@ -370,7 +366,6 @@ class ProblemIT extends BackendIntegrationTestSupport {
                 .description("Find two numbers")
                 .difficulty(ProblemDifficulty.EASY)
                 .hints(List.of("hint #1", "hint #2"))
-                .examples(new ProblemExamples(List.of(new ProblemExample("input", "output", "explain"))))
                 .constraints(new ProblemConstraints(2000L, 4L))
                 .createdAt(now)
                 .updatedAt(now)
@@ -428,19 +423,6 @@ class ProblemIT extends BackendIntegrationTestSupport {
         for (int i = 0; i < problem.getHints().size(); i++) {
             result.andExpect(
                     jsonPath("$.hints[" + i + "]").value(problem.getHints().get(i)));
-        }
-        if (problem.getExamples() != null) {
-            result.andExpect(jsonPath("$.examples.examples.length()")
-                    .value(problem.getExamples().examples().size()));
-            for (int i = 0; i < problem.getExamples().examples().size(); i++) {
-                var example = problem.getExamples().examples().get(i);
-                result.andExpect(
-                                jsonPath("$.examples.examples[" + i + "].input").value(example.input()))
-                        .andExpect(jsonPath("$.examples.examples[" + i + "].output")
-                                .value(example.output()))
-                        .andExpect(jsonPath("$.examples.examples[" + i + "].explanation")
-                                .value(example.explanation()));
-            }
         }
         if (problem.getConstraints() != null) {
             result.andExpect(jsonPath("$.constraints.executionTimeLimitMs")

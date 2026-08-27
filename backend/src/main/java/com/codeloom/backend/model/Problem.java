@@ -37,9 +37,6 @@ public class Problem {
     @Column("constraints")
     private ProblemConstraints constraints;
 
-    @Column("examples")
-    private ProblemExamples examples;
-
     @Builder.Default
     @Column("hints")
     private List<String> hints = List.of();

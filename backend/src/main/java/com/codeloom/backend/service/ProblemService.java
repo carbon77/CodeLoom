@@ -89,7 +89,6 @@ public class ProblemService {
                 .withDescription(request.description())
                 .withDifficulty(request.difficulty())
                 .withConstraints(request.constraints())
-                .withExamples(request.examples())
                 .withHints(request.hints());
 
         topicService.createManyWithProblem(problemId, request.topics());

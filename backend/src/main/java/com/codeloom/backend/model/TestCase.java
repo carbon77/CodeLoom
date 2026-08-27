@@ -32,6 +32,9 @@ public class TestCase {
     @Column("is_public")
     private final boolean isPublic;
 
+    @Column("explanation")
+    private final String explanation;
+
     public boolean getIsPublic() {
         return isPublic;
     }

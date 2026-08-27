@@ -46,6 +46,7 @@ public class TestCaseService {
                 .withProblemId(request.problemId())
                 .withExpectedOutput(request.expectedOutput())
                 .withInput(request.input())
+                .withExplanation(request.explanation())
                 .withPublic(request.isPublic());
         return testCaseRepository.save(testCase);
     }

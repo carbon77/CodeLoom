@@ -1,8 +1,7 @@
 package com.codeloom.common.event;
 
-import lombok.Builder;
-
 import java.util.UUID;
+import lombok.Builder;
 
 @Builder
 public record TestCaseResultDto(
@@ -13,5 +12,4 @@ public record TestCaseResultDto(
         String stdout,
         String stderr,
         long executionTimeMs,
-        long memoryUsageBytes) {
-}
+        long memoryUsageBytes) {}

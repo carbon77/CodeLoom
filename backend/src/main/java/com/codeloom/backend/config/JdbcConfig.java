@@ -5,6 +5,9 @@ import com.codeloom.backend.converter.AbstractJsonWritingConverter;
 import com.codeloom.backend.model.ProblemConstraints;
 import com.codeloom.backend.model.ProblemDifficulty;
 import com.codeloom.common.SubmissionStatus;
+import java.sql.JDBCType;
+import java.sql.SQLException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.postgresql.util.PGobject;
 import org.springframework.context.annotation.Configuration;
@@ -13,10 +16,6 @@ import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.jdbc.core.mapping.JdbcValue;
 import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration;
 import tools.jackson.databind.ObjectMapper;
-
-import java.sql.JDBCType;
-import java.sql.SQLException;
-import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor

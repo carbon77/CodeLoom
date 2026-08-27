@@ -1,7 +1,11 @@
 package com.codeloom.backend.it;
 
-import com.codeloom.backend.dao.submission.SubmissionRepository;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.codeloom.backend.dao.problem.ProblemRepository;
+import com.codeloom.backend.dao.submission.SubmissionRepository;
 import com.codeloom.backend.dao.testcase.TestCaseRepository;
 import com.codeloom.backend.dao.testcase.TestCaseResultRepository;
 import com.codeloom.backend.model.Problem;
@@ -11,6 +15,10 @@ import com.codeloom.common.SubmissionStatus;
 import com.codeloom.common.event.SubmissionStatusChangedEvent;
 import com.codeloom.common.event.SubmissionStatusPayload;
 import com.codeloom.common.event.TestCaseResultDto;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +30,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
-
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.StreamSupport;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestPropertySource(properties = "spring.kafka.consumer.auto-offset-reset=earliest")
 @Testcontainers
@@ -87,15 +86,13 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
                 .isPublic(false)
                 .build());
         submissionId = submissionRepository
-                .save(
-                        Submission.builder()
-                                .userId(UUID.randomUUID())
-                                .problemId(problemId)
-                                .code("print(input())")
-                                .status(SubmissionStatus.PENDING)
-                                .language("python")
-                                .build()
-                )
+                .save(Submission.builder()
+                        .userId(UUID.randomUUID())
+                        .problemId(problemId)
+                        .code("print(input())")
+                        .status(SubmissionStatus.PENDING)
+                        .language("python")
+                        .build())
                 .getId();
     }
 
@@ -137,7 +134,8 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
                         .build())
                 .build();
 
-        kafkaTemplate.send(topic, submissionId.toString(), objectMapper.writeValueAsString(event))
+        kafkaTemplate
+                .send(topic, submissionId.toString(), objectMapper.writeValueAsString(event))
                 .get(20, TimeUnit.SECONDS);
         awaitStatus(SubmissionStatus.COMPILE_ERROR);
 
@@ -215,9 +213,9 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
         await().atMost(20, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .until(() -> submissionRepository
-                        .findById(submissionId)
-                        .orElseThrow()
-                        .getStatus()
+                                .findById(submissionId)
+                                .orElseThrow()
+                                .getStatus()
                         == expected);
     }
 

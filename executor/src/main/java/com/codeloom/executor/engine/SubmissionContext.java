@@ -2,9 +2,8 @@ package com.codeloom.executor.engine;
 
 import com.codeloom.common.SubmissionEvent;
 import com.codeloom.common.language.LanguageSpec;
-import lombok.Builder;
-
 import java.util.UUID;
+import lombok.Builder;
 
 @Builder
 public record SubmissionContext(
@@ -16,7 +15,7 @@ public record SubmissionContext(
         Long executionTimeLimitMs,
         Long memoryUsageLimitBytes) {
 
-    static public SubmissionContext fromEvent(SubmissionEvent event) {
+    public static SubmissionContext fromEvent(SubmissionEvent event) {
         return SubmissionContext.builder()
                 .submissionId(event.submissionId())
                 .userId(event.userId())

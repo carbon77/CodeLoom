@@ -1,10 +1,10 @@
 package com.codeloom.executor.engine;
 
-import com.codeloom.common.SubmissionStatus;
-import lombok.Builder;
-
 import static com.codeloom.executor.engine.CodeExecutionConstants.MEMORY_LIMIT_EXCEEDED_EXIT_CODE;
 import static com.codeloom.executor.engine.CodeExecutionConstants.TIMEOUT_EXIT_CODE;
+
+import com.codeloom.common.SubmissionStatus;
+import lombok.Builder;
 
 @Builder
 public record RunResult(long exitCode, String stdout, String stderr, long executionTimeMs, long memoryUsageBytes) {

@@ -1,5 +1,6 @@
 package com.codeloom.backend.model;
 
+import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -7,8 +8,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
-
-import java.util.UUID;
 
 @Getter
 @Builder

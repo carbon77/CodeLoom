@@ -8,6 +8,4 @@ public record UpdateTestCaseRequest(
         @NotBlank(message = "input can't be blank") String input,
         @NotBlank(message = "expectedOutput can't be blank") String expectedOutput,
         @NotNull(message = "isPublic must not be null") Boolean isPublic,
-        String explanation
-) {
-}
+        String explanation) {}

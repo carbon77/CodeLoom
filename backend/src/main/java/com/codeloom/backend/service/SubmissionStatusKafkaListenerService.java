@@ -1,6 +1,6 @@
 package com.codeloom.backend.service;
 
-import com.codeloom.backend.dao.SubmissionRepository;
+import com.codeloom.backend.dao.submission.SubmissionRepository;
 import com.codeloom.backend.dao.testcase.TestCaseResultRepository;
 import com.codeloom.backend.model.Submission;
 import com.codeloom.backend.model.TestCaseResult;
@@ -25,19 +25,24 @@ public class SubmissionStatusKafkaListenerService {
     public void listenSubmissionStatus(String message) {
         try {
             SubmissionStatusChangedEvent event = objectMapper.readValue(message, SubmissionStatusChangedEvent.class);
-            Optional<Submission> submission = submissionRepository.findById(event.submissionId());
-            if (submission.isEmpty()) {
+            Optional<Submission> submissionOptional = submissionRepository.findById(event.submissionId());
+            if (submissionOptional.isEmpty()) {
                 log.warn("Submission not found: submissionId={}", event.submissionId());
                 return;
             }
 
-            submissionRepository.save(submission.get().withStatus(event.newStatus()));
+            Submission submission = submissionOptional.get()
+                    .withStatus(event.newStatus());
+            if (event.payload() != null && event.payload().error() != null) {
+                submission = submission.withErrorMessage(event.payload().error());
+            }
+            submissionRepository.save(submission);
+
             if (event.payload() != null && event.payload().testCaseResults() != null) {
-                testCaseResultRepository.deleteBySubmissionId(event.submissionId());
                 testCaseResultRepository.saveAll(event.payload().testCaseResults().stream()
                         .map(result -> TestCaseResult.builder()
                                 .id(result.id())
-                                .submissionId(submission.get().getId())
+                                .submissionId(submissionOptional.get().getId())
                                 .input(result.input())
                                 .stdout(result.stdout())
                                 .stderr(result.stderr())

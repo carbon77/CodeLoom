@@ -1,30 +1,39 @@
 package com.codeloom.backend.service;
 
-import static com.codeloom.backend.security.AuthenticationUtils.getUserId;
-import static com.codeloom.backend.security.AuthenticationUtils.isRegularUser;
-
-import com.codeloom.backend.dao.SubmissionRepository;
 import com.codeloom.backend.dao.problem.ProblemRepository;
+import com.codeloom.backend.dao.submission.SubmissionRepository;
 import com.codeloom.backend.dao.testcase.TestCaseRepository;
 import com.codeloom.backend.dto.SendSubmissionRequest;
+import com.codeloom.backend.dto.SubmissionDto;
+import com.codeloom.backend.dto.SubmissionListDto;
 import com.codeloom.backend.dto.SubmissionStatusDto;
 import com.codeloom.backend.exception.NoTestCasesException;
 import com.codeloom.backend.exception.ProblemNotFoundException;
+import com.codeloom.backend.exception.SubmissionNotFoundException;
 import com.codeloom.backend.model.Problem;
 import com.codeloom.backend.model.Submission;
 import com.codeloom.common.SubmissionEvent;
 import com.codeloom.common.SubmissionStatus;
-import java.util.Collection;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.ObjectMapper;
+
+import java.util.Collection;
+import java.util.UUID;
+
+import static com.codeloom.backend.security.AuthenticationUtils.getUserId;
+import static com.codeloom.backend.security.AuthenticationUtils.isRegularUser;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final ProblemRepository problemRepository;
@@ -32,25 +41,11 @@ public class SubmissionService {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    private final String topic;
+    @Value("${codeloom.kafka.submission-topic}")
+    private String topic;
 
-    public SubmissionService(
-            SubmissionRepository submissionRepository,
-            ProblemRepository problemRepository,
-            TestCaseRepository testCaseRepository,
-            KafkaTemplate<String, String> kafkaTemplate,
-            ObjectMapper objectMapper,
-            @Value("${codeloom.kafka.submission-topic}") String topic) {
-        this.submissionRepository = submissionRepository;
-        this.problemRepository = problemRepository;
-        this.testCaseRepository = testCaseRepository;
-        this.kafkaTemplate = kafkaTemplate;
-        this.objectMapper = objectMapper;
-        this.topic = topic;
-    }
-
-    public Collection<Submission> findSubmissions(long problemId, Authentication authentication) {
-        return submissionRepository.findByUserIdAndProblemId(getUserId(authentication), problemId);
+    public Collection<SubmissionListDto> findSubmissions(long problemId, Authentication authentication) {
+        return submissionRepository.findListDtos(getUserId(authentication), problemId);
     }
 
     @Transactional
@@ -88,5 +83,16 @@ public class SubmissionService {
                 .submissionId(submission.getId())
                 .status(submission.getStatus())
                 .build();
+    }
+
+    public SubmissionDto findSubmissionDetails(Authentication authentication, UUID submissionId) {
+        var submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new SubmissionNotFoundException(submissionId));
+
+        if (!getUserId(authentication).equals(submission.getUserId())) {
+            throw new SubmissionNotFoundException(submissionId);
+        }
+
+
     }
 }

@@ -1,6 +1,6 @@
 package com.codeloom.backend.it;
 
-import com.codeloom.backend.dao.SubmissionRepository;
+import com.codeloom.backend.dao.submission.SubmissionRepository;
 import com.codeloom.backend.dao.problem.ProblemRepository;
 import com.codeloom.backend.dao.testcase.TestCaseRepository;
 import com.codeloom.backend.model.Problem;
@@ -232,7 +232,15 @@ class SubmissionIT extends BackendIntegrationTestSupport {
     }
 
     private Submission submission(long problemId, UUID userId, String code) {
-        return submissions.save(new Submission(userId, problemId, code, SubmissionStatus.PENDING, "java"));
+        return submissions.save(
+                Submission.builder()
+                        .userId(userId)
+                        .problemId(problemId)
+                        .code(code)
+                        .status(SubmissionStatus.PENDING)
+                        .language("java")
+                        .build()
+        );
     }
 
     private String request(long problemId) {

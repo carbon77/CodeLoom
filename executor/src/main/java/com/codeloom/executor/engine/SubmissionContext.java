@@ -1,8 +1,10 @@
 package com.codeloom.executor.engine;
 
+import com.codeloom.common.SubmissionEvent;
 import com.codeloom.common.language.LanguageSpec;
-import java.util.UUID;
 import lombok.Builder;
+
+import java.util.UUID;
 
 @Builder
 public record SubmissionContext(
@@ -12,4 +14,17 @@ public record SubmissionContext(
         String code,
         LanguageSpec language,
         Long executionTimeLimitMs,
-        Long memoryUsageLimitBytes) {}
+        Long memoryUsageLimitBytes) {
+
+    static public SubmissionContext fromEvent(SubmissionEvent event) {
+        return SubmissionContext.builder()
+                .submissionId(event.submissionId())
+                .userId(event.userId())
+                .problemId(event.problemId())
+                .language(LanguageSpec.fromLanguage(event.language()))
+                .code(event.code())
+                .executionTimeLimitMs(event.executionTimeLimitMs())
+                .memoryUsageLimitBytes(event.memoryUsageLimitBytes())
+                .build();
+    }
+}

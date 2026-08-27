@@ -19,10 +19,6 @@ public class EventService {
     @Value("${codeloom.kafka.topics.submission-status}")
     private String topic;
 
-    public void submissionStatusChanged(SubmissionContext c, SubmissionStatus s) {
-        submissionStatusChanged(c, s, null);
-    }
-
     public void submissionStatusChanged(
             SubmissionContext context, SubmissionStatus newStatus, SubmissionStatusPayload payload) {
         var event = SubmissionStatusChangedEvent.builder()

@@ -34,17 +34,18 @@ class TestCaseIT extends BackendIntegrationTestSupport {
         return problems.save(Problem.builder().title("Two Sum").slug("two_sum").build());
     }
 
-    private TestCase testCase(long problemId, boolean isPublic, String input, String output) {
+    private TestCase testCase(long problemId, boolean isPublic, String input, String output, String explanation) {
         return testCases.save(TestCase.builder()
                 .problemId(problemId)
                 .input(input)
                 .expectedOutput(output)
                 .isPublic(isPublic)
+                        .explanation(explanation)
                 .build());
     }
 
     private TestCase testCase(long problemId) {
-        return testCase(problemId, true, "1 2", "3");
+        return testCase(problemId, true, "1 2", "3", "sum of numbers");
     }
 
     @Nested
@@ -59,6 +60,7 @@ class TestCaseIT extends BackendIntegrationTestSupport {
                     .andExpect(jsonPath("$.problemId").value(testCase.getProblemId()))
                     .andExpect(jsonPath("$.input").value(testCase.getInput()))
                     .andExpect(jsonPath("$.expectedOutput").value(testCase.getExpectedOutput()))
+                    .andExpect(jsonPath("$.explanation").value(testCase.getExplanation()))
                     .andExpect(jsonPath("$.isPublic").value(testCase.getIsPublic()));
         }
 
@@ -82,7 +84,7 @@ class TestCaseIT extends BackendIntegrationTestSupport {
         void returnsTestCasesByIds() throws Exception {
             var problem = problem();
             var first = testCase(problem.getId());
-            var second = testCase(problem.getId(), true, "2 2", "4");
+            var second = testCase(problem.getId(), true, "2 2", "4", "sum");
             mockMvc.perform(get("/v1/testCases/by-ids")
                             .param(
                                     "ids",
@@ -98,8 +100,8 @@ class TestCaseIT extends BackendIntegrationTestSupport {
         @Test
         void returnsAllByDefault() throws Exception {
             var problem = problem();
-            testCase(problem.getId(), true, "1", "1");
-            testCase(problem.getId(), false, "2", "2");
+            testCase(problem.getId(), true, "1", "1", "");
+            testCase(problem.getId(), false, "2", "2", "");
             mockMvc.perform(get("/v1/testCases/by-problem-id/{id}", problem.getId()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.length()").value(2));
@@ -108,8 +110,8 @@ class TestCaseIT extends BackendIntegrationTestSupport {
         @Test
         void returnsOnlyPublicWhenRequested() throws Exception {
             var problem = problem();
-            testCase(problem.getId(), true, "1", "1");
-            testCase(problem.getId(), false, "2", "2");
+            testCase(problem.getId(), true, "1", "1", "");
+            testCase(problem.getId(), false, "2", "2", "");
             mockMvc.perform(get("/v1/testCases/by-problem-id/{id}", problem.getId())
                             .param("isPublic", "true"))
                     .andExpect(status().isOk())
@@ -169,17 +171,24 @@ class TestCaseIT extends BackendIntegrationTestSupport {
             var firstProblem = problem();
             var secondProblem =
                     problems.save(Problem.builder().title("Sort").slug("sort").build());
-            var testCase = testCase(firstProblem.getId(), false, "1 2", "3");
+            var testCase = testCase(firstProblem.getId(), false, "1 2", "3", "sum");
             mockMvc.perform(put("/v1/testCases/{id}", testCase.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
-                                    {"problemId":%d,"input":"2 2","expectedOutput":"4","isPublic":true}
+                                    {
+                                        "problemId":%d,
+                                        "input":"2 2",
+                                        "expectedOutput":"4",
+                                        "isPublic":true,
+                                        "explanation": "sum of numbers"
+                                    }
                                     """.formatted(secondProblem.getId())))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(testCase.getId().toString()))
                     .andExpect(jsonPath("$.problemId").value(secondProblem.getId()))
                     .andExpect(jsonPath("$.input").value("2 2"))
                     .andExpect(jsonPath("$.expectedOutput").value("4"))
+                    .andExpect(jsonPath("$.explanation").value("sum of numbers"))
                     .andExpect(jsonPath("$.isPublic").value(true));
             var updated = testCases.findById(testCase.getId()).orElseThrow();
             assertTrue(updated.getIsPublic());

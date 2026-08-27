@@ -1,18 +1,22 @@
 package com.codeloom.backend.config;
 
-import com.codeloom.backend.converter.*;
-import com.codeloom.backend.model.*;
+import com.codeloom.backend.converter.AbstractJsonReadingConverter;
+import com.codeloom.backend.converter.AbstractJsonWritingConverter;
+import com.codeloom.backend.model.ProblemConstraints;
+import com.codeloom.backend.model.ProblemDifficulty;
 import com.codeloom.common.SubmissionStatus;
-import java.sql.JDBCType;
-import java.sql.SQLException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.postgresql.util.PGobject;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.convert.*;
+import org.springframework.data.convert.ReadingConverter;
+import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.jdbc.core.mapping.JdbcValue;
 import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration;
 import tools.jackson.databind.ObjectMapper;
+
+import java.sql.JDBCType;
+import java.sql.SQLException;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -22,26 +26,10 @@ public class JdbcConfig extends AbstractJdbcConfiguration {
     @Override
     protected List<?> userConverters() {
         return List.of(
-                new ExamplesRead(objectMapper),
-                new ExamplesWrite(objectMapper),
                 new ConstraintsRead(objectMapper),
                 new ConstraintsWrite(objectMapper),
                 new DifficultyWrite(),
                 new StatusWrite());
-    }
-
-    @ReadingConverter
-    static class ExamplesRead extends AbstractJsonReadingConverter<ProblemExamples> {
-        ExamplesRead(ObjectMapper m) {
-            super(m, ProblemExamples.class);
-        }
-    }
-
-    @WritingConverter
-    static class ExamplesWrite extends AbstractJsonWritingConverter<ProblemExamples> {
-        ExamplesWrite(ObjectMapper m) {
-            super(m);
-        }
     }
 
     @ReadingConverter

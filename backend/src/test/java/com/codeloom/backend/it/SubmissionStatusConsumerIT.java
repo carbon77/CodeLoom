@@ -1,10 +1,6 @@
 package com.codeloom.backend.it;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.codeloom.backend.dao.SubmissionRepository;
+import com.codeloom.backend.dao.submission.SubmissionRepository;
 import com.codeloom.backend.dao.problem.ProblemRepository;
 import com.codeloom.backend.dao.testcase.TestCaseRepository;
 import com.codeloom.backend.dao.testcase.TestCaseResultRepository;
@@ -15,10 +11,6 @@ import com.codeloom.common.SubmissionStatus;
 import com.codeloom.common.event.SubmissionStatusChangedEvent;
 import com.codeloom.common.event.SubmissionStatusPayload;
 import com.codeloom.common.event.TestCaseResultDto;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +22,15 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestPropertySource(properties = "spring.kafka.consumer.auto-offset-reset=earliest")
 @Testcontainers
@@ -86,8 +87,15 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
                 .isPublic(false)
                 .build());
         submissionId = submissionRepository
-                .save(new Submission(
-                        UUID.randomUUID(), problemId, "print(input())", SubmissionStatus.PENDING, "python"))
+                .save(
+                        Submission.builder()
+                                .userId(UUID.randomUUID())
+                                .problemId(problemId)
+                                .code("print(input())")
+                                .status(SubmissionStatus.PENDING)
+                                .language("python")
+                                .build()
+                )
                 .getId();
     }
 
@@ -186,9 +194,9 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
         await().atMost(20, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .until(() -> submissionRepository
-                                .findById(submissionId)
-                                .orElseThrow()
-                                .getStatus()
+                        .findById(submissionId)
+                        .orElseThrow()
+                        .getStatus()
                         == expected);
     }
 

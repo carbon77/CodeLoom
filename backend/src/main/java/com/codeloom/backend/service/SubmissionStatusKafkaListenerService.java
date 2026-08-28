@@ -4,15 +4,18 @@ import com.codeloom.backend.dao.submission.SubmissionRepository;
 import com.codeloom.backend.dao.testcase.TestCaseResultRepository;
 import com.codeloom.backend.model.Submission;
 import com.codeloom.backend.model.TestCaseResult;
+import com.codeloom.backend.sse.SubmissionStatusCommittedEvent;
 import com.codeloom.common.event.SubmissionStatusChangedEvent;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
+
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class SubmissionStatusKafkaListenerService {
     private final SubmissionRepository submissionRepository;
     private final TestCaseResultRepository testCaseResultRepository;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @KafkaListener(topics = "${codeloom.kafka.submission-status-topic}")
     @Transactional
@@ -43,7 +47,6 @@ public class SubmissionStatusKafkaListenerService {
                 testCaseResultRepository.deleteBySubmissionId(event.submissionId());
                 testCaseResultRepository.saveAll(event.payload().testCaseResults().stream()
                         .map(result -> TestCaseResult.builder()
-                                .id(result.id())
                                 .submissionId(submissionOptional.get().getId())
                                 .input(result.input())
                                 .stdout(result.stdout())
@@ -54,6 +57,15 @@ public class SubmissionStatusKafkaListenerService {
                                 .build())
                         .toList());
             }
+
+            applicationEventPublisher.publishEvent(
+                    new SubmissionStatusCommittedEvent(
+                            this,
+                            submission.getId(),
+                            submission.getStatus(),
+                            submission.getUserId()
+                    )
+            );
         } catch (JacksonException e) {
             log.error("Failed to parse submission status event", e);
         }

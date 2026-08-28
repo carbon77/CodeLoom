@@ -50,9 +50,13 @@ abstract class BackendIntegrationTestSupport {
     protected ObjectMapper objectMapper;
 
     protected static JwtAuthenticationToken user(UserRole... roles) {
+        return user(TEST_USER_ID, roles);
+    }
+
+    protected static JwtAuthenticationToken user(UUID userId, UserRole... roles) {
         Jwt jwt = Jwt.withTokenValue("test-token")
                 .header("alg", "none")
-                .subject(TEST_USER_ID.toString())
+                .subject(userId.toString())
                 .build();
         return new JwtAuthenticationToken(
                 jwt,

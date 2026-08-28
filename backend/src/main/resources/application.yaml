@@ -20,7 +20,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/codeloom
+          issuer-uri: http://localhost:8000/realms/codeloom
   kafka:
     bootstrap-servers: localhost:29092
     producer:

@@ -4,13 +4,23 @@ import { useRouteLoaderData } from "react-router-dom";
 import type { ProblemDetail } from "../api/problems";
 import {
   fetchSubmissions,
+  subscribeToSubmissionStatuses,
   type Submission,
+  type SubmissionStatus,
 } from "../api/submissions";
 import ProblemTabs from "../components/problem/ProblemTabs";
 import CodeEditorPanel from "../components/problem/CodeEditorPanel";
 import { errorMessage } from "../api/client";
 
-const activeStatuses = new Set(["PENDING", "COMPILING", "RUNNING"]);
+const terminalStatuses = new Set<SubmissionStatus>([
+  "COMPILE_ERROR",
+  "ACCEPTED",
+  "WRONG_ANSWER",
+  "RUNTIME_ERROR",
+  "TIME_LIMIT_EXCEEDED",
+  "MEMORY_LIMIT_EXCEEDED",
+  "SYSTEM_ERROR",
+]);
 
 export default function ProblemDetailPage() {
   const problem = useRouteLoaderData("problem") as ProblemDetail | undefined;
@@ -18,13 +28,26 @@ export default function ProblemDetailPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [submissions, setSubmissions] = useState<Submission[] | null>(null);
   const [submissionsError, setSubmissionsError] = useState<string | null>(null);
+  const [liveUpdatesError, setLiveUpdatesError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
+  const [submissionDetailsRefreshKey, setSubmissionDetailsRefreshKey] = useState(0);
+  const selectedSubmissionIdRef = useRef<string | null>(null);
+  const lastSubmittedIdRef = useRef<string | null>(null);
 
   const [leftWidth, setLeftWidth] = useState(42);
   const [dragging, setDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const problemId = problem?.id ?? null;
+  selectedSubmissionIdRef.current = selectedSubmissionId;
+
+  useEffect(() => {
+    setSelectedSubmissionId(null);
+    setActiveTab(0);
+    setSubmissions(null);
+    lastSubmittedIdRef.current = null;
+  }, [problemId]);
 
   useEffect(() => {
     if (!dragging) {
@@ -53,8 +76,7 @@ export default function ProblemDetailPage() {
     }
     let active = true;
     setSubmissionsError(null);
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const load = () => fetchSubmissions(problemId)
+    fetchSubmissions(problemId)
       .then((items) => {
         if (active) {
           const sorted = [...items].sort(
@@ -62,8 +84,14 @@ export default function ProblemDetailPage() {
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
           );
           setSubmissions(sorted);
-          if (items.some((item) => activeStatuses.has(item.status))) {
-            timer = setTimeout(load, 2000);
+          const lastSubmittedId = lastSubmittedIdRef.current;
+          const lastSubmission = sorted.find(
+            (item) => item.submissionId === lastSubmittedId,
+          );
+          if (lastSubmission && terminalStatuses.has(lastSubmission.status)) {
+            lastSubmittedIdRef.current = null;
+            setSelectedSubmissionId(lastSubmission.submissionId);
+            setActiveTab(2);
           }
         }
       })
@@ -73,12 +101,64 @@ export default function ProblemDetailPage() {
           setSubmissionsError(errorMessage(cause, "Unable to load submissions."));
         }
       });
-    void load();
     return () => {
       active = false;
-      if (timer !== undefined) clearTimeout(timer);
     };
   }, [activeTab, problemId, refreshKey]);
+
+  useEffect(() => {
+    if (problemId === null) return;
+    const controller = new AbortController();
+    setLiveUpdatesError(null);
+    void subscribeToSubmissionStatuses({
+      signal: controller.signal,
+      onConnected: () => {
+        setLiveUpdatesError(null);
+        setRefreshKey((key) => key + 1);
+        if (selectedSubmissionIdRef.current !== null) {
+          setSubmissionDetailsRefreshKey((key) => key + 1);
+        }
+      },
+      onStatus: (status) => {
+        setSubmissions((items) =>
+          items?.map((item) =>
+            item.submissionId === status.submissionId
+              ? { ...item, status: status.status }
+              : item,
+          ) ?? null,
+        );
+        if (selectedSubmissionIdRef.current === status.submissionId) {
+          setSubmissionDetailsRefreshKey((key) => key + 1);
+        }
+        if (
+          lastSubmittedIdRef.current === status.submissionId &&
+          terminalStatuses.has(status.status)
+        ) {
+          lastSubmittedIdRef.current = null;
+          setSelectedSubmissionId(status.submissionId);
+          setSubmissionDetailsRefreshKey((key) => key + 1);
+          setActiveTab(2);
+        }
+      },
+    }).catch(() => {
+      if (!controller.signal.aborted) {
+        setLiveUpdatesError(
+          "Live submission updates are unavailable. Use refresh to get the latest status.",
+        );
+      }
+    });
+    return () => controller.abort();
+  }, [problemId]);
+
+  const selectSubmission = (submissionId: string) => {
+    setSelectedSubmissionId(submissionId);
+    setActiveTab(2);
+  };
+
+  const closeSubmission = () => {
+    setSelectedSubmissionId(null);
+    setActiveTab(1);
+  };
 
   return (
     <Box
@@ -96,7 +176,12 @@ export default function ProblemDetailPage() {
         onTabChange={setActiveTab}
         submissions={submissions}
         submissionsError={submissionsError}
+        liveUpdatesError={liveUpdatesError}
         onRefreshSubmissions={() => setRefreshKey((key) => key + 1)}
+        selectedSubmissionId={selectedSubmissionId}
+        submissionDetailsRefreshKey={submissionDetailsRefreshKey}
+        onSelectSubmission={selectSubmission}
+        onCloseSubmission={closeSubmission}
         width={leftWidth}
       />
       <Box
@@ -119,7 +204,10 @@ export default function ProblemDetailPage() {
       <CodeEditorPanel
         problemId={problemId}
         disabled={problem === undefined}
-        onSubmitted={() => setRefreshKey((key) => key + 1)}
+        onSubmitted={(submissionId) => {
+          lastSubmittedIdRef.current = submissionId;
+          setRefreshKey((key) => key + 1);
+        }}
       />
     </Box>
   );

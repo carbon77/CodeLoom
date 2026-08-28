@@ -4,7 +4,7 @@ vi.mock('../auth/keycloak', () => ({
   userManager: { getUser: vi.fn().mockResolvedValue({ expired: false, access_token: 'token' }) },
 }))
 
-import { ApiError, apiFetch } from './client'
+import { ApiError, apiFetch, authenticatedFetch } from './client'
 
 describe('apiFetch', () => {
   beforeEach(() => vi.stubGlobal('fetch', vi.fn()))
@@ -15,6 +15,17 @@ describe('apiFetch', () => {
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
     await expect(apiFetch('/json')).resolves.toEqual({ id: 1 })
     await expect(apiFetch('/empty')).resolves.toBeUndefined()
+  })
+
+  it('adds the current bearer token while preserving request headers', async () => {
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 204 }))
+    await authenticatedFetch('http://api.test/stream', {
+      headers: { Accept: 'text/event-stream' },
+    })
+    const init = vi.mocked(fetch).mock.calls[0][1]
+    const headers = new Headers(init?.headers)
+    expect(headers.get('Authorization')).toBe('Bearer token')
+    expect(headers.get('Accept')).toBe('text/event-stream')
   })
 
   it('preserves structured backend errors', async () => {

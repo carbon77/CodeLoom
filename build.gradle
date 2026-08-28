@@ -33,4 +33,8 @@ subprojects {
             palantirJavaFormat()
         }
     }
+
+    tasks.named('test') {
+        dependsOn tasks.named('spotlessJavaApply')
+    }
 }

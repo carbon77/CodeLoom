@@ -1,6 +1,8 @@
 package com.codeloom.backend.sse;
 
 import com.codeloom.backend.dto.SubmissionStatusDto;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -8,9 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -38,9 +37,7 @@ public class SseService {
             return;
         }
 
-        var event = SseEmitter.event()
-                .data(dto, MediaType.APPLICATION_JSON)
-                .name("submission-status");
+        var event = SseEmitter.event().data(dto, MediaType.APPLICATION_JSON).name("submission-status");
 
         for (var entry : userEmitters.entrySet()) {
             SseEmitter emitter = entry.getValue();
@@ -63,8 +60,7 @@ public class SseService {
                 SubmissionStatusDto.builder()
                         .submissionId(event.getSubmissionId())
                         .status(event.getStatus())
-                        .build()
-        );
+                        .build());
     }
 
     private void removeEmitter(UUID userId, UUID emitterId) {

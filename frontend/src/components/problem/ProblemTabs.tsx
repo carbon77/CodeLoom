@@ -7,12 +7,13 @@ import {
   Tab,
   Tabs,
 } from "@mui/material";
-import { ArrowBack, Refresh } from "@mui/icons-material";
+import { ArrowBack, Close, Refresh } from "@mui/icons-material";
 import { Link as RouterLink } from "react-router-dom";
 import type { ProblemDetail } from "../../api/problems";
 import type { Submission } from "../../api/submissions";
 import ProblemInfo from "./ProblemInfo";
 import SubmissionsList from "./SubmissionsList";
+import SubmissionDetails from "./SubmissionDetails";
 
 interface ProblemTabsProps {
   problem: ProblemDetail | null;
@@ -20,7 +21,12 @@ interface ProblemTabsProps {
   onTabChange: (value: number) => void;
   submissions: Submission[] | null;
   submissionsError: string | null;
+  liveUpdatesError: string | null;
   onRefreshSubmissions: () => void;
+  selectedSubmissionId: string | null;
+  submissionDetailsRefreshKey: number;
+  onSelectSubmission: (submissionId: string) => void;
+  onCloseSubmission: () => void;
   width: number;
 }
 
@@ -30,7 +36,12 @@ export default function ProblemTabs({
   onTabChange,
   submissions,
   submissionsError,
+  liveUpdatesError,
   onRefreshSubmissions,
+  selectedSubmissionId,
+  submissionDetailsRefreshKey,
+  onSelectSubmission,
+  onCloseSubmission,
   width,
 }: ProblemTabsProps) {
   return (
@@ -75,6 +86,7 @@ export default function ProblemTabs({
                 : `Submissions (${submissions.length})`
             }
           />
+          {selectedSubmissionId !== null && <Tab label="Submission" />}
         </Tabs>
         {activeTab === 1 && (
           <IconButton
@@ -82,6 +94,14 @@ export default function ProblemTabs({
             onClick={onRefreshSubmissions}
           >
             <Refresh />
+          </IconButton>
+        )}
+        {activeTab === 2 && selectedSubmissionId !== null && (
+          <IconButton
+            aria-label="Close submission details"
+            onClick={onCloseSubmission}
+          >
+            <Close />
           </IconButton>
         )}
       </Stack>
@@ -98,7 +118,18 @@ export default function ProblemTabs({
           </>
         )}
         {activeTab === 1 && (
-          <SubmissionsList submissions={submissions} error={submissionsError} />
+          <SubmissionsList
+            submissions={submissions}
+            error={submissionsError}
+            liveUpdatesError={liveUpdatesError}
+            onSelectSubmission={onSelectSubmission}
+          />
+        )}
+        {activeTab === 2 && selectedSubmissionId !== null && (
+          <SubmissionDetails
+            submissionId={selectedSubmissionId}
+            refreshKey={submissionDetailsRefreshKey}
+          />
         )}
       </Box>
     </Paper>

@@ -42,6 +42,16 @@ async function accessToken(): Promise<string> {
   return user.access_token;
 }
 
+export async function authenticatedFetch(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+): Promise<Response> {
+  const token = await accessToken();
+  const headers = new Headers(init.headers);
+  headers.set("Authorization", `Bearer ${token}`);
+  return fetch(input, { ...init, headers });
+}
+
 interface ApiFetchOptions {
   method?: string;
   body?: unknown;
@@ -51,12 +61,10 @@ export async function apiFetch<T>(
   path: string,
   options: ApiFetchOptions = {},
 ): Promise<T> {
-  const token = await accessToken();
   const { method = "GET", body } = options;
-  const response = await fetch(`${apiBaseUrl}${path}`, {
+  const response = await authenticatedFetch(`${apiBaseUrl}${path}`, {
     method,
     headers: {
-      Authorization: `Bearer ${token}`,
       ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,

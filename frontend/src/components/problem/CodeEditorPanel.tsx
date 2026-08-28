@@ -10,12 +10,10 @@ import {
   type SelectChangeEvent,
 } from "@mui/material";
 import { Send } from "@mui/icons-material";
-import Editor, { loader } from "@monaco-editor/react";
-import * as monaco from "monaco-editor";
 import { sendSubmission } from "../../api/submissions";
 import { errorMessage } from "../../api/client";
-
-loader.config({ monaco });
+import CodeEditor from "./CodeEditor";
+import EditorSettings from "./EditorSettings";
 
 type Language = "java" | "cpp" | "python";
 
@@ -43,7 +41,7 @@ int main() {
 interface CodeEditorPanelProps {
   problemId: number | null;
   disabled: boolean;
-  onSubmitted: () => void;
+  onSubmitted: (submissionId: string) => void;
 }
 
 export default function CodeEditorPanel({
@@ -79,9 +77,9 @@ export default function CodeEditorPanel({
     setSubmitError(null);
     setSubmitSuccess(false);
     try {
-      await sendSubmission({ problemId, code, language });
+      const submission = await sendSubmission({ problemId, code, language });
       setSubmitSuccess(true);
-      onSubmitted();
+      onSubmitted(submission.submissionId);
     } catch (cause) {
       setSubmitError(errorMessage(cause, "Failed to submit solution. Please try again."));
     } finally {
@@ -122,6 +120,7 @@ export default function CodeEditorPanel({
           <MenuItem value="python">Python</MenuItem>
         </Select>
         <Box sx={{ flexGrow: 1 }} />
+        <EditorSettings />
         <Button
           variant="contained"
           startIcon={<Send />}
@@ -132,18 +131,10 @@ export default function CodeEditorPanel({
         </Button>
       </Stack>
       <Box sx={{ flex: 1, minHeight: 0 }}>
-        <Editor
-          height="100%"
+        <CodeEditor
           language={language}
           value={code}
-          onChange={(value) => setCode(value ?? "")}
-          theme="vs-dark"
-          options={{
-            fontSize: 14,
-            minimap: { enabled: false },
-            scrollBeyondLastLine: false,
-            automaticLayout: true,
-          }}
+          onChange={setCode}
         />
       </Box>
       {submitSuccess && (

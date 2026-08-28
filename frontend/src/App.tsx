@@ -18,6 +18,7 @@ import ProblemListPage from './pages/ProblemListPage'
 import AdminProblemListPage from './pages/admin/AdminProblemListPage'
 import ProblemFormPage from './pages/admin/ProblemFormPage'
 import { fetchProblemBySlug, type ProblemDetail } from './api/problems'
+import { EditorSettingsProvider } from './editor/EditorSettingsContext'
 
 const ProblemDetailPage = lazy(() => import('./pages/ProblemDetailPage'))
 
@@ -85,9 +86,11 @@ const router = createBrowserRouter([
 
 export default function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <RouterProvider router={router} />
-    </ThemeProvider>
+    <EditorSettingsProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </EditorSettingsProvider>
   )
 }

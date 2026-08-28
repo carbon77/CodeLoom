@@ -43,11 +43,15 @@ function formatLanguage(value: string): string {
 interface SubmissionsListProps {
   submissions: Submission[] | null;
   error: string | null;
+  liveUpdatesError?: string | null;
+  onSelectSubmission: (submissionId: string) => void;
 }
 
 export default function SubmissionsList({
   submissions,
   error,
+  liveUpdatesError,
+  onSelectSubmission,
 }: SubmissionsListProps) {
   if (submissions === null && !error) {
     return (
@@ -70,31 +74,51 @@ export default function SubmissionsList({
   }
 
   return (
-    <TableContainer component={Paper} variant="outlined">
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Status</TableCell>
-            <TableCell>Language</TableCell>
-            <TableCell>Submitted</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {submissions?.map((submission) => (
-            <TableRow key={submission.submissionId}>
-              <TableCell>
-                <Chip
-                  label={submission.status}
-                  color={statusColors[submission.status]}
-                  size="small"
-                />
-              </TableCell>
-              <TableCell>{formatLanguage(submission.language)}</TableCell>
-              <TableCell>{formatDateTime(submission.createdAt)}</TableCell>
+    <Box>
+      {liveUpdatesError && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {liveUpdatesError}
+        </Alert>
+      )}
+      <TableContainer component={Paper} variant="outlined">
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Status</TableCell>
+              <TableCell>Language</TableCell>
+              <TableCell>Submitted</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {submissions?.map((submission) => (
+              <TableRow
+                key={submission.submissionId}
+                hover
+                tabIndex={0}
+                aria-label={`View submission ${submission.submissionId}`}
+                onClick={() => onSelectSubmission(submission.submissionId)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelectSubmission(submission.submissionId);
+                  }
+                }}
+                sx={{ cursor: "pointer" }}
+              >
+                <TableCell>
+                  <Chip
+                    label={submission.status}
+                    color={statusColors[submission.status]}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>{formatLanguage(submission.language)}</TableCell>
+                <TableCell>{formatDateTime(submission.createdAt)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 }

@@ -125,7 +125,13 @@ class TestCaseIT extends BackendIntegrationTestSupport {
         void createsTestCase() throws Exception {
             var problem = problem();
             var body = """
-                    {"problemId":%d,"input":"1 2","expectedOutput":"3","isPublic":true}
+                    {
+                    "problemId":%d,
+                    "input":"1 2",
+                    "expectedOutput":"3",
+                    "isPublic":true,
+                    "explanation": "sum"
+                    }
                     """.formatted(problem.getId());
             mockMvc.perform(post("/v1/testCases")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -135,6 +141,7 @@ class TestCaseIT extends BackendIntegrationTestSupport {
                     .andExpect(jsonPath("$.problemId").value(problem.getId()))
                     .andExpect(jsonPath("$.input").value("1 2"))
                     .andExpect(jsonPath("$.expectedOutput").value("3"))
+                    .andExpect(jsonPath("$.explanation").value("sum"))
                     .andExpect(jsonPath("$.isPublic").value(true));
             assertEquals(1, testCases.count());
         }

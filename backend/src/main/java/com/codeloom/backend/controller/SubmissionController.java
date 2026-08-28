@@ -1,22 +1,21 @@
 package com.codeloom.backend.controller;
 
+import static com.codeloom.backend.security.AuthenticationUtils.getUserId;
+
 import com.codeloom.backend.dto.SendSubmissionRequest;
 import com.codeloom.backend.dto.SubmissionDto;
 import com.codeloom.backend.dto.SubmissionListDto;
 import com.codeloom.backend.dto.SubmissionStatusDto;
-import com.codeloom.backend.sse.SseService;
 import com.codeloom.backend.service.SubmissionService;
+import com.codeloom.backend.sse.SseService;
 import jakarta.validation.Valid;
+import java.util.Collection;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.util.Collection;
-import java.util.UUID;
-
-import static com.codeloom.backend.security.AuthenticationUtils.getUserId;
 
 @RestController
 @RequestMapping("/v1/submissions")

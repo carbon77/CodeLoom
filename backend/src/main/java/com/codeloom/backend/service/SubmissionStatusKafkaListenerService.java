@@ -6,6 +6,7 @@ import com.codeloom.backend.model.Submission;
 import com.codeloom.backend.model.TestCaseResult;
 import com.codeloom.backend.sse.SubmissionStatusCommittedEvent;
 import com.codeloom.common.event.SubmissionStatusChangedEvent;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -14,8 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
-
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -58,14 +57,8 @@ public class SubmissionStatusKafkaListenerService {
                         .toList());
             }
 
-            applicationEventPublisher.publishEvent(
-                    new SubmissionStatusCommittedEvent(
-                            this,
-                            submission.getId(),
-                            submission.getStatus(),
-                            submission.getUserId()
-                    )
-            );
+            applicationEventPublisher.publishEvent(new SubmissionStatusCommittedEvent(
+                    this, submission.getId(), submission.getStatus(), submission.getUserId()));
         } catch (JacksonException e) {
             log.error("Failed to parse submission status event", e);
         }

@@ -1,10 +1,9 @@
 package com.codeloom.backend.sse;
 
 import com.codeloom.common.SubmissionStatus;
+import java.util.UUID;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
-
-import java.util.UUID;
 
 @Getter
 public class SubmissionStatusCommittedEvent extends ApplicationEvent {

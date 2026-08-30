@@ -52,6 +52,19 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+tasks.register('generateOpenApiSpec', Test) {
+    description = 'Generates the backend OpenAPI specification from MVC controllers.'
+    group = 'documentation'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    useJUnitPlatform {
+        includeTags 'openapi-generation'
+    }
+    systemProperty 'codeloom.openapi.output', layout.buildDirectory.file('openapi/openapi.yaml').get().asFile.absolutePath
+    outputs.file(layout.buildDirectory.file('openapi/openapi.yaml'))
+}
+
 import org.jooq.meta.jaxb.Logging
 
 flyway {

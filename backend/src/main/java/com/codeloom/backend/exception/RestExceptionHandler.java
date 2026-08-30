@@ -14,6 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -37,7 +38,10 @@ public class RestExceptionHandler {
     }
 
     private ErrorResponse errorResponse(Exception exception, HttpServletRequest request) {
-        log.error("Exception from {} {}", request.getMethod(), request.getRequestURI(), exception);
+        if (exception instanceof NoResourceFoundException)
+            log.debug("Resource not found from {} {}", request.getMethod(), request.getRequestURI());
+        else log.error("Exception from {} {}", request.getMethod(), request.getRequestURI(), exception);
+
         int statusCode;
         String message;
         Map<String, ?> payload = null;
@@ -70,6 +74,10 @@ public class RestExceptionHandler {
                                 FieldError::getField,
                                 f -> f.getDefaultMessage() == null ? "" : f.getDefaultMessage(),
                                 (a, b) -> b));
+            }
+            case NoResourceFoundException ignored -> {
+                statusCode = 404;
+                message = "Resource not found";
             }
             default -> {
                 statusCode = 500;

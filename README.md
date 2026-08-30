@@ -63,7 +63,7 @@ Compose запускает только инфраструктуру:
 
 | Сервис | Адрес/порт | Данные для входа |
 |---|---|---|
-| Keycloak | `http://localhost:8080` | `admin` / `password` |
+| Keycloak | `http://localhost:8000` | `admin` / `admin` |
 | PostgreSQL | `localhost:5433` | `zakat` / `zakat_pwd` |
 | Kafka | `localhost:29092` | — |
 | Adminer | `http://localhost:8088` | параметры PostgreSQL выше |
@@ -135,7 +135,7 @@ CODELOOM_EXECUTOR_DB_USER=zakat CODELOOM_EXECUTOR_DB_PASSWORD=zakat_pwd \
 ```dotenv
 VITE_APP_URL=http://localhost:5173
 VITE_API_URL=http://localhost:8081
-VITE_KEYCLOAK_URL=http://localhost:8080
+VITE_KEYCLOAK_URL=http://localhost:8000
 VITE_KEYCLOAK_REALM=codeloom
 VITE_KEYCLOAK_CLIENT_ID=codeloom-frontend
 ```
@@ -162,6 +162,14 @@ Gradle-команды выполняются из корня репозитор�
 ./gradlew spotlessCheck
 ./gradlew spotlessApply
 ```
+
+OpenAPI YAML генерируется напрямую из backend-контроллеров без запущенной инфраструктуры:
+
+```bash
+./gradlew :backend:generateOpenApiSpec
+```
+
+Результат: `backend/build/openapi/openapi.yaml`.
 
 На Windows используйте `gradlew.bat`. Backend-тесты запускают PostgreSQL через Testcontainers, а Kafka integration test также создаёт Kafka-контейнер. Executor-тесты действительно компилируют и запускают решения в Docker. Для обоих наборов нужен работающий Docker daemon; executor также может загрузить языковые образы из сети.
 

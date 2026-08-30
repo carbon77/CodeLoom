@@ -35,6 +35,6 @@ subprojects {
     }
 
     tasks.named('test') {
-        dependsOn tasks.named('spotlessJavaApply')
+        dependsOn tasks.named('spotlessJavaCheck')
     }
 }

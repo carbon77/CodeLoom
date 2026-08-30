@@ -19,6 +19,7 @@ import AdminProblemListPage from './pages/admin/AdminProblemListPage'
 import ProblemFormPage from './pages/admin/ProblemFormPage'
 import { fetchProblemBySlug, type ProblemDetail } from './api/problems'
 import { EditorSettingsProvider } from './editor/EditorSettingsContext'
+import { useI18n } from './i18n/I18nContext'
 
 const ProblemDetailPage = lazy(() => import('./pages/ProblemDetailPage'))
 
@@ -31,9 +32,10 @@ async function problemLoader({ params }: LoaderFunctionArgs): Promise<ProblemDet
 
 function ProblemDetailError() {
   const error = useRouteError()
+  const { t } = useI18n()
   return (
     <Alert severity="error">
-      {error instanceof Error ? error.message : 'Unable to load problem.'}
+      {error instanceof Error ? error.message : t('errors.problemLoad')}
     </Alert>
   )
 }

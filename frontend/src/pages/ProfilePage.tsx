@@ -16,9 +16,11 @@ import LogoutIcon from '@mui/icons-material/Logout'
 import { signOut } from '../auth/keycloak'
 import { getRoles } from '../auth/roles'
 import { useAuth } from '../auth/useAuth'
+import { useI18n } from '../i18n/I18nContext'
 
 export default function ProfilePage() {
   const user = useAuth()
+  const { t } = useI18n()
   const [error, setError] = useState<string | null>(null)
   const [loggingOut, setLoggingOut] = useState(false)
 
@@ -31,7 +33,7 @@ export default function ProfilePage() {
   }
 
   const { profile } = user
-  const displayName = profile.name || profile.preferred_username || profile.email || 'User'
+  const displayName = profile.name || profile.preferred_username || profile.email || t('profile.user')
   const roles = getRoles(user)
 
   async function handleLogout(): Promise<void> {
@@ -41,7 +43,7 @@ export default function ProfilePage() {
       await signOut()
     } catch {
       setLoggingOut(false)
-      setError('Logout failed. Please try again.')
+      setError(t('profile.logoutError'))
     }
   }
 
@@ -67,14 +69,14 @@ export default function ProfilePage() {
 
           {profile.email && (
             <Typography variant="body1" sx={{ mb: 2 }}>
-              <strong>Email:</strong> {profile.email}
+              <strong>{t('profile.email')}</strong> {profile.email}
             </Typography>
           )}
 
           {roles.length > 0 && (
             <Box sx={{ mb: 2 }}>
               <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Roles:</strong>
+                <strong>{t('profile.roles')}</strong>
               </Typography>
               <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
                 {roles.map((role) => (
@@ -96,7 +98,7 @@ export default function ProfilePage() {
           disabled={loggingOut}
           onClick={() => void handleLogout()}
         >
-          {loggingOut ? 'Signing out…' : 'Log out'}
+          {loggingOut ? t('profile.loggingOut') : t('profile.logout')}
         </Button>
       </Box>
     </Container>

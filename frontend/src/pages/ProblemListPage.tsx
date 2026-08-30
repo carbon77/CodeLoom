@@ -22,6 +22,7 @@ import {
   type Topic,
 } from "../api/problems";
 import ProblemFilters from "../components/problem/ProblemFilters";
+import { useI18n } from "../i18n/I18nContext";
 
 const difficultyColors: Record<Difficulty, "success" | "warning" | "error"> = {
   EASY: "success",
@@ -29,15 +30,16 @@ const difficultyColors: Record<Difficulty, "success" | "warning" | "error"> = {
   HARD: "error",
 };
 
-function formatDate(value: string | null): string {
+function formatDate(value: string | null, locale: string): string {
   if (!value) {
     return "—";
   }
-  return new Date(value).toLocaleDateString();
+  return new Date(value).toLocaleDateString(locale);
 }
 
 export default function ProblemListPage() {
   const navigate = useNavigate();
+  const { t, locale } = useI18n();
   const [problems, setProblems] = useState<ProblemListDto[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,13 +83,13 @@ export default function ProblemListPage() {
       })
       .catch(() => {
         if (active) {
-          setError("Unable to load problems. Please try again.");
+          setError(t('problems.loadError'));
         }
       });
     return () => {
       active = false;
     };
-  }, [selectedDifficulties, selectedTopics]);
+  }, [selectedDifficulties, selectedTopics, t]);
 
   const normalizedSearch = search.trim().toLowerCase();
   const filtered = problems?.filter((problem) =>
@@ -108,7 +110,7 @@ export default function ProblemListPage() {
   return (
     <Box>
       <Typography variant="h4" component="h1" sx={{ mb: 3 }}>
-        Problems
+        {t('problems.title')}
       </Typography>
 
       <ProblemFilters
@@ -134,8 +136,8 @@ export default function ProblemListPage() {
       {problems !== null && filtered?.length === 0 && (
         <Alert severity="info">
           {hasFilters
-            ? "No problems match your filters."
-            : "No problems available."}
+            ? t('problems.noMatch')
+            : t('problems.empty')}
         </Alert>
       )}
 
@@ -144,9 +146,9 @@ export default function ProblemListPage() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Title</TableCell>
-                <TableCell>Difficulty</TableCell>
-                <TableCell>Published</TableCell>
+                <TableCell>{t('problems.columns.title')}</TableCell>
+                <TableCell>{t('problems.columns.difficulty')}</TableCell>
+                <TableCell>{t('problems.columns.published')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -160,12 +162,12 @@ export default function ProblemListPage() {
                   <TableCell>{problem.title}</TableCell>
                   <TableCell>
                     <Chip
-                      label={problem.difficulty}
+                      label={t(`difficulty.${problem.difficulty}`)}
                       color={difficultyColors[problem.difficulty]}
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>{formatDate(problem.publishedAt)}</TableCell>
+                  <TableCell>{formatDate(problem.publishedAt, locale)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -1,4 +1,4 @@
-package com.codeloom.executor.engine;
+package com.codeloom.executor.dto;
 
 import lombok.Builder;
 

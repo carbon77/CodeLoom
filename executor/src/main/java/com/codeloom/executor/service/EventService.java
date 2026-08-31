@@ -1,9 +1,8 @@
 package com.codeloom.executor.service;
 
-import com.codeloom.common.SubmissionStatus;
 import com.codeloom.common.event.SubmissionStatusChangedEvent;
 import com.codeloom.common.event.SubmissionStatusPayload;
-import com.codeloom.executor.engine.SubmissionContext;
+import com.codeloom.executor.dto.SubmissionContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -19,13 +18,12 @@ public class EventService {
     @Value("${codeloom.kafka.topics.submission-status}")
     private String topic;
 
-    public void submissionStatusChanged(
-            SubmissionContext context, SubmissionStatus newStatus, SubmissionStatusPayload payload) {
+    public void submissionStatusChanged(SubmissionContext context, SubmissionStatusPayload payload) {
         var event = SubmissionStatusChangedEvent.builder()
                 .submissionId(context.submissionId())
                 .userId(context.userId())
                 .problemId(context.problemId())
-                .newStatus(newStatus)
+                .newStatus(context.status())
                 .payload(payload)
                 .build();
         kafka.send(topic, context.submissionId().toString(), mapper.writeValueAsString(event));

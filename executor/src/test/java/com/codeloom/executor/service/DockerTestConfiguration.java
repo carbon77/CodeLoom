@@ -1,5 +1,8 @@
 package com.codeloom.executor.service;
 
+import com.codeloom.executor.config.DockerConstraints;
+import com.codeloom.executor.config.ExecutorProperties;
+import com.codeloom.executor.engine.DockerContainerPolicy;
 import com.codeloom.executor.engine.DockerImageManager;
 import com.codeloom.executor.engine.DockerJudgeEngine;
 import com.codeloom.executor.engine.DockerVolumeFileIO;
@@ -14,8 +17,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 @TestConfiguration
-@Import({DockerImageManager.class, DockerVolumeFileIO.class, DockerJudgeEngine.class})
+@Import({DockerImageManager.class, DockerVolumeFileIO.class, DockerJudgeEngine.class, DockerContainerPolicy.class})
 class DockerTestConfiguration {
+    @Bean
+    ExecutorProperties executorProperties() {
+        return new ExecutorProperties(65_536, 65_536);
+    }
+
+    @Bean
+    DockerConstraints dockerConstraints(
+            @Value("${codeloom.executor.tmpfs-limit-bytes:67108864}") long tmpfsLimitBytes,
+            @Value("${codeloom.executor.max-open-files:1024}") long maxOpenFiles,
+            @Value("${codeloom.executor.max-file-size-bytes:67108864}") long maxFileSizeBytes) {
+        return new DockerConstraints(tmpfsLimitBytes, maxOpenFiles, maxFileSizeBytes);
+    }
+
     @Bean
     DockerClient dockerClient(@Value("${codeloom.docker.host:tcp://localhost:2375}") String host) {
         var clientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()

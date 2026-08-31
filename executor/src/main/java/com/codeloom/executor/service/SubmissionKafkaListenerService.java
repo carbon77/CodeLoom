@@ -12,17 +12,20 @@ import tools.jackson.databind.ObjectMapper;
 @RequiredArgsConstructor
 @Service
 public class SubmissionKafkaListenerService {
-    private final ObjectMapper mapper;
-    private final SubmissionProcessingService processing;
+    private final ObjectMapper objectMapper;
+    private final SubmissionProcessingService submissionProcessingService;
 
-    @KafkaListener(topics = "submissions", groupId = "codeloom")
+    @KafkaListener(topics = "${codeloom.kafka.topics.submission}", groupId = "${spring.kafka.consumer.group-id}")
     public void listenSubmission(String message) {
+        final SubmissionEvent event;
         try {
-            SubmissionEvent e = mapper.readValue(message, SubmissionEvent.class);
-            log.info("Received submission event: problemId={} userId={}", e.problemId(), e.userId());
-            processing.process(e);
+            event = objectMapper.readValue(message, SubmissionEvent.class);
         } catch (JacksonException e) {
             log.error("Failed to parse event: ", e);
+            return;
         }
+
+        log.info("Received submission event: problemId={} userId={}", event.problemId(), event.userId());
+        submissionProcessingService.process(event);
     }
 }

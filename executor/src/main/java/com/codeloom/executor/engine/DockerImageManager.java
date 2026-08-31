@@ -11,19 +11,19 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DockerImageManager {
-    private final DockerClient docker;
+    private final DockerClient dockerClient;
 
     public void pullImageIfAbsent(String image) {
         pullImageIfAbsent(image, 120);
     }
 
-    public void pullImageIfAbsent(String image, long timeout) {
+    public void pullImageIfAbsent(String image, long timeoutSeconds) {
         try {
-            docker.inspectImageCmd(image).exec();
+            dockerClient.inspectImageCmd(image).exec();
         } catch (NotFoundException e) {
             log.info("Image {} not found. Pulling...", image);
             try {
-                docker.pullImageCmd(image).start().awaitCompletion(timeout, TimeUnit.SECONDS);
+                dockerClient.pullImageCmd(image).start().awaitCompletion(timeoutSeconds, TimeUnit.SECONDS);
             } catch (InterruptedException x) {
                 Thread.currentThread().interrupt();
                 throw new IllegalStateException(x);

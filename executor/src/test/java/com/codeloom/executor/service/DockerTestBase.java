@@ -1,6 +1,6 @@
 package com.codeloom.executor.service;
 
-import static com.codeloom.executor.engine.CodeExecutionConstants.HELPER_CONTAINER_IMAGE_NAME;
+import static com.codeloom.executor.engine.DockerExecutionDefaults.HELPER_CONTAINER_IMAGE_NAME;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

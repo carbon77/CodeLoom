@@ -17,9 +17,12 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     consumer:
       group-id: codeloom-executor
+      max-poll-records: 1
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       auto-offset-reset: earliest
+    listener:
+      concurrency: ${CODELOOM_EXECUTOR_MAX_CONCURRENT_SUBMISSIONS:1}
   web:
     error:
       include-stacktrace: never
@@ -35,6 +38,12 @@ logging:
     org.springframework.security: TRACE
 
 codeloom:
+  executor:
+    stdout-limit-bytes: ${CODELOOM_EXECUTOR_STDOUT_LIMIT_BYTES:65536}
+    stderr-limit-bytes: ${CODELOOM_EXECUTOR_STDERR_LIMIT_BYTES:65536}
+    tmpfs-limit-bytes: ${CODELOOM_EXECUTOR_TMPFS_LIMIT_BYTES:67108864}
+    max-open-files: ${CODELOOM_EXECUTOR_MAX_OPEN_FILES:1024}
+    max-file-size-bytes: ${CODELOOM_EXECUTOR_MAX_FILE_SIZE_BYTES:67108864}
   docker:
     host: ${CODELOOM_EXECUTOR_DOCKER_HOST:unix:///var/run/docker.sock}
 

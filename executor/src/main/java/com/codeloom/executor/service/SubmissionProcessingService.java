@@ -4,10 +4,10 @@ import com.codeloom.common.SubmissionEvent;
 import com.codeloom.common.SubmissionStatus;
 import com.codeloom.common.event.SubmissionStatusPayload;
 import com.codeloom.common.event.TestCaseResultDto;
-import com.codeloom.executor.engine.CompilationResult;
+import com.codeloom.executor.dto.CompilationResult;
+import com.codeloom.executor.dto.RunResult;
+import com.codeloom.executor.dto.SubmissionContext;
 import com.codeloom.executor.engine.DockerJudgeEngine;
-import com.codeloom.executor.engine.RunResult;
-import com.codeloom.executor.engine.SubmissionContext;
 import com.codeloom.executor.repository.TestCaseRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,24 +27,30 @@ public class SubmissionProcessingService {
         var testCases = testCaseRepository.findByProblemId(event.problemId());
         var context = SubmissionContext.fromEvent(event);
         if (testCases.isEmpty()) {
-            changeSubmissionStatus(context, SubmissionStatus.ACCEPTED);
+            context = context.withStatus(SubmissionStatus.ACCEPTED);
+            sendChangeStatusEvent(context);
             return;
         }
 
         List<TestCaseResultDto> results = new ArrayList<>();
         try {
-            changeSubmissionStatus(context, SubmissionStatus.COMPILING);
+            context = context.withStatus(SubmissionStatus.COMPILING);
+            sendChangeStatusEvent(context);
+
             CompilationResult compilationResult = dockerJudgeEngine.compile(context);
             if (!compilationResult.isSuccessful()) {
-                changeSubmissionStatus(
+                context = context.withStatus(SubmissionStatus.COMPILE_ERROR);
+                sendChangeStatusEvent(
                         context,
-                        SubmissionStatus.COMPILE_ERROR,
                         SubmissionStatusPayload.builder()
                                 .error(compilationResult.stderr())
                                 .build());
                 return;
             }
-            changeSubmissionStatus(context, SubmissionStatus.RUNNING);
+
+            context = context.withStatus(SubmissionStatus.RUNNING);
+            sendChangeStatusEvent(context);
+
             for (var testCase : testCases) {
                 RunResult runResult = dockerJudgeEngine.runTestCase(context, testCase);
                 if (testCase.isPublic()) {
@@ -62,47 +68,49 @@ public class SubmissionProcessingService {
 
                 if (runResult.exitCode() != 0) {
                     SubmissionStatus newStatus = runResult.statusFromExitCode();
-                    changeSubmissionStatus(
+                    context = context.withStatus(newStatus);
+                    sendChangeStatusEvent(
                             context,
-                            newStatus,
                             SubmissionStatusPayload.builder()
                                     .error(runResult.stderr())
                                     .testCaseResults(results)
                                     .build());
                     return;
                 }
+
                 if (!runResult
                         .stdout()
                         .trim()
                         .equals(testCase.getExpectedOutput().trim())) {
-                    changeSubmissionStatus(
+                    context = context.withStatus(SubmissionStatus.WRONG_ANSWER);
+                    sendChangeStatusEvent(
                             context,
-                            SubmissionStatus.WRONG_ANSWER,
                             SubmissionStatusPayload.builder()
                                     .testCaseResults(results)
                                     .build());
                     return;
                 }
             }
-            changeSubmissionStatus(
+
+            context = context.withStatus(SubmissionStatus.ACCEPTED);
+            sendChangeStatusEvent(
                     context,
-                    SubmissionStatus.ACCEPTED,
                     SubmissionStatusPayload.builder().testCaseResults(results).build());
         } catch (Exception x) {
             log.error("Error while processing submission={}", context, x);
-            changeSubmissionStatus(context, SubmissionStatus.SYSTEM_ERROR, new SubmissionStatusPayload(null, results));
+            context = context.withStatus(SubmissionStatus.SYSTEM_ERROR);
+            sendChangeStatusEvent(context, new SubmissionStatusPayload(null, results));
         } finally {
             dockerJudgeEngine.cleanup(context.submissionId());
         }
     }
 
-    public void changeSubmissionStatus(SubmissionContext context, SubmissionStatus newStatus) {
-        changeSubmissionStatus(context, newStatus, null);
+    public void sendChangeStatusEvent(SubmissionContext context) {
+        sendChangeStatusEvent(context, null);
     }
 
-    public void changeSubmissionStatus(
-            SubmissionContext context, SubmissionStatus newStatus, SubmissionStatusPayload payload) {
-        log.info("Submission(id={}) status changed to {}", context.submissionId(), newStatus);
-        eventService.submissionStatusChanged(context, newStatus, payload);
+    public void sendChangeStatusEvent(SubmissionContext context, SubmissionStatusPayload payload) {
+        log.info("Submission(id={}) status changed to {}", context.submissionId(), context.status());
+        eventService.submissionStatusChanged(context, payload);
     }
 }

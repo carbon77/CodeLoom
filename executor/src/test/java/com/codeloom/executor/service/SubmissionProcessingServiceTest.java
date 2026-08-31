@@ -48,7 +48,9 @@ class SubmissionProcessingServiceTest extends DockerTestBase {
     }
 
     private void occurred(SubmissionStatus status) {
-        verify(service).changeSubmissionStatus(any(), eq(status), nullable(SubmissionStatusPayload.class));
+        verify(eventService)
+                .submissionStatusChanged(
+                        argThat(context -> context.status() == status), nullable(SubmissionStatusPayload.class));
     }
 
     @Nested
@@ -99,7 +101,8 @@ class SubmissionProcessingServiceTest extends DockerTestBase {
         void compilerFailureIsReported() {
             service.process(event("public class Main { broken", null, null));
             occurred(SubmissionStatus.COMPILE_ERROR);
-            verify(service, never()).changeSubmissionStatus(any(), eq(SubmissionStatus.RUNNING), any());
+            verify(eventService, never())
+                    .submissionStatusChanged(argThat(context -> context.status() == SubmissionStatus.RUNNING), any());
         }
     }
 }

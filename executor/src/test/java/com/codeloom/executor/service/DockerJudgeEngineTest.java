@@ -78,6 +78,7 @@ class DockerJudgeEngineTest extends DockerTestBase {
             var result = dockerJudgeEngine.runTestCase(context, test);
             assertEquals(0, result.exitCode());
             assertEquals("5", result.stdout());
+            assertTrue(result.memoryUsageBytes() > 0);
         }
 
         @Test

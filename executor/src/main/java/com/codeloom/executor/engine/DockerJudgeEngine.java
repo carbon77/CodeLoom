@@ -115,6 +115,9 @@ public class DockerJudgeEngine {
                 throw new IllegalStateException("Timed out while attaching container logs");
             }
             dockerClient.statsCmd(containerId).exec(memoryCallback);
+            if (!memoryCallback.awaitStarted(5, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("Timed out while subscribing to container stats");
+            }
             dockerClient.startContainerCmd(containerId).exec();
             try {
                 Integer status = dockerClient

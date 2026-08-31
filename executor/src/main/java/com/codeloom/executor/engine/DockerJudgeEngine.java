@@ -18,7 +18,9 @@ import com.codeloom.executor.engine.callbacks.BoundedLogCallback;
 import com.codeloom.executor.engine.callbacks.PeakMemoryUsageCallback;
 import com.codeloom.executor.model.TestCase;
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.exception.DockerException;
+import com.github.dockerjava.api.model.Frame;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +36,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class DockerJudgeEngine {
+    private static final String EXECUTION_GATE = "/tmp/.codeloom-start";
+
     private final DockerClient dockerClient;
     private final DockerVolumeFileIO dockerVolumeFileIO;
     private final DockerImageManager dockerImageManager;
@@ -114,11 +118,15 @@ public class DockerJudgeEngine {
             if (!logs.awaitStarted(5, TimeUnit.SECONDS)) {
                 throw new IllegalStateException("Timed out while attaching container logs");
             }
+            dockerClient.startContainerCmd(containerId).exec();
             dockerClient.statsCmd(containerId).exec(memoryCallback);
             if (!memoryCallback.awaitStarted(5, TimeUnit.SECONDS)) {
                 throw new IllegalStateException("Timed out while subscribing to container stats");
             }
-            dockerClient.startContainerCmd(containerId).exec();
+            if (!memoryCallback.awaitSample(5, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("Timed out while waiting for container stats");
+            }
+            releaseExecutionGate(containerId);
             try {
                 Integer status = dockerClient
                         .waitContainerCmd(containerId)
@@ -193,6 +201,20 @@ public class DockerJudgeEngine {
         return safePrefix.isEmpty() ? message : safePrefix + new String(suffix, StandardCharsets.UTF_8);
     }
 
+    @SneakyThrows
+    private void releaseExecutionGate(String containerId) {
+        String execId = dockerClient
+                .execCreateCmd(containerId)
+                .withCmd("touch", EXECUTION_GATE)
+                .exec()
+                .getId();
+        try (var callback = new ResultCallback.Adapter<Frame>()) {
+            if (!dockerClient.execStartCmd(execId).exec(callback).awaitCompletion(5, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("Timed out while releasing container execution gate");
+            }
+        }
+    }
+
     private String createContainer(SubmissionContext context, String command) {
         long memory = (context.status() == SubmissionStatus.COMPILING || context.memoryUsageLimitBytes() == null)
                 ? DEFAULT_MEMORY_BYTES
@@ -204,7 +226,7 @@ public class DockerJudgeEngine {
                 .withHostConfig(containerPolicy.judge(
                         volumeName(context.submissionId()), memory, context.status() == SubmissionStatus.COMPILING))
                 .withWorkingDir(WORKSPACE_DIR)
-                .withCmd("sh", "-c", command)
+                .withCmd("sh", "-c", "until [ -f " + EXECUTION_GATE + " ]; do sleep 0.01; done; " + command)
                 .exec()
                 .getId();
     }

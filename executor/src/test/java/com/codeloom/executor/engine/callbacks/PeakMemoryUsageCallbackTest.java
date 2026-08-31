@@ -1,12 +1,14 @@
 package com.codeloom.executor.engine.callbacks;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.github.dockerjava.api.model.MemoryStatsConfig;
 import com.github.dockerjava.api.model.Statistics;
 import com.github.dockerjava.api.model.StatsConfig;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 class PeakMemoryUsageCallbackTest {
@@ -37,6 +39,15 @@ class PeakMemoryUsageCallbackTest {
         callback.onNext(new Statistics());
 
         assertEquals(0L, callback.peak());
+    }
+
+    @Test
+    void signalsWhenFirstMemorySampleArrives() throws InterruptedException {
+        var callback = new PeakMemoryUsageCallback();
+
+        callback.onNext(statistics(1_000L, 200L, null));
+
+        assertTrue(callback.awaitSample(1, TimeUnit.SECONDS));
     }
 
     private Statistics statistics(long usage, Long cache, Long inactiveFile) {

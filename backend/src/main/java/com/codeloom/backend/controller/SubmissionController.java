@@ -7,7 +7,7 @@ import static com.codeloom.backend.security.AuthenticationUtils.getUserId;
 import com.codeloom.backend.dto.SendSubmissionRequest;
 import com.codeloom.backend.dto.SubmissionDto;
 import com.codeloom.backend.dto.SubmissionListDto;
-import com.codeloom.backend.dto.SubmissionStatusDto;
+import com.codeloom.backend.dto.SubmissionStateDto;
 import com.codeloom.backend.service.SubmissionService;
 import com.codeloom.backend.sse.SseService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,14 +62,14 @@ public class SubmissionController {
         @ApiResponse(responseCode = "400", description = "Submission cannot be judged", ref = BAD_REQUEST_RESPONSE_REF),
         @ApiResponse(responseCode = "404", description = "Problem not found", ref = NOT_FOUND_RESPONSE_REF)
     })
-    public SubmissionStatusDto sendSubmission(
+    public SubmissionStateDto sendSubmission(
             @Parameter(hidden = true) Authentication authentication,
             @Valid @RequestBody SendSubmissionRequest request) {
         return service.sendSubmission(request, authentication);
     }
 
     @GetMapping(value = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    @Operation(operationId = "streamSubmissionStatuses", summary = "Stream submission status changes")
+    @Operation(operationId = "streamSubmissionStates", summary = "Stream submission state changes")
     @ApiResponse(
             responseCode = "200",
             description = "SSE stream established",

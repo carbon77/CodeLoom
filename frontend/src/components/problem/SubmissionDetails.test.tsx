@@ -30,7 +30,7 @@ describe('SubmissionDetails', () => {
   it('renders source, error, and test-case results', async () => {
     vi.mocked(fetchSubmissionDetails).mockResolvedValue({
       submissionId: 'submission-1',
-      status: 'RUNTIME_ERROR',
+      state: 'RUNTIME_ERROR',
       language: 'python',
       createdAt: '2026-01-01T10:00:00Z',
       code: 'print(1)',
@@ -53,7 +53,7 @@ describe('SubmissionDetails', () => {
 
   it('marks matching trimmed output as passed', async () => {
     vi.mocked(fetchSubmissionDetails).mockResolvedValue({
-      submissionId: 'submission-1', status: 'ACCEPTED', language: 'python',
+      submissionId: 'submission-1', state: 'ACCEPTED', language: 'python',
       createdAt: '2026-01-01T10:00:00Z', code: 'print(1)', errorMessage: null,
       results: [{ input: '', expectedOutput: '1', stdout: ' 1\n', stderr: '', executionTimeMs: 2, bytesUsed: 10 }],
     })
@@ -66,7 +66,7 @@ describe('SubmissionDetails', () => {
 
   it('shows a processing state when results are not ready', async () => {
     vi.mocked(fetchSubmissionDetails).mockResolvedValue({
-      submissionId: 'submission-1', status: 'RUNNING', language: 'cpp',
+      submissionId: 'submission-1', state: 'RUNNING', language: 'cpp',
       createdAt: '2026-01-01T10:00:00Z', code: 'int main() {}',
       errorMessage: null, results: [],
     })

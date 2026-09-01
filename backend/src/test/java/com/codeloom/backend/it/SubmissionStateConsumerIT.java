@@ -17,9 +17,9 @@ import com.codeloom.backend.model.Problem;
 import com.codeloom.backend.model.Submission;
 import com.codeloom.backend.model.TestCase;
 import com.codeloom.backend.security.UserRole;
-import com.codeloom.common.SubmissionStatus;
-import com.codeloom.common.event.SubmissionStatusChangedEvent;
-import com.codeloom.common.event.SubmissionStatusPayload;
+import com.codeloom.common.SubmissionState;
+import com.codeloom.common.event.SubmissionStateChangedEvent;
+import com.codeloom.common.event.SubmissionStatePayload;
 import com.codeloom.common.event.TestCaseResultDto;
 import java.util.List;
 import java.util.UUID;
@@ -41,7 +41,7 @@ import org.testcontainers.utility.DockerImageName;
 
 @TestPropertySource(properties = "spring.kafka.consumer.auto-offset-reset=earliest")
 @Testcontainers
-class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
+class SubmissionStateConsumerIT extends BackendIntegrationTestSupport {
     @Container
     @ServiceConnection
     static ConfluentKafkaContainer kafka =
@@ -62,7 +62,7 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
     @Autowired
     KafkaTemplate<String, String> kafkaTemplate;
 
-    @Value("${codeloom.kafka.submission-status-topic}")
+    @Value("${codeloom.kafka.submission-state-topic}")
     String topic;
 
     long problemId;
@@ -98,16 +98,16 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
                         .userId(TEST_USER_ID)
                         .problemId(problemId)
                         .code("print(input())")
-                        .status(SubmissionStatus.PENDING)
+                        .state(SubmissionState.PENDING)
                         .language("python")
                         .build())
                 .getId();
     }
 
     @Test
-    void updatesStatusAndPersistsResults() throws Exception {
+    void updatesStateAndPersistsResults() throws Exception {
         kafkaTemplate.send(topic, submissionId.toString(), acceptedEvent()).get(20, TimeUnit.SECONDS);
-        awaitStatus(SubmissionStatus.ACCEPTED);
+        awaitState(SubmissionState.ACCEPTED);
         awaitResultCount(1);
 
         var result = testCaseResultRepository.findAll().iterator().next();
@@ -129,7 +129,7 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
                         .userId(TEST_USER_ID)
                         .problemId(problemId)
                         .code("print(input())")
-                        .status(SubmissionStatus.PENDING)
+                        .state(SubmissionState.PENDING)
                         .language("python")
                         .build())
                 .getId();
@@ -149,19 +149,19 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
     }
 
     @Test
-    void sendsCommittedStatusAndResultsToAllOwnersSseConnectionsOnly() throws Exception {
+    void sendsCommittedStateAndResultsToAllOwnersSseConnectionsOnly() throws Exception {
         MvcResult firstOwnerConnection = openSseConnection(TEST_USER_ID);
         MvcResult secondOwnerConnection = openSseConnection(TEST_USER_ID);
         MvcResult otherUserConnection = openSseConnection(UUID.randomUUID());
         try {
             kafkaTemplate.send(topic, submissionId.toString(), acceptedEvent()).get(20, TimeUnit.SECONDS);
 
-            awaitSseStatus(firstOwnerConnection, SubmissionStatus.ACCEPTED);
-            awaitSseStatus(secondOwnerConnection, SubmissionStatus.ACCEPTED);
+            awaitSseState(firstOwnerConnection, SubmissionState.ACCEPTED);
+            awaitSseState(secondOwnerConnection, SubmissionState.ACCEPTED);
             awaitResultCount(1);
             assertEquals(
-                    SubmissionStatus.ACCEPTED,
-                    submissionRepository.findById(submissionId).orElseThrow().getStatus());
+                    SubmissionState.ACCEPTED,
+                    submissionRepository.findById(submissionId).orElseThrow().getState());
             assertThat(otherUserConnection.getResponse().getContentAsString()).isEmpty();
         } finally {
             complete(firstOwnerConnection);
@@ -173,21 +173,21 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
     @Test
     void absentPayloadDoesNotPersistResults() throws Exception {
         kafkaTemplate
-                .send(topic, submissionId.toString(), statusEvent(SubmissionStatus.COMPILING))
+                .send(topic, submissionId.toString(), stateEvent(SubmissionState.COMPILING))
                 .get(20, TimeUnit.SECONDS);
-        awaitStatus(SubmissionStatus.COMPILING);
+        awaitState(SubmissionState.COMPILING);
         Thread.sleep(1000);
         assertEquals(0, testCaseResultRepository.count());
     }
 
     @Test
     void persistsSubmissionError() throws Exception {
-        var event = SubmissionStatusChangedEvent.builder()
+        var event = SubmissionStateChangedEvent.builder()
                 .submissionId(submissionId)
                 .problemId(problemId)
                 .userId(UUID.randomUUID())
-                .newStatus(SubmissionStatus.COMPILE_ERROR)
-                .payload(SubmissionStatusPayload.builder()
+                .newState(SubmissionState.COMPILE_ERROR)
+                .payload(SubmissionStatePayload.builder()
                         .error("compiler failed")
                         .build())
                 .build();
@@ -195,7 +195,7 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
         kafkaTemplate
                 .send(topic, submissionId.toString(), objectMapper.writeValueAsString(event))
                 .get(20, TimeUnit.SECONDS);
-        awaitStatus(SubmissionStatus.COMPILE_ERROR);
+        awaitState(SubmissionState.COMPILE_ERROR);
 
         assertEquals(
                 "compiler failed",
@@ -205,11 +205,11 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
     @Test
     void laterEventReplacesPersistedResults() throws Exception {
         kafkaTemplate.send(topic, submissionId.toString(), wrongAnswerEvent()).get(20, TimeUnit.SECONDS);
-        awaitStatus(SubmissionStatus.WRONG_ANSWER);
+        awaitState(SubmissionState.WRONG_ANSWER);
         awaitResultCount(1);
 
         kafkaTemplate.send(topic, submissionId.toString(), acceptedEvent()).get(20, TimeUnit.SECONDS);
-        awaitStatus(SubmissionStatus.ACCEPTED);
+        awaitState(SubmissionState.ACCEPTED);
         awaitResultCount(1);
         assertEquals("1", testCaseResultRepository.findAll().iterator().next().getStdout());
     }
@@ -219,24 +219,24 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
         MvcResult connection = openSseConnection(TEST_USER_ID);
         var unknownId = UUID.randomUUID();
         var event =
-                SubmissionStatusChangedEvent.builder().submissionId(unknownId).build();
+                SubmissionStateChangedEvent.builder().submissionId(unknownId).build();
         var json = objectMapper.writeValueAsString(event);
         try {
             kafkaTemplate.send(topic, unknownId.toString(), json).get(20, TimeUnit.SECONDS);
             Thread.sleep(2000);
             assertEquals(0, testCaseResultRepository.count());
             assertEquals(
-                    SubmissionStatus.PENDING,
-                    submissionRepository.findById(submissionId).orElseThrow().getStatus());
+                    SubmissionState.PENDING,
+                    submissionRepository.findById(submissionId).orElseThrow().getState());
             assertThat(connection.getResponse().getContentAsString()).isEmpty();
         } finally {
             complete(connection);
         }
     }
 
-    private String event(SubmissionStatus status, String stdout, String stderr) {
+    private String event(SubmissionState state, String stdout, String stderr) {
         return resultEvent(
-                status,
+                state,
                 List.of(TestCaseResultDto.builder()
                         .id(publicTestCase.getId())
                         .problemId(problemId)
@@ -249,21 +249,21 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
                         .build()));
     }
 
-    private String resultEvent(SubmissionStatus status, List<TestCaseResultDto> testCaseResults) {
-        SubmissionStatusChangedEvent event = SubmissionStatusChangedEvent.builder()
+    private String resultEvent(SubmissionState state, List<TestCaseResultDto> testCaseResults) {
+        SubmissionStateChangedEvent event = SubmissionStateChangedEvent.builder()
                 .submissionId(submissionId)
                 .problemId(problemId)
                 .userId(UUID.randomUUID())
-                .newStatus(status)
-                .payload(SubmissionStatusPayload.builder()
+                .newState(state)
+                .payload(SubmissionStatePayload.builder()
                         .testCaseResults(testCaseResults)
                         .build())
                 .build();
         return objectMapper.writeValueAsString(event);
     }
 
-    private String statusEvent(SubmissionStatus status) {
-        return resultEvent(status, List.of());
+    private String stateEvent(SubmissionState state) {
+        return resultEvent(state, List.of());
     }
 
     private String acceptedEvent() {
@@ -271,12 +271,12 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
     }
 
     private String acceptedEvent(UUID eventSubmissionId) {
-        SubmissionStatusChangedEvent event = SubmissionStatusChangedEvent.builder()
+        SubmissionStateChangedEvent event = SubmissionStateChangedEvent.builder()
                 .submissionId(eventSubmissionId)
                 .problemId(problemId)
                 .userId(TEST_USER_ID)
-                .newStatus(SubmissionStatus.ACCEPTED)
-                .payload(SubmissionStatusPayload.builder()
+                .newState(SubmissionState.ACCEPTED)
+                .payload(SubmissionStatePayload.builder()
                         .testCaseResults(List.of(TestCaseResultDto.builder()
                                 .id(publicTestCase.getId())
                                 .problemId(problemId)
@@ -293,16 +293,16 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
     }
 
     private String wrongAnswerEvent() {
-        return event(SubmissionStatus.WRONG_ANSWER, "0", "wrong");
+        return event(SubmissionState.WRONG_ANSWER, "0", "wrong");
     }
 
-    private void awaitStatus(SubmissionStatus expected) {
+    private void awaitState(SubmissionState expected) {
         await().atMost(20, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .until(() -> submissionRepository
                                 .findById(submissionId)
                                 .orElseThrow()
-                                .getStatus()
+                                .getState()
                         == expected);
     }
 
@@ -330,14 +330,14 @@ class SubmissionStatusConsumerIT extends BackendIntegrationTestSupport {
                 .andReturn();
     }
 
-    private void awaitSseStatus(MvcResult connection, SubmissionStatus status) {
+    private void awaitSseState(MvcResult connection, SubmissionState state) {
         await().atMost(20, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .untilAsserted(() -> {
                     var body = connection.getResponse().getContentAsString();
-                    assertThat(body).contains("event:submission-status");
+                    assertThat(body).contains("event:submission-state");
                     assertThat(body).contains("\"submissionId\":\"" + submissionId + "\"");
-                    assertThat(body).contains("\"status\":\"" + status + "\"");
+                    assertThat(body).contains("\"state\":\"" + state + "\"");
                 });
     }
 

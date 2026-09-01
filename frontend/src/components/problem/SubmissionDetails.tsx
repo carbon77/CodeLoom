@@ -16,14 +16,14 @@ import { CheckCircle, ExpandMore, Cancel } from "@mui/icons-material";
 import {
   fetchSubmissionDetails,
   type SubmissionDetails as SubmissionDetailsDto,
-  type SubmissionStatus,
+  type SubmissionState,
   type TestCaseResult,
 } from "../../api/submissions";
 import { errorMessage } from "../../api/client";
 import CodeEditor from "./CodeEditor";
 
-const statusColors: Record<
-  SubmissionStatus,
+const stateColors: Record<
+  SubmissionState,
   "success" | "warning" | "error" | "info" | "default"
 > = {
   PENDING: "info",
@@ -38,7 +38,7 @@ const statusColors: Record<
   SYSTEM_ERROR: "error",
 };
 
-const activeStatuses = new Set<SubmissionStatus>([
+const activeStates = new Set<SubmissionState>([
   "PENDING",
   "COMPILING",
   "RUNNING",
@@ -161,7 +161,7 @@ export default function SubmissionDetails({
   return (
     <Stack spacing={1.25}>
       <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: "center", flexWrap: "wrap" }}>
-        <Chip label={details.status} color={statusColors[details.status]} size="small" />
+        <Chip label={details.state} color={stateColors[details.state]} size="small" />
         <Typography variant="body2">{details.language.toUpperCase()}</Typography>
         <Typography variant="body2" color="text.secondary">
           {new Date(details.createdAt).toLocaleString()}
@@ -187,7 +187,7 @@ export default function SubmissionDetails({
       </Typography>
       {details.results.length === 0 ? (
         <Alert severity="info">
-          {activeStatuses.has(details.status)
+          {activeStates.has(details.state)
             ? "This submission is still being processed."
             : "No test-case results are available for this submission."}
         </Alert>

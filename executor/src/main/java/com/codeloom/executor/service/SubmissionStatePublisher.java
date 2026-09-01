@@ -1,7 +1,7 @@
 package com.codeloom.executor.service;
 
-import com.codeloom.common.event.SubmissionStatusChangedEvent;
-import com.codeloom.common.event.SubmissionStatusPayload;
+import com.codeloom.common.event.SubmissionStateChangedEvent;
+import com.codeloom.common.event.SubmissionStatePayload;
 import com.codeloom.executor.dto.SubmissionContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,20 +11,23 @@ import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
-public class EventService {
+public class SubmissionStatePublisher {
     private final KafkaTemplate<String, String> kafka;
     private final ObjectMapper mapper;
 
-    @Value("${codeloom.kafka.topics.submission-status}")
+    @Value("${codeloom.kafka.topics.submission-state}")
     private String topic;
 
-    public void submissionStatusChanged(SubmissionContext context, SubmissionStatusPayload payload) {
-        var event = SubmissionStatusChangedEvent.builder()
+    public void submissionStateChanged(SubmissionContext context) {
+        var event = SubmissionStateChangedEvent.builder()
                 .submissionId(context.submissionId())
                 .userId(context.userId())
                 .problemId(context.problemId())
-                .newStatus(context.status())
-                .payload(payload)
+                .newState(context.state())
+                .payload(SubmissionStatePayload.builder()
+                        .error(context.error())
+                        .testCaseResults(context.testCaseResults())
+                        .build())
                 .build();
         kafka.send(topic, context.submissionId().toString(), mapper.writeValueAsString(event));
     }

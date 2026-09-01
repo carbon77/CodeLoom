@@ -34,7 +34,7 @@ React SPA ──HTTP/JWT──> Backend API ──submissions──> Kafka
                             │                         v
                        PostgreSQL <────────────── Executor ──> Docker
                             ^                         │
-                            └──submission_statuses───┘
+                            └── submission_states ───┘
 ```
 
 - `common/` — общие Kafka-события, статусы и спецификации языков;
@@ -197,7 +197,7 @@ GitHub Actions запускает backend- и executor-тесты для pull re
 | `CODELOOM_EXECUTOR_PORT` | порт executor | `8082` |
 | `CODELOOM_EXECUTOR_DOCKER_HOST` | адрес Docker daemon | `unix:///var/run/docker.sock` |
 
-Kafka использует топики `submissions` и `submission_statuses`. Backend API находится под `/v1`; Swagger открыт без авторизации, остальные маршруты защищены JWT.
+Kafka использует топики `submissions` и `submission_states`. Backend API находится под `/v1`; Swagger открыт без авторизации, остальные маршруты защищены JWT.
 
 ## Структура репозитория
 

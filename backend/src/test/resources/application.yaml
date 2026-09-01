@@ -10,4 +10,4 @@ spring:
 codeloom:
   kafka:
     submission-topic: test-submissions
-    submission-status-topic: test-submission-statuses
+    submission-state-topic: test-submission-states

@@ -18,7 +18,7 @@ public class SubmissionRepositoryCustomImpl implements SubmissionRepositoryCusto
     public Collection<SubmissionListDto> findListDtos(UUID userId, long problemId) {
         return dsl.select(
                         SUBMISSIONS.SUBMISSION_ID,
-                        SUBMISSIONS.STATUS,
+                        SUBMISSIONS.STATE,
                         SUBMISSIONS.LANGUAGE,
                         SUBMISSIONS.CREATED_AT.as("createdAt"))
                 .from(SUBMISSIONS)

@@ -207,7 +207,7 @@ class ProblemIT extends BackendIntegrationTestSupport {
                       "hints":["hint #1","hint #2","hint #3"],
                       "examples":{"examples":[{"input":"nums = [-1,0,1,2,-1,-4]",
                         "output":"[[-1,-1,2],[-1,0,1]]","explanation":"These triplets sum to zero"}]},
-                      "constraints":{"executionTimeLimitMs":3000,"memoryUsageLimitBytes":4},
+                      "constraints":{"executionTimeLimitMs":3000,"memoryUsageLimitMb":4},
                       "topics":[]
                     }
                     """;
@@ -227,7 +227,7 @@ class ProblemIT extends BackendIntegrationTestSupport {
                     .andExpect(jsonPath("$.hints[1]").value("hint #2"))
                     .andExpect(jsonPath("$.hints[2]").value("hint #3"))
                     .andExpect(jsonPath("$.constraints.executionTimeLimitMs").value(3000))
-                    .andExpect(jsonPath("$.constraints.memoryUsageLimitBytes").value(4))
+                    .andExpect(jsonPath("$.constraints.memoryUsageLimitMb").value(4))
                     .andExpect(jsonPath("$.createdAt", notNullValue()))
                     .andExpect(jsonPath("$.updatedAt", notNullValue()));
 
@@ -407,7 +407,7 @@ class ProblemIT extends BackendIntegrationTestSupport {
                 {
                   "title":"%s","slug":"%s","description":"Full description",
                   "difficulty":"MEDIUM",
-                  "constraints":{"executionTimeLimitMs":2000,"memoryUsageLimitBytes":4},
+                  "constraints":{"executionTimeLimitMs":2000,"memoryUsageLimitMb":4},
                   "examples":{"examples":[]},"hints":[],"topics":%s
                 }
                 """.formatted(title, slug, topics);
@@ -427,8 +427,8 @@ class ProblemIT extends BackendIntegrationTestSupport {
         if (problem.getConstraints() != null) {
             result.andExpect(jsonPath("$.constraints.executionTimeLimitMs")
                             .value(problem.getConstraints().executionTimeLimitMs()))
-                    .andExpect(jsonPath("$.constraints.memoryUsageLimitBytes")
-                            .value(problem.getConstraints().memoryUsageLimitBytes()));
+                    .andExpect(jsonPath("$.constraints.memoryUsageLimitMb")
+                            .value(problem.getConstraints().memoryUsageLimitMb()));
         }
         if (timestamps) {
             result.andExpect(jsonPath("$.createdAt", notNullValue()))

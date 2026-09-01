@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class DockerJudgeEngine {
+    private static final long BYTES_PER_MB = 1024L * 1024L;
     private static final String EXECUTION_GATE = "/tmp/.codeloom-start";
 
     private final DockerClient dockerClient;
@@ -215,9 +216,9 @@ public class DockerJudgeEngine {
     }
 
     private String createContainer(SubmissionContext context, String command, boolean compilation) {
-        long memory = compilation || context.memoryUsageLimitBytes() == null
+        long memory = compilation || context.memoryUsageLimitMb() == null
                 ? DEFAULT_MEMORY_BYTES
-                : context.memoryUsageLimitBytes();
+                : megabytesToBytes(context.memoryUsageLimitMb());
 
         dockerImageManager.pullImageIfAbsent(context.language().getImage(), 300);
         return dockerClient
@@ -231,6 +232,10 @@ public class DockerJudgeEngine {
 
     private String volumeName(UUID id) {
         return "submission-" + id;
+    }
+
+    static long megabytesToBytes(long megabytes) {
+        return Math.multiplyExact(megabytes, BYTES_PER_MB);
     }
 
     public void cleanup(UUID id) {

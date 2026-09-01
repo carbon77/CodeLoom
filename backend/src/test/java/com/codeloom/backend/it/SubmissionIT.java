@@ -186,7 +186,7 @@ class SubmissionIT extends BackendIntegrationTestSupport {
             assertEquals("println(42)", event.code());
             assertEquals("java", event.language());
             assertEquals(2000L, event.executionTimeLimitMs());
-            assertEquals(64L * 1024 * 1024, event.memoryUsageLimitBytes());
+            assertEquals(64L, event.memoryUsageLimitMb());
         }
 
         @Test
@@ -283,7 +283,7 @@ class SubmissionIT extends BackendIntegrationTestSupport {
                 .slug(slug)
                 .description("")
                 .difficulty(ProblemDifficulty.EASY)
-                .constraints(new ProblemConstraints(2000L, 64L * 1024 * 1024))
+                .constraints(new ProblemConstraints(2000L, 64L))
                 .hints(List.of())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())

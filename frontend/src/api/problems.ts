@@ -12,7 +12,7 @@ export interface ProblemListDto {
 
 export interface ProblemConstraints {
   executionTimeLimitMs?: number | null;
-  memoryUsageLimitBytes?: number | null;
+  memoryUsageLimitMb?: number | null;
 }
 
 export interface ProblemExample {

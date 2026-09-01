@@ -45,7 +45,7 @@ export default function ProblemInfo({ problem }: ProblemInfoProps) {
 
       {problem.constraints &&
         (problem.constraints.executionTimeLimitMs != null ||
-          problem.constraints.memoryUsageLimitBytes != null) && (
+          problem.constraints.memoryUsageLimitMb != null) && (
           <>
             <Divider sx={{ my: 2 }} />
             <Typography variant="h6" sx={{ mb: 1 }}>
@@ -57,13 +57,9 @@ export default function ProblemInfo({ problem }: ProblemInfoProps) {
                   Time limit: {problem.constraints.executionTimeLimitMs} ms
                 </Typography>
               )}
-              {problem.constraints.memoryUsageLimitBytes != null && (
+              {problem.constraints.memoryUsageLimitMb != null && (
                 <Typography variant="body2">
-                  Memory limit:{" "}
-                  {Math.round(
-                    problem.constraints.memoryUsageLimitBytes / 1024 / 1024,
-                  )}{" "}
-                  MB
+                  Memory limit: {problem.constraints.memoryUsageLimitMb} MB
                 </Typography>
               )}
             </Stack>

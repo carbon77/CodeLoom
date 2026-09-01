@@ -38,7 +38,7 @@ class SubmissionJudgeTest {
             .code("print(input())")
             .language("python")
             .executionTimeLimitMs(1000L)
-            .memoryUsageLimitBytes(1024L)
+            .memoryUsageLimitMb(1L)
             .build();
 
     @BeforeEach
@@ -59,6 +59,7 @@ class SubmissionJudgeTest {
         assertEquals(
                 List.of(SubmissionState.COMPILING, SubmissionState.RUNNING, SubmissionState.ACCEPTED),
                 events.stream().map(SubmissionContext::state).toList());
+        assertEquals(1L, events.getFirst().memoryUsageLimitMb());
         assertEquals(1, events.getLast().testCaseResults().size());
         assertEquals(
                 publicCase.getId(),

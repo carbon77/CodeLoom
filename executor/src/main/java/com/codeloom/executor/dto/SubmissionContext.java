@@ -19,7 +19,7 @@ public record SubmissionContext(
         String code,
         LanguageSpec language,
         Long executionTimeLimitMs,
-        Long memoryUsageLimitBytes,
+        Long memoryUsageLimitMb,
         List<TestCase> testCases,
         String error,
         List<TestCaseResultDto> testCaseResults,

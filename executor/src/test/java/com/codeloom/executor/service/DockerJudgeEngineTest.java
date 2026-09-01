@@ -26,7 +26,7 @@ class DockerJudgeEngineTest extends DockerTestBase {
                 .code(code)
                 .language(language)
                 .executionTimeLimitMs(null)
-                .memoryUsageLimitBytes(null)
+                .memoryUsageLimitMb(null)
                 .build();
     }
 

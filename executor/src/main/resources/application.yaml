@@ -49,5 +49,5 @@ codeloom:
 
   kafka:
     topics:
-      submission: submissions
-      submission-status: submission_statuses
+      submission: submission
+      submission-state: submission-state

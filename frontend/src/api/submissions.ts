@@ -7,7 +7,7 @@ import { apiBaseUrl, apiFetch, authenticatedFetch } from "./client";
 
 export type SubmissionLanguage = "java" | "cpp" | "python";
 
-export type SubmissionStatus =
+export type SubmissionState =
   | "PENDING"
   | "COMPILING"
   | "COMPILE_ERROR"
@@ -21,14 +21,14 @@ export type SubmissionStatus =
 
 export interface Submission {
   submissionId: string;
-  status: SubmissionStatus;
+  state: SubmissionState;
   language: SubmissionLanguage;
   createdAt: string;
 }
 
-export interface SubmissionStatusResponse {
+export interface SubmissionStateResponse {
   submissionId: string;
-  status: SubmissionStatus;
+  state: SubmissionState;
 }
 
 export interface TestCaseResult {
@@ -74,11 +74,11 @@ export function fetchSubmissionDetails(
 
 export function sendSubmission(
   payload: SendSubmissionPayload,
-): Promise<SubmissionStatusResponse> {
+): Promise<SubmissionStateResponse> {
   if (payload.code.trim() === "") {
     return Promise.reject(new Error("Code must not be blank."));
   }
-  return apiFetch<SubmissionStatusResponse>("/v1/submissions", {
+  return apiFetch<SubmissionStateResponse>("/v1/submissions", {
     method: "POST",
     body: payload,
   }).catch((error) => {
@@ -89,13 +89,13 @@ export function sendSubmission(
 
 class FatalSseError extends Error {}
 
-interface SubmissionStatusSubscriptionOptions {
+interface SubmissionStateSubscriptionOptions {
   signal: AbortSignal;
-  onStatus: (status: SubmissionStatusResponse) => void;
+  onState: (state: SubmissionStateResponse) => void;
   onConnected?: () => void;
 }
 
-const statuses = new Set<SubmissionStatus>([
+const states = new Set<SubmissionState>([
   "PENDING",
   "COMPILING",
   "COMPILE_ERROR",
@@ -108,30 +108,30 @@ const statuses = new Set<SubmissionStatus>([
   "SYSTEM_ERROR",
 ]);
 
-function parseStatusMessage(
+function parseStateMessage(
   message: EventSourceMessage,
-): SubmissionStatusResponse | null {
-  if (message.event !== "submission-status") return null;
+): SubmissionStateResponse | null {
+  if (message.event !== "submission-state") return null;
   try {
-    const value = JSON.parse(message.data) as Partial<SubmissionStatusResponse>;
+    const value = JSON.parse(message.data) as Partial<SubmissionStateResponse>;
     if (
       typeof value.submissionId !== "string" ||
-      typeof value.status !== "string" ||
-      !statuses.has(value.status as SubmissionStatus)
+      typeof value.state !== "string" ||
+      !states.has(value.state as SubmissionState)
     ) {
       return null;
     }
-    return value as SubmissionStatusResponse;
+    return value as SubmissionStateResponse;
   } catch {
     return null;
   }
 }
 
-export function subscribeToSubmissionStatuses({
+export function subscribeToSubmissionStates({
   signal,
-  onStatus,
+  onState,
   onConnected,
-}: SubmissionStatusSubscriptionOptions): Promise<void> {
+}: SubmissionStateSubscriptionOptions): Promise<void> {
   let retryAttempt = 0;
 
   return fetchEventSource(`${apiBaseUrl}/v1/submissions/sse`, {
@@ -157,11 +157,11 @@ export function subscribeToSubmissionStatuses({
       throw new Error(`SSE request failed with status ${response.status}`);
     },
     onmessage(message) {
-      const status = parseStatusMessage(message);
-      if (status !== null) onStatus(status);
+      const state = parseStateMessage(message);
+      if (state !== null) onState(state);
     },
     onclose() {
-      throw new Error("Submission status stream closed");
+      throw new Error("Submission state stream closed");
     },
     onerror(error) {
       if (error instanceof FatalSseError) throw error;

@@ -4,8 +4,8 @@ import com.codeloom.backend.dao.submission.SubmissionRepository;
 import com.codeloom.backend.dao.testcase.TestCaseResultRepository;
 import com.codeloom.backend.model.Submission;
 import com.codeloom.backend.model.TestCaseResult;
-import com.codeloom.backend.sse.SubmissionStatusCommittedEvent;
-import com.codeloom.common.event.SubmissionStatusChangedEvent;
+import com.codeloom.backend.sse.SubmissionStateCommittedEvent;
+import com.codeloom.common.event.SubmissionStateChangedEvent;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,24 +19,24 @@ import tools.jackson.databind.ObjectMapper;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class SubmissionStatusKafkaListenerService {
+public class SubmissionStateKafkaListenerService {
     private final SubmissionRepository submissionRepository;
     private final TestCaseResultRepository testCaseResultRepository;
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    @KafkaListener(topics = "${codeloom.kafka.submission-status-topic}")
+    @KafkaListener(topics = "${codeloom.kafka.topics.submission-state}")
     @Transactional
-    public void listenSubmissionStatus(String message) {
+    public void listenSubmissionState(String message) {
         try {
-            SubmissionStatusChangedEvent event = objectMapper.readValue(message, SubmissionStatusChangedEvent.class);
+            SubmissionStateChangedEvent event = objectMapper.readValue(message, SubmissionStateChangedEvent.class);
             Optional<Submission> submissionOptional = submissionRepository.findById(event.submissionId());
             if (submissionOptional.isEmpty()) {
                 log.warn("Submission not found: submissionId={}", event.submissionId());
                 return;
             }
 
-            Submission submission = submissionOptional.get().withStatus(event.newStatus());
+            Submission submission = submissionOptional.get().withState(event.newState());
             if (event.payload() != null && event.payload().error() != null) {
                 submission = submission.withErrorMessage(event.payload().error());
             }
@@ -57,10 +57,10 @@ public class SubmissionStatusKafkaListenerService {
                         .toList());
             }
 
-            applicationEventPublisher.publishEvent(new SubmissionStatusCommittedEvent(
-                    this, submission.getId(), submission.getStatus(), submission.getUserId()));
+            applicationEventPublisher.publishEvent(new SubmissionStateCommittedEvent(
+                    this, submission.getId(), submission.getState(), submission.getUserId()));
         } catch (JacksonException e) {
-            log.error("Failed to parse submission status event", e);
+            log.error("Failed to parse submission state event", e);
         }
     }
 }

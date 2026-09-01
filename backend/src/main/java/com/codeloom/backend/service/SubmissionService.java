@@ -10,15 +10,15 @@ import com.codeloom.backend.dao.testcase.TestCaseResultRepository;
 import com.codeloom.backend.dto.SendSubmissionRequest;
 import com.codeloom.backend.dto.SubmissionDto;
 import com.codeloom.backend.dto.SubmissionListDto;
-import com.codeloom.backend.dto.SubmissionStatusDto;
+import com.codeloom.backend.dto.SubmissionStateDto;
 import com.codeloom.backend.dto.TestCaseResultListDto;
 import com.codeloom.backend.exception.NoTestCasesException;
 import com.codeloom.backend.exception.ProblemNotFoundException;
 import com.codeloom.backend.exception.SubmissionNotFoundException;
 import com.codeloom.backend.model.Problem;
 import com.codeloom.backend.model.Submission;
-import com.codeloom.common.SubmissionEvent;
-import com.codeloom.common.SubmissionStatus;
+import com.codeloom.common.SubmissionKafkaEvent;
+import com.codeloom.common.SubmissionState;
 import java.util.Collection;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class SubmissionService {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${codeloom.kafka.submission-topic}")
+    @Value("${codeloom.kafka.topics.submission}")
     private String topic;
 
     public Collection<SubmissionListDto> findSubmissions(long problemId, Authentication authentication) {
@@ -49,7 +49,7 @@ public class SubmissionService {
     }
 
     @Transactional
-    public SubmissionStatusDto sendSubmission(SendSubmissionRequest request, Authentication authentication) {
+    public SubmissionStateDto sendSubmission(SendSubmissionRequest request, Authentication authentication) {
         Problem problem = problemRepository
                 .findById(request.problemId())
                 .orElseThrow(() -> new ProblemNotFoundException(request.problemId()));
@@ -66,22 +66,30 @@ public class SubmissionService {
                 .userId(getUserId(authentication))
                 .problemId(request.problemId())
                 .code(request.code())
-                .status(SubmissionStatus.PENDING)
+                .state(SubmissionState.PENDING)
                 .language(request.language())
                 .build());
-        SubmissionEvent event = SubmissionEvent.builder()
+        SubmissionKafkaEvent event = SubmissionKafkaEvent.builder()
                 .submissionId(submission.getId())
                 .userId(submission.getUserId())
                 .problemId(request.problemId())
                 .code(request.code())
                 .language(request.language())
+                .executionTimeLimitMs(
+                        problem.getConstraints() == null
+                                ? null
+                                : problem.getConstraints().executionTimeLimitMs())
+                .memoryUsageLimitBytes(
+                        problem.getConstraints() == null
+                                ? null
+                                : problem.getConstraints().memoryUsageLimitBytes())
                 .build();
 
         kafkaTemplate.send(topic, submission.getId().toString(), objectMapper.writeValueAsString(event));
         log.info("Submission sent: submissionId={}", submission.getId());
-        return SubmissionStatusDto.builder()
+        return SubmissionStateDto.builder()
                 .submissionId(submission.getId())
-                .status(submission.getStatus())
+                .state(submission.getState())
                 .build();
     }
 
@@ -96,7 +104,7 @@ public class SubmissionService {
 
         return SubmissionDto.builder()
                 .submissionId(submission.getId())
-                .status(submission.getStatus())
+                .state(submission.getState())
                 .language(submission.getLanguage())
                 .code(submission.getCode())
                 .errorMessage(submission.getErrorMessage())

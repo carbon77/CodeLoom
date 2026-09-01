@@ -17,13 +17,14 @@ import com.codeloom.backend.dao.submission.SubmissionRepository;
 import com.codeloom.backend.dao.testcase.TestCaseRepository;
 import com.codeloom.backend.dao.testcase.TestCaseResultRepository;
 import com.codeloom.backend.model.Problem;
+import com.codeloom.backend.model.ProblemConstraints;
 import com.codeloom.backend.model.ProblemDifficulty;
 import com.codeloom.backend.model.Submission;
 import com.codeloom.backend.model.TestCase;
 import com.codeloom.backend.model.TestCaseResult;
 import com.codeloom.backend.security.UserRole;
-import com.codeloom.common.SubmissionEvent;
-import com.codeloom.common.SubmissionStatus;
+import com.codeloom.common.SubmissionKafkaEvent;
+import com.codeloom.common.SubmissionState;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -80,7 +81,7 @@ class SubmissionIT extends BackendIntegrationTestSupport {
                     .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.length()").value(1))
                     .andExpect(jsonPath("$[0].submissionId").value(own.getId().toString()))
-                    .andExpect(jsonPath("$[0].status").value("PENDING"))
+                    .andExpect(jsonPath("$[0].state").value("PENDING"))
                     .andExpect(jsonPath("$[0].language").value("java"))
                     .andExpect(jsonPath("$[0].createdAt", notNullValue()))
                     .andExpect(jsonPath("$[0].userId").doesNotExist())
@@ -107,7 +108,7 @@ class SubmissionIT extends BackendIntegrationTestSupport {
                     .userId(TEST_USER_ID)
                     .problemId(problem.getId())
                     .code("println(42)")
-                    .status(SubmissionStatus.ACCEPTED)
+                    .state(SubmissionState.ACCEPTED)
                     .language("java")
                     .errorMessage(null)
                     .build());
@@ -126,7 +127,7 @@ class SubmissionIT extends BackendIntegrationTestSupport {
                     .andExpect(status().isOk())
                     .andExpect(
                             jsonPath("$.submissionId").value(submission.getId().toString()))
-                    .andExpect(jsonPath("$.status").value("ACCEPTED"))
+                    .andExpect(jsonPath("$.state").value("ACCEPTED"))
                     .andExpect(jsonPath("$.language").value("java"))
                     .andExpect(jsonPath("$.code").value("println(42)"))
                     .andExpect(jsonPath("$.errorMessage").value(nullValue()))
@@ -166,7 +167,7 @@ class SubmissionIT extends BackendIntegrationTestSupport {
                             .content(request(problem.getId())))
                     .andExpect(status().isOk())
                     .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.status").value("PENDING"))
+                    .andExpect(jsonPath("$.state").value("PENDING"))
                     .andExpect(jsonPath("$.submissionId").exists());
 
             var submission = submissions.findAll().iterator().next();
@@ -174,16 +175,18 @@ class SubmissionIT extends BackendIntegrationTestSupport {
             assertEquals(problem.getId().longValue(), submission.getProblemId());
             assertEquals("println(42)", submission.getCode());
             assertEquals("java", submission.getLanguage());
-            assertEquals(SubmissionStatus.PENDING, submission.getStatus());
+            assertEquals(SubmissionState.PENDING, submission.getState());
 
             var value = ArgumentCaptor.forClass(String.class);
             verify(kafka).send(eq("test-submissions"), eq(submission.getId().toString()), value.capture());
-            var event = mapper.readValue(value.getValue(), SubmissionEvent.class);
+            var event = mapper.readValue(value.getValue(), SubmissionKafkaEvent.class);
             assertEquals(submission.getId(), event.submissionId());
             assertEquals(TEST_USER_ID, event.userId());
             assertEquals(problem.getId().longValue(), event.problemId());
             assertEquals("println(42)", event.code());
             assertEquals("java", event.language());
+            assertEquals(2000L, event.executionTimeLimitMs());
+            assertEquals(64L * 1024 * 1024, event.memoryUsageLimitBytes());
         }
 
         @Test
@@ -195,7 +198,7 @@ class SubmissionIT extends BackendIntegrationTestSupport {
                             .content(request(problem.getId())))
                     .andExpect(status().isOk())
                     .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.status").value("PENDING"))
+                    .andExpect(jsonPath("$.state").value("PENDING"))
                     .andExpect(jsonPath("$.submissionId").exists());
             assertEquals(1, submissions.count());
             verify(kafka).send(eq("test-submissions"), anyString(), anyString());
@@ -280,6 +283,7 @@ class SubmissionIT extends BackendIntegrationTestSupport {
                 .slug(slug)
                 .description("")
                 .difficulty(ProblemDifficulty.EASY)
+                .constraints(new ProblemConstraints(2000L, 64L * 1024 * 1024))
                 .hints(List.of())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
@@ -300,7 +304,7 @@ class SubmissionIT extends BackendIntegrationTestSupport {
                 .userId(userId)
                 .problemId(problemId)
                 .code(code)
-                .status(SubmissionStatus.PENDING)
+                .state(SubmissionState.PENDING)
                 .language("java")
                 .build());
     }

@@ -2,7 +2,7 @@ package com.codeloom.executor.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.codeloom.common.SubmissionStatus;
+import com.codeloom.common.SubmissionState;
 import com.codeloom.common.language.LanguageSpec;
 import com.codeloom.executor.dto.SubmissionContext;
 import com.codeloom.executor.model.TestCase;
@@ -101,10 +101,10 @@ class DockerJudgeEngineTest extends DockerTestBase {
         @Test
         void stdoutFloodIsStoppedAndBounded() {
             var context = context(LanguageSpec.PYTHON, "while True: print('x' * 1000)")
-                    .withStatus(SubmissionStatus.RUNNING);
+                    .withState(SubmissionState.RUNNING);
             dockerJudgeEngine.compile(context);
             var result = dockerJudgeEngine.runTestCase(context, test);
-            assertEquals(SubmissionStatus.RUNTIME_ERROR, result.statusFromExitCode());
+            assertEquals(SubmissionState.RUNTIME_ERROR, result.stateFromExitCode());
             assertTrue(result.stdout().getBytes(StandardCharsets.UTF_8).length <= 65_536);
             assertTrue(result.stderr().contains("stdout output limit exceeded"));
         }
@@ -114,10 +114,10 @@ class DockerJudgeEngineTest extends DockerTestBase {
             var context = context(
                             LanguageSpec.PYTHON,
                             "import sys\nwhile True: sys.stderr.write('x' * 1000); sys.stderr.flush()")
-                    .withStatus(SubmissionStatus.RUNNING);
+                    .withState(SubmissionState.RUNNING);
             dockerJudgeEngine.compile(context);
             var result = dockerJudgeEngine.runTestCase(context, test);
-            assertEquals(SubmissionStatus.RUNTIME_ERROR, result.statusFromExitCode());
+            assertEquals(SubmissionState.RUNTIME_ERROR, result.stateFromExitCode());
             assertTrue(result.stderr().getBytes(StandardCharsets.UTF_8).length <= 65_536);
             assertTrue(result.stderr().contains("stderr output limit exceeded"));
         }

@@ -1,6 +1,6 @@
 package com.codeloom.backend.model;
 
-import com.codeloom.common.SubmissionStatus;
+import com.codeloom.common.SubmissionState;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Builder;
@@ -32,8 +32,8 @@ public class Submission {
     @Column("code")
     private final String code;
 
-    @Column("status")
-    private final SubmissionStatus status;
+    @Column("state")
+    private final SubmissionState state;
 
     @Column("language")
     private final String language;

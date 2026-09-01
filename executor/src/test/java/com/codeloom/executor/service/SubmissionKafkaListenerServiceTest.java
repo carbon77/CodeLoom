@@ -3,7 +3,7 @@ package com.codeloom.executor.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.codeloom.common.SubmissionEvent;
+import com.codeloom.common.SubmissionKafkaEvent;
 import java.lang.reflect.Method;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -22,35 +22,35 @@ class SubmissionKafkaListenerServiceTest {
     @Test
     void successfulWorkIsProcessedSynchronously() throws Exception {
         ObjectMapper mapper = mock(ObjectMapper.class);
-        SubmissionProcessingService processing = mock(SubmissionProcessingService.class);
-        SubmissionEvent event = SubmissionEvent.builder()
+        SubmissionJudge judge = mock(SubmissionJudge.class);
+        SubmissionKafkaEvent event = SubmissionKafkaEvent.builder()
                 .submissionId(UUID.randomUUID())
                 .userId(UUID.randomUUID())
                 .problemId(1)
                 .build();
-        when(mapper.readValue("event", SubmissionEvent.class)).thenReturn(event);
-        var listener = new SubmissionKafkaListenerService(mapper, processing);
+        when(mapper.readValue("event", SubmissionKafkaEvent.class)).thenReturn(event);
+        var listener = new SubmissionKafkaListenerService(mapper, judge);
         listener.listenSubmission("event");
-        verify(processing).process(event);
+        verify(judge).judge(event);
     }
 
     @Test
     void malformedWorkIsAcknowledged() {
-        SubmissionProcessingService processing = mock(SubmissionProcessingService.class);
-        var listener = new SubmissionKafkaListenerService(new ObjectMapper(), processing);
+        SubmissionJudge judge = mock(SubmissionJudge.class);
+        var listener = new SubmissionKafkaListenerService(new ObjectMapper(), judge);
         assertDoesNotThrow(() -> listener.listenSubmission("["));
-        verifyNoInteractions(processing);
+        verifyNoInteractions(judge);
     }
 
     @Test
     void processingFailurePropagates() throws Exception {
         ObjectMapper mapper = mock(ObjectMapper.class);
-        SubmissionEvent event = SubmissionEvent.builder().problemId(1).build();
-        when(mapper.readValue("event", SubmissionEvent.class)).thenReturn(event);
-        SubmissionProcessingService processing = mock(SubmissionProcessingService.class);
+        SubmissionKafkaEvent event = SubmissionKafkaEvent.builder().problemId(1).build();
+        when(mapper.readValue("event", SubmissionKafkaEvent.class)).thenReturn(event);
+        SubmissionJudge judge = mock(SubmissionJudge.class);
         IllegalStateException failure = new IllegalStateException("failed");
-        doThrow(failure).when(processing).process(event);
-        var listener = new SubmissionKafkaListenerService(mapper, processing);
+        doThrow(failure).when(judge).judge(event);
+        var listener = new SubmissionKafkaListenerService(mapper, judge);
 
         assertSame(failure, assertThrows(IllegalStateException.class, () -> listener.listenSubmission("event")));
     }

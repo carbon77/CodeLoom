@@ -4,7 +4,7 @@ import com.codeloom.backend.converter.AbstractJsonReadingConverter;
 import com.codeloom.backend.converter.AbstractJsonWritingConverter;
 import com.codeloom.backend.model.ProblemConstraints;
 import com.codeloom.backend.model.ProblemDifficulty;
-import com.codeloom.common.SubmissionStatus;
+import com.codeloom.common.SubmissionState;
 import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.List;
@@ -28,7 +28,7 @@ public class JdbcConfig extends AbstractJdbcConfiguration {
                 new ConstraintsRead(objectMapper),
                 new ConstraintsWrite(objectMapper),
                 new DifficultyWrite(),
-                new StatusWrite());
+                new StateWrite());
     }
 
     @ReadingConverter
@@ -54,9 +54,9 @@ public class JdbcConfig extends AbstractJdbcConfiguration {
     }
 
     @WritingConverter
-    static class StatusWrite
-            implements org.springframework.core.convert.converter.Converter<SubmissionStatus, JdbcValue> {
-        public JdbcValue convert(SubmissionStatus s) {
+    static class StateWrite
+            implements org.springframework.core.convert.converter.Converter<SubmissionState, JdbcValue> {
+        public JdbcValue convert(SubmissionState s) {
             return JdbcValue.of(s.name(), JDBCType.VARCHAR);
         }
     }

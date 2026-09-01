@@ -5,7 +5,7 @@ import SubmissionsList from './SubmissionsList'
 
 const submission = {
   submissionId: 'submission-1',
-  status: 'ACCEPTED' as const,
+  state: 'ACCEPTED' as const,
   language: 'python' as const,
   createdAt: '2026-01-01T10:00:00Z',
 }

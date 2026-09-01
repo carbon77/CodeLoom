@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Import;
 
 @TestConfiguration
 @Import({DockerImageManager.class, DockerVolumeFileIO.class, DockerJudgeEngine.class, DockerContainerPolicy.class})
-class DockerTestConfiguration {
+public class DockerTestConfiguration {
     @Bean
     ExecutorProperties executorProperties() {
         return new ExecutorProperties(65_536, 65_536);

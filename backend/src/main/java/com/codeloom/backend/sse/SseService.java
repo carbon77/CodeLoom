@@ -1,6 +1,6 @@
 package com.codeloom.backend.sse;
 
-import com.codeloom.backend.dto.SubmissionStatusDto;
+import com.codeloom.backend.dto.SubmissionStateDto;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class SseService {
         return emitter;
     }
 
-    public void sendSubmissionStatusEvent(UUID userId, SubmissionStatusDto dto) {
+    public void sendSubmissionStateEvent(UUID userId, SubmissionStateDto dto) {
         log.info("Sending SSE event: userId={}", userId);
 
         var userEmitters = emitters.get(userId);
@@ -37,7 +37,7 @@ public class SseService {
             return;
         }
 
-        var event = SseEmitter.event().data(dto, MediaType.APPLICATION_JSON).name("submission-status");
+        var event = SseEmitter.event().data(dto, MediaType.APPLICATION_JSON).name("submission-state");
 
         for (var entry : userEmitters.entrySet()) {
             SseEmitter emitter = entry.getValue();
@@ -54,12 +54,12 @@ public class SseService {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleSubmissionStatusCommitted(SubmissionStatusCommittedEvent event) {
-        sendSubmissionStatusEvent(
+    public void handleSubmissionStateCommitted(SubmissionStateCommittedEvent event) {
+        sendSubmissionStateEvent(
                 event.getUserId(),
-                SubmissionStatusDto.builder()
+                SubmissionStateDto.builder()
                         .submissionId(event.getSubmissionId())
-                        .status(event.getStatus())
+                        .state(event.getState())
                         .build());
     }
 

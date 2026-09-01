@@ -14,7 +14,7 @@ import { apiFetch, authenticatedFetch } from './client'
 import {
   fetchSubmissionDetails,
   sendSubmission,
-  subscribeToSubmissionStatuses,
+  subscribeToSubmissionStates,
 } from './submissions'
 
 describe('submission contracts', () => {
@@ -34,12 +34,12 @@ describe('submission contracts', () => {
     expect(apiFetch).toHaveBeenCalledWith('/v1/submissions/submission-1')
   })
 
-  it('subscribes with authenticated fetch and emits valid status events', async () => {
-    const onStatus = vi.fn()
+  it('subscribes with authenticated fetch and emits valid state events', async () => {
+    const onState = vi.fn()
     const onConnected = vi.fn()
     const controller = new AbortController()
 
-    await subscribeToSubmissionStatuses({ signal: controller.signal, onStatus, onConnected })
+    await subscribeToSubmissionStates({ signal: controller.signal, onState, onConnected })
     expect(fetchEventSource).toHaveBeenCalledWith(
       'http://api.test/v1/submissions/sse',
       expect.objectContaining({
@@ -54,20 +54,20 @@ describe('submission contracts', () => {
       status: 200,
       headers: { 'content-type': 'text/event-stream;charset=UTF-8' },
     }))
-    options.onmessage({ event: 'submission-status', data: JSON.stringify({
-      submissionId: 'submission-1', status: 'ACCEPTED',
+    options.onmessage({ event: 'submission-state', data: JSON.stringify({
+      submissionId: 'submission-1', state: 'ACCEPTED',
     }), id: '', retry: '' })
     options.onmessage({ event: 'other', data: '{}', id: '', retry: '' })
-    options.onmessage({ event: 'submission-status', data: 'invalid', id: '', retry: '' })
+    options.onmessage({ event: 'submission-state', data: 'invalid', id: '', retry: '' })
 
     expect(onConnected).toHaveBeenCalledOnce()
-    expect(onStatus).toHaveBeenCalledOnce()
-    expect(onStatus).toHaveBeenCalledWith({ submissionId: 'submission-1', status: 'ACCEPTED' })
+    expect(onState).toHaveBeenCalledOnce()
+    expect(onState).toHaveBeenCalledWith({ submissionId: 'submission-1', state: 'ACCEPTED' })
   })
 
   it('stops retrying on fatal client responses', async () => {
     const controller = new AbortController()
-    await subscribeToSubmissionStatuses({ signal: controller.signal, onStatus: vi.fn() })
+    await subscribeToSubmissionStates({ signal: controller.signal, onState: vi.fn() })
     const options = fetchEventSource.mock.calls[0][1]
     const error = await options.onopen(new Response(null, { status: 401 })).catch((cause: unknown) => cause)
     expect(() => options.onerror(error)).toThrow('SSE request failed with status 401')

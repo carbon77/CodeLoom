@@ -8,7 +8,6 @@ import static com.codeloom.executor.engine.CodeExecutionExitCode.TIMEOUT;
 import static com.codeloom.executor.engine.DockerExecutionDefaults.TIMEOUT_MS;
 import static com.codeloom.executor.engine.DockerExecutionDefaults.WORKSPACE_DIR;
 
-import com.codeloom.common.SubmissionStatus;
 import com.codeloom.executor.config.ExecutorProperties;
 import com.codeloom.executor.dto.CompilationResult;
 import com.codeloom.executor.dto.ContainerOutcome;
@@ -58,7 +57,7 @@ public class DockerJudgeEngine {
                 return CompilationResult.builder().isSuccessful(true).stderr("").build();
             }
 
-            String containerId = createContainer(context, context.language().getCompileCommand());
+            String containerId = createContainer(context, context.language().getCompileCommand(), true);
             ContainerOutcome outcome = runContainer(context, containerId);
             return CompilationResult.builder()
                     .isSuccessful(outcome.exitCode() == 0)
@@ -76,7 +75,7 @@ public class DockerJudgeEngine {
                 "input.txt",
                 testCase.getInput().getBytes(StandardCharsets.UTF_8));
 
-        String containerId = createContainer(context, context.language().getRunCommand());
+        String containerId = createContainer(context, context.language().getRunCommand(), false);
         ContainerOutcome outcome = runContainer(context, containerId);
         return RunResult.builder()
                 .exitCode(outcome.exitCode())
@@ -128,17 +127,17 @@ public class DockerJudgeEngine {
             }
             releaseExecutionGate(containerId);
             try {
-                Integer status = dockerClient
+                Integer exitCode = dockerClient
                         .waitContainerCmd(containerId)
                         .start()
                         .awaitStatusCode(
                                 context.executionTimeLimitMs() == null ? TIMEOUT_MS : context.executionTimeLimitMs(),
                                 TimeUnit.MILLISECONDS);
-                if (status == null) {
+                if (exitCode == null) {
                     killOnce(containerId, killRequested);
                     exit = TIMEOUT.code();
                 } else {
-                    exit = status;
+                    exit = exitCode;
                 }
             } catch (Exception e) {
                 killOnce(containerId, killRequested);
@@ -215,16 +214,15 @@ public class DockerJudgeEngine {
         }
     }
 
-    private String createContainer(SubmissionContext context, String command) {
-        long memory = (context.status() == SubmissionStatus.COMPILING || context.memoryUsageLimitBytes() == null)
+    private String createContainer(SubmissionContext context, String command, boolean compilation) {
+        long memory = compilation || context.memoryUsageLimitBytes() == null
                 ? DEFAULT_MEMORY_BYTES
                 : context.memoryUsageLimitBytes();
 
         dockerImageManager.pullImageIfAbsent(context.language().getImage(), 300);
         return dockerClient
                 .createContainerCmd(context.language().getImage())
-                .withHostConfig(containerPolicy.judge(
-                        volumeName(context.submissionId()), memory, context.status() == SubmissionStatus.COMPILING))
+                .withHostConfig(containerPolicy.judge(volumeName(context.submissionId()), memory, compilation))
                 .withWorkingDir(WORKSPACE_DIR)
                 .withCmd("sh", "-c", "until [ -f " + EXECUTION_GATE + " ]; do sleep 0.01; done; " + command)
                 .exec()

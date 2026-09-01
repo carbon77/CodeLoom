@@ -3,8 +3,8 @@
 Microservice that:
 1. Consumes submission events from Kafka (`submissionRepository` by default).
 2. Loads test cases from PostgreSQL by `problem_id`.
-3. Process submission via state machine
-4. Publishes updated submission statuses to Kafka (`submission_statuses` by default)
+3. Processes the submission through `SubmissionJudge`
+4. Publishes updated submission states to Kafka (`submission_states` by default)
 
 ## Judge engine
 Service uses [docker-java](https://github.com/docker-java/docker-java) for compiling and executing code in secured environments
@@ -58,19 +58,22 @@ The tmpfs, open-file, and file-size values can be changed with
 shared-memory limits are fixed in `DockerConstraints`. Submission memory applies only
 to test execution; compilation always uses the fixed 256 MiB default.
 
-## State Machine
+## Submission Judge
 ```mermaid
 stateDiagram-v2
-    [*] --> QUEUED
+    [*] --> PENDING
     
-    QUEUED --> COMPILING
+    PENDING --> COMPILING
+    PENDING --> SYSTEM_ERROR
     COMPILING --> COMPILE_ERROR
     COMPILING --> RUNNING
+    COMPILING --> SYSTEM_ERROR
     RUNNING --> ACCEPTED
     RUNNING --> WRONG_ANSWER
     RUNNING --> TIME_LIMIT_EXCEEDED
     RUNNING --> MEMORY_LIMIT_EXCEEDED
     RUNNING --> RUNTIME_ERROR
+    RUNNING --> SYSTEM_ERROR
     
     COMPILE_ERROR --> [*]
     ACCEPTED --> [*]
@@ -78,6 +81,7 @@ stateDiagram-v2
     TIME_LIMIT_EXCEEDED --> [*]
     MEMORY_LIMIT_EXCEEDED --> [*]
     RUNTIME_ERROR --> [*]
+    SYSTEM_ERROR --> [*]
 ```
 
 ## Event contract
@@ -95,13 +99,13 @@ stateDiagram-v2
 }
 ```
 
-### Outgoing (`submission_statuses`)
+### Outgoing (`submission_states`)
 ```json
 {
   "submissionId": "uuid",
   "problem_id": 1,
   "userId": "uuid",
-  "new_status": "<submission_status>",
+  "newState": "<submission_state>",
   "payload": {}
 }
 ```

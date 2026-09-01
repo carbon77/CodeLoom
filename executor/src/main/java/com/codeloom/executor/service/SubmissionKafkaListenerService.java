@@ -1,6 +1,6 @@
 package com.codeloom.executor.service;
 
-import com.codeloom.common.SubmissionEvent;
+import com.codeloom.common.SubmissionKafkaEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -13,19 +13,19 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class SubmissionKafkaListenerService {
     private final ObjectMapper objectMapper;
-    private final SubmissionProcessingService submissionProcessingService;
+    private final SubmissionJudge submissionJudge;
 
     @KafkaListener(topics = "${codeloom.kafka.topics.submission}", groupId = "${spring.kafka.consumer.group-id}")
     public void listenSubmission(String message) {
-        final SubmissionEvent event;
+        final SubmissionKafkaEvent event;
         try {
-            event = objectMapper.readValue(message, SubmissionEvent.class);
+            event = objectMapper.readValue(message, SubmissionKafkaEvent.class);
         } catch (JacksonException e) {
             log.error("Failed to parse event: ", e);
             return;
         }
 
         log.info("Received submission event: problemId={} userId={}", event.problemId(), event.userId());
-        submissionProcessingService.process(event);
+        submissionJudge.judge(event);
     }
 }

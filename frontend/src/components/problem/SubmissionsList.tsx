@@ -13,11 +13,11 @@ import {
 } from "@mui/material";
 import type {
   Submission,
-  SubmissionStatus,
+  SubmissionState,
 } from "../../api/submissions";
 
-const statusColors: Record<
-  SubmissionStatus,
+const stateColors: Record<
+  SubmissionState,
   "success" | "warning" | "error" | "info" | "default"
 > = {
   PENDING: "info",
@@ -84,7 +84,7 @@ export default function SubmissionsList({
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Status</TableCell>
+              <TableCell>State</TableCell>
               <TableCell>Language</TableCell>
               <TableCell>Submitted</TableCell>
             </TableRow>
@@ -107,8 +107,8 @@ export default function SubmissionsList({
               >
                 <TableCell>
                   <Chip
-                    label={submission.status}
-                    color={statusColors[submission.status]}
+                    label={submission.state}
+                    color={stateColors[submission.state]}
                     size="small"
                   />
                 </TableCell>

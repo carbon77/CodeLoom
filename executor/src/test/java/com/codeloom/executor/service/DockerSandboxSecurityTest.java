@@ -3,7 +3,7 @@ package com.codeloom.executor.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.codeloom.common.SubmissionStatus;
+import com.codeloom.common.SubmissionState;
 import com.codeloom.common.language.LanguageSpec;
 import com.codeloom.executor.dto.RunResult;
 import com.codeloom.executor.dto.SubmissionContext;
@@ -187,7 +187,7 @@ class DockerSandboxSecurityTest extends DockerTestBase {
                 .language(LanguageSpec.PYTHON)
                 .executionTimeLimitMs(10_000L)
                 .memoryUsageLimitBytes(64L * 1024 * 1024)
-                .status(SubmissionStatus.RUNNING)
+                .state(SubmissionState.RUNNING)
                 .build();
         assertTrue(dockerJudgeEngine.compile(context).isSuccessful());
         return dockerJudgeEngine.runTestCase(context, EMPTY_TEST_CASE);

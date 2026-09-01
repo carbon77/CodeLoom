@@ -4,15 +4,15 @@ import { useRouteLoaderData } from "react-router-dom";
 import type { ProblemDetail } from "../api/problems";
 import {
   fetchSubmissions,
-  subscribeToSubmissionStatuses,
+  subscribeToSubmissionStates,
   type Submission,
-  type SubmissionStatus,
+  type SubmissionState,
 } from "../api/submissions";
 import ProblemTabs from "../components/problem/ProblemTabs";
 import CodeEditorPanel from "../components/problem/CodeEditorPanel";
 import { errorMessage } from "../api/client";
 
-const terminalStatuses = new Set<SubmissionStatus>([
+const terminalStates = new Set<SubmissionState>([
   "COMPILE_ERROR",
   "ACCEPTED",
   "WRONG_ANSWER",
@@ -88,7 +88,7 @@ export default function ProblemDetailPage() {
           const lastSubmission = sorted.find(
             (item) => item.submissionId === lastSubmittedId,
           );
-          if (lastSubmission && terminalStatuses.has(lastSubmission.status)) {
+          if (lastSubmission && terminalStates.has(lastSubmission.state)) {
             lastSubmittedIdRef.current = null;
             setSelectedSubmissionId(lastSubmission.submissionId);
             setActiveTab(2);
@@ -110,7 +110,7 @@ export default function ProblemDetailPage() {
     if (problemId === null) return;
     const controller = new AbortController();
     setLiveUpdatesError(null);
-    void subscribeToSubmissionStatuses({
+    void subscribeToSubmissionStates({
       signal: controller.signal,
       onConnected: () => {
         setLiveUpdatesError(null);
@@ -119,23 +119,23 @@ export default function ProblemDetailPage() {
           setSubmissionDetailsRefreshKey((key) => key + 1);
         }
       },
-      onStatus: (status) => {
+      onState: (state) => {
         setSubmissions((items) =>
           items?.map((item) =>
-            item.submissionId === status.submissionId
-              ? { ...item, status: status.status }
+            item.submissionId === state.submissionId
+              ? { ...item, state: state.state }
               : item,
           ) ?? null,
         );
-        if (selectedSubmissionIdRef.current === status.submissionId) {
+        if (selectedSubmissionIdRef.current === state.submissionId) {
           setSubmissionDetailsRefreshKey((key) => key + 1);
         }
         if (
-          lastSubmittedIdRef.current === status.submissionId &&
-          terminalStatuses.has(status.status)
+          lastSubmittedIdRef.current === state.submissionId &&
+          terminalStates.has(state.state)
         ) {
           lastSubmittedIdRef.current = null;
-          setSelectedSubmissionId(status.submissionId);
+          setSelectedSubmissionId(state.submissionId);
           setSubmissionDetailsRefreshKey((key) => key + 1);
           setActiveTab(2);
         }
@@ -143,7 +143,7 @@ export default function ProblemDetailPage() {
     }).catch(() => {
       if (!controller.signal.aborted) {
         setLiveUpdatesError(
-          "Live submission updates are unavailable. Use refresh to get the latest status.",
+          "Live submission updates are unavailable. Use refresh to get the latest state.",
         );
       }
     });

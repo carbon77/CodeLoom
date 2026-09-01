@@ -17,7 +17,7 @@ public enum LanguageSpec {
     private final String compileCommand;
     private final String runCommand;
 
-    public static LanguageSpec fromLanguage(String language) {
+    public static LanguageSpec fromString(String language) {
         return Arrays.stream(values())
                 .filter(v -> v.id.equalsIgnoreCase(language))
                 .findFirst()

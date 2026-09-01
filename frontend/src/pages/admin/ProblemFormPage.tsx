@@ -61,7 +61,7 @@ export default function ProblemFormPage() {
   const [description, setDescription] = useState('')
   const [difficulty, setDifficulty] = useState<Difficulty>('EASY')
   const [executionTimeLimitMs, setExecutionTimeLimitMs] = useState('')
-  const [memoryUsageLimitBytes, setMemoryUsageLimitBytes] = useState('')
+  const [memoryUsageLimitMb, setMemoryUsageLimitMb] = useState('')
   const [hints, setHints] = useState<string[]>([])
   const [testCases, setTestCases] = useState<TestCase[]>([])
   const [initialTestCases, setInitialTestCases] = useState<TestCase[]>([])
@@ -86,7 +86,7 @@ export default function ProblemFormPage() {
         setDescription(problem.description)
         setDifficulty(problem.difficulty)
         setExecutionTimeLimitMs(problem.constraints?.executionTimeLimitMs?.toString() ?? '')
-        setMemoryUsageLimitBytes(problem.constraints?.memoryUsageLimitBytes?.toString() ?? '')
+        setMemoryUsageLimitMb(problem.constraints?.memoryUsageLimitMb?.toString() ?? '')
         setHints(problem.hints)
         setTestCases(loadedTestCases)
         setInitialTestCases(loadedTestCases)
@@ -131,7 +131,7 @@ export default function ProblemFormPage() {
       difficulty,
       constraints: {
         executionTimeLimitMs: toNullableNumber(executionTimeLimitMs),
-        memoryUsageLimitBytes: toNullableNumber(memoryUsageLimitBytes),
+        memoryUsageLimitMb: toNullableNumber(memoryUsageLimitMb),
       },
       hints,
       topics: serializeTopics(selectedTopics, topics),
@@ -264,10 +264,10 @@ export default function ProblemFormPage() {
               sx={{ flexGrow: 1 }}
             />
             <TextField
-              label="Memory limit (bytes)"
+              label="Memory limit (MB)"
               type="number"
-              value={memoryUsageLimitBytes}
-              onChange={(event) => setMemoryUsageLimitBytes(event.target.value)}
+              value={memoryUsageLimitMb}
+              onChange={(event) => setMemoryUsageLimitMb(event.target.value)}
               sx={{ flexGrow: 1 }}
             />
           </Stack>

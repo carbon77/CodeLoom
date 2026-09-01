@@ -79,10 +79,10 @@ public class SubmissionService {
                         problem.getConstraints() == null
                                 ? null
                                 : problem.getConstraints().executionTimeLimitMs())
-                .memoryUsageLimitBytes(
+                .memoryUsageLimitMb(
                         problem.getConstraints() == null
                                 ? null
-                                : problem.getConstraints().memoryUsageLimitBytes())
+                                : problem.getConstraints().memoryUsageLimitMb())
                 .build();
 
         kafkaTemplate.send(topic, submission.getId().toString(), objectMapper.writeValueAsString(event));

@@ -94,8 +94,8 @@ stateDiagram-v2
   "userId": "uuid",
   "language": "java|cpp|python",
   "code": "...",
-  "timeLimitMs": 10000,
-  "memoryLimitMb": 5
+  "executionTimeLimitMs": 10000,
+  "memoryUsageLimitMb": 5
 }
 ```
 

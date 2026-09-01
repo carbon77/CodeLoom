@@ -77,7 +77,7 @@ public class SubmissionJudge {
                 .userId(event.userId())
                 .code(event.code())
                 .executionTimeLimitMs(event.executionTimeLimitMs())
-                .memoryUsageLimitBytes(event.memoryUsageLimitBytes())
+                .memoryUsageLimitMb(event.memoryUsageLimitMb())
                 .testCaseResults(List.of())
                 .state(SubmissionState.PENDING)
                 .build();

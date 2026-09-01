@@ -11,4 +11,4 @@ public record SubmissionKafkaEvent(
         String code,
         String language,
         Long executionTimeLimitMs,
-        Long memoryUsageLimitBytes) {}
+        Long memoryUsageLimitMb) {}

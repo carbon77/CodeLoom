@@ -44,5 +44,6 @@ logging:
 
 codeloom:
   kafka:
-    submission-topic: submission
-    submission-state-topic: submission_states
+    topics:
+      submission: submission
+      submission-state: submission-state

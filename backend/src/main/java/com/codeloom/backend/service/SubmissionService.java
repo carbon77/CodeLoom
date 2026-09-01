@@ -41,7 +41,7 @@ public class SubmissionService {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${codeloom.kafka.submission-topic}")
+    @Value("${codeloom.kafka.topics.submission}")
     private String topic;
 
     public Collection<SubmissionListDto> findSubmissions(long problemId, Authentication authentication) {

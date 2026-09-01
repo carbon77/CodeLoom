@@ -25,7 +25,7 @@ public class SubmissionStateKafkaListenerService {
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    @KafkaListener(topics = "${codeloom.kafka.submission-state-topic}")
+    @KafkaListener(topics = "${codeloom.kafka.topics.submission-state}")
     @Transactional
     public void listenSubmissionState(String message) {
         try {

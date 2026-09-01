@@ -9,5 +9,6 @@ spring:
 
 codeloom:
   kafka:
-    submission-topic: test-submissions
-    submission-state-topic: test-submission-states
+    topics:
+      submission: test-submissions
+      submission-state: test-submission-states

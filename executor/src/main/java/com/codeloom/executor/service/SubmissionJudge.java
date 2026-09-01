@@ -10,10 +10,11 @@ import com.codeloom.executor.dto.SubmissionContext;
 import com.codeloom.executor.engine.DockerJudgeEngine;
 import com.codeloom.executor.model.TestCase;
 import com.codeloom.executor.repository.TestCaseRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -48,7 +49,7 @@ public class SubmissionJudge {
                     context = context.addTestResult(result(testCase, result));
                 }
                 if (result.isFailed()) {
-                    publish(context, result.stateFromExitCode());
+                    publish(context.withError(result.stderr()), result.stateFromExitCode());
                     return;
                 }
                 if (isWrongAnswer(result, testCase)) {

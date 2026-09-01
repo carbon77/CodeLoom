@@ -62,7 +62,7 @@ class SubmissionStateConsumerIT extends BackendIntegrationTestSupport {
     @Autowired
     KafkaTemplate<String, String> kafkaTemplate;
 
-    @Value("${codeloom.kafka.submission-state-topic}")
+    @Value("${codeloom.kafka.topics.submission-state}")
     String topic;
 
     long problemId;

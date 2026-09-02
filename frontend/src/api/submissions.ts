@@ -5,7 +5,7 @@ import {
 } from "@microsoft/fetch-event-source";
 import { apiBaseUrl, apiFetch, authenticatedFetch } from "./client";
 
-export type SubmissionLanguage = "java" | "cpp" | "python";
+export type SubmissionLanguage = string;
 
 export type SubmissionState =
   | "PENDING"

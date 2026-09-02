@@ -39,6 +39,9 @@ export default function AppLayout() {
             <Button component={Link} to="/problems" color="inherit">
               Problems
             </Button>
+            <Button component={Link} to="/languages" color="inherit">
+              Languages
+            </Button>
             {user && isAdmin(user) && (
               <Button component={Link} to="/admin/problems" color="inherit">
                 Admin

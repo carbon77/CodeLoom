@@ -15,6 +15,7 @@ import CallbackPage from './pages/CallbackPage'
 import LogoutPage from './pages/LogoutPage'
 import ProfilePage from './pages/ProfilePage'
 import ProblemListPage from './pages/ProblemListPage'
+import LanguagesPage from './pages/LanguagesPage'
 import AdminProblemListPage from './pages/admin/AdminProblemListPage'
 import ProblemFormPage from './pages/admin/ProblemFormPage'
 import { fetchProblemBySlug, type ProblemDetail } from './api/problems'
@@ -49,6 +50,7 @@ const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { index: true, element: <ProfilePage /> },
+          { path: 'languages', element: <LanguagesPage /> },
           { path: 'problems', element: <ProblemListPage /> },
           {
             path: 'problems/:problemSlug',

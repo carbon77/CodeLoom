@@ -62,7 +62,10 @@ abstract class DockerTestBase {
     @AfterEach
     void assertDockerClean() {
         for (LanguageSpec language : languageProperties.languages().values()) {
-            assertContainersRemoved(language.image());
+            assertContainersRemoved(language.runImage());
+            if (language.compileImage() != null) {
+                assertContainersRemoved(language.compileImage());
+            }
         }
         assertContainersRemoved(HELPER_CONTAINER_IMAGE_NAME);
         assertVolumesRemoved(submissionId);

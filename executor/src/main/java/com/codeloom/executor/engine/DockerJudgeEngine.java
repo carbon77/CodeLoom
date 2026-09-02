@@ -216,10 +216,11 @@ public class DockerJudgeEngine {
                 : megabytesToBytes(context.memoryUsageLimitMb());
 
         var command = cmd(context, compilation);
+        var image = context.language().image(compilation);
 
-        dockerImageManager.pullImageIfAbsent(context.language().image(), 300);
+        dockerImageManager.pullImageIfAbsent(image, 300);
         return dockerClient
-                .createContainerCmd(context.language().image())
+                .createContainerCmd(image)
                 .withHostConfig(containerPolicy.judge(volumeName(context.submissionId()), memory, compilation))
                 .withWorkingDir(WORKSPACE_DIR)
                 .withCmd(command)

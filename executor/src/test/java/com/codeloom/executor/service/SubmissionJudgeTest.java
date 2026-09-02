@@ -31,7 +31,7 @@ class SubmissionJudgeTest {
     private final DockerJudgeEngine engine = mock(DockerJudgeEngine.class);
     private final SubmissionStatePublisher publisher = mock(SubmissionStatePublisher.class);
     private final LanguageProperties languages = new LanguageProperties(
-            Map.of("python", new LanguageSpec("python:3.14-slim", "main.py", null, "python3 main.py")));
+            Map.of("python", new LanguageSpec("Python", "python:3.14-slim", null, "main.py", null, "python3 main.py")));
     private final SubmissionJudge judge = new SubmissionJudge(testCases, engine, publisher, languages);
     private final UUID submissionId = UUID.randomUUID();
     private final TestCase publicCase = testCase(true, "1", "1");

@@ -1,4 +1,7 @@
 spring:
+  config:
+    import: classpath:languages.yaml
+
   kafka:
     consumer:
       auto-offset-reset: earliest

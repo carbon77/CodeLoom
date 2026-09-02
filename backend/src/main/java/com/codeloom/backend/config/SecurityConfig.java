@@ -39,6 +39,8 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/v1/submissions/**")
                         .hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/v1/languages/**")
+                        .hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/v1/topics/**", "/v1/problems/**")
                         .hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/v1/problems/**")

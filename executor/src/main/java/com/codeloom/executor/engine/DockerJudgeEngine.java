@@ -1,10 +1,7 @@
 package com.codeloom.executor.engine;
 
 import static com.codeloom.executor.config.DockerConstraints.DEFAULT_MEMORY_BYTES;
-import static com.codeloom.executor.engine.CodeExecutionExitCode.ERROR;
-import static com.codeloom.executor.engine.CodeExecutionExitCode.MEMORY_LIMIT_EXCEEDED;
-import static com.codeloom.executor.engine.CodeExecutionExitCode.OUTPUT_LIMIT;
-import static com.codeloom.executor.engine.CodeExecutionExitCode.TIMEOUT;
+import static com.codeloom.executor.engine.CodeExecutionExitCode.*;
 import static com.codeloom.executor.engine.DockerExecutionDefaults.TIMEOUT_MS;
 import static com.codeloom.executor.engine.DockerExecutionDefaults.WORKSPACE_DIR;
 
@@ -50,15 +47,13 @@ public class DockerJudgeEngine {
 
         try {
             dockerVolumeFileIO.writeFile(
-                    volume,
-                    context.language().getSourceFileName(),
-                    context.code().getBytes(StandardCharsets.UTF_8));
+                    volume, context.language().sourceFile(), context.code().getBytes(StandardCharsets.UTF_8));
 
-            if (context.language().getCompileCommand() == null) {
+            if (context.language().compileCommand() == null) {
                 return CompilationResult.builder().isSuccessful(true).stderr("").build();
             }
 
-            String containerId = createContainer(context, context.language().getCompileCommand(), true);
+            String containerId = createContainer(context, true);
             ContainerOutcome outcome = runContainer(context, containerId);
             return CompilationResult.builder()
                     .isSuccessful(outcome.exitCode() == 0)
@@ -76,7 +71,7 @@ public class DockerJudgeEngine {
                 "input.txt",
                 testCase.getInput().getBytes(StandardCharsets.UTF_8));
 
-        String containerId = createContainer(context, context.language().getRunCommand(), false);
+        String containerId = createContainer(context, false);
         ContainerOutcome outcome = runContainer(context, containerId);
         return RunResult.builder()
                 .exitCode(outcome.exitCode())
@@ -215,19 +210,29 @@ public class DockerJudgeEngine {
         }
     }
 
-    private String createContainer(SubmissionContext context, String command, boolean compilation) {
+    private String createContainer(SubmissionContext context, boolean compilation) {
         long memory = compilation || context.memoryUsageLimitMb() == null
                 ? DEFAULT_MEMORY_BYTES
                 : megabytesToBytes(context.memoryUsageLimitMb());
 
-        dockerImageManager.pullImageIfAbsent(context.language().getImage(), 300);
+        var command = cmd(context, compilation);
+        var image = context.language().image(compilation);
+
+        dockerImageManager.pullImageIfAbsent(image, 300);
         return dockerClient
-                .createContainerCmd(context.language().getImage())
+                .createContainerCmd(image)
                 .withHostConfig(containerPolicy.judge(volumeName(context.submissionId()), memory, compilation))
                 .withWorkingDir(WORKSPACE_DIR)
-                .withCmd("sh", "-c", "until [ -f " + EXECUTION_GATE + " ]; do sleep 0.01; done; " + command)
+                .withCmd(command)
                 .exec()
                 .getId();
+    }
+
+    private List<String> cmd(SubmissionContext context, boolean compilation) {
+        var command = compilation
+                ? context.language().compileCommand()
+                : context.language().runCommand() + " < input.txt";
+        return List.of("sh", "-c", "until [ -f " + EXECUTION_GATE + " ]; do sleep 0.01; done; " + command);
     }
 
     private String volumeName(UUID id) {

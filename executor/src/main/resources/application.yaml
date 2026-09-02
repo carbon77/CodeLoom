@@ -2,6 +2,9 @@ server:
   port: ${CODELOOM_EXECUTOR_PORT:8082}
 
 spring:
+  config:
+    import: classpath:languages.yaml
+
   application:
     name: executor
   datasource:

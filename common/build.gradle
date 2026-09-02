@@ -1,3 +1,6 @@
 dependencies {
     implementation 'jakarta.validation:jakarta.validation-api:4.0.0-M1'
+
+    compileOnly 'org.springframework.boot:spring-boot:4.1.0'
+    compileOnly 'org.jspecify:jspecify:1.0.0'
 }

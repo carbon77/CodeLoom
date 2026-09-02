@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Box,
@@ -12,12 +12,11 @@ import {
 import { Send } from "@mui/icons-material";
 import { sendSubmission } from "../../api/submissions";
 import { errorMessage } from "../../api/client";
+import { fetchLanguageDisplay, type LanguageDisplay } from "../../api/languages";
 import CodeEditor from "./CodeEditor";
 import EditorSettings from "./EditorSettings";
 
-type Language = "java" | "cpp" | "python";
-
-const starterCode: Record<Language, string> = {
+const starterCode: Record<string, string> = {
   java: `import java.util.Scanner;
 
 public class Main {
@@ -49,18 +48,46 @@ export default function CodeEditorPanel({
   disabled,
   onSubmitted,
 }: CodeEditorPanelProps) {
-  const [language, setLanguage] = useState<Language>("python");
-  const [code, setCode] = useState<string>(starterCode.python);
+  const [languages, setLanguages] = useState<LanguageDisplay[] | null>(null);
+  const [languageLoadError, setLanguageLoadError] = useState<string | null>(null);
+  const [language, setLanguage] = useState("");
+  const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  const handleLanguageChange = (event: SelectChangeEvent<Language>) => {
+  useEffect(() => {
+    let active = true;
+    fetchLanguageDisplay()
+      .then((availableLanguages) => {
+        if (!active) return;
+        setLanguages(availableLanguages);
+        const initial =
+          availableLanguages.find((item) => item.key === "python") ??
+          availableLanguages[0];
+        if (initial) {
+          setLanguage(initial.key);
+          setCode(starterCode[initial.key] ?? "");
+        }
+      })
+      .catch((cause) => {
+        if (active) {
+          setLanguageLoadError(
+            errorMessage(cause, "Unable to load available languages."),
+          );
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleLanguageChange = (event: SelectChangeEvent<string>) => {
     const next = event.target.value;
+    const currentStarter = starterCode[language] ?? "";
+    const nextStarter = starterCode[next] ?? "";
     setCode((current) =>
-      current.trim() === starterCode[language].trim()
-        ? starterCode[next]
-        : current,
+      current.trim() === currentStarter.trim() ? nextStarter : current,
     );
     setLanguage(next);
   };
@@ -109,22 +136,27 @@ export default function CodeEditorPanel({
           borderColor: "divider",
         }}
       >
-        <Select<Language>
+        <Select<string>
           value={language}
           onChange={handleLanguageChange}
           size="small"
+          disabled={languages === null || languages.length === 0}
           sx={{ minWidth: 140 }}
         >
-          <MenuItem value="java">Java</MenuItem>
-          <MenuItem value="cpp">C++</MenuItem>
-          <MenuItem value="python">Python</MenuItem>
+          {languages?.map((availableLanguage) => (
+            <MenuItem key={availableLanguage.key} value={availableLanguage.key}>
+              {availableLanguage.name}
+            </MenuItem>
+          ))}
         </Select>
         <Box sx={{ flexGrow: 1 }} />
         <EditorSettings />
         <Button
           variant="contained"
           startIcon={<Send />}
-          disabled={submitting || disabled || problemId === null}
+          disabled={
+            submitting || disabled || problemId === null || language === ""
+          }
           onClick={handleSubmit}
         >
           {submitting ? "Submitting…" : "Submit"}
@@ -140,6 +172,11 @@ export default function CodeEditorPanel({
       {submitSuccess && (
         <Alert severity="success" sx={{ m: 1.5 }}>
           Submission sent successfully.
+        </Alert>
+      )}
+      {languageLoadError && (
+        <Alert severity="error" sx={{ m: 1.5 }}>
+          {languageLoadError}
         </Alert>
       )}
       {submitError && (

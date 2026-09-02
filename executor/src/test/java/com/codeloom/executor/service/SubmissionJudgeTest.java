@@ -7,6 +7,8 @@ import static org.mockito.Mockito.*;
 
 import com.codeloom.common.SubmissionKafkaEvent;
 import com.codeloom.common.SubmissionState;
+import com.codeloom.common.language.LanguageProperties;
+import com.codeloom.common.language.LanguageSpec;
 import com.codeloom.executor.dto.CompilationResult;
 import com.codeloom.executor.dto.RunResult;
 import com.codeloom.executor.dto.SubmissionContext;
@@ -14,6 +16,7 @@ import com.codeloom.executor.engine.DockerJudgeEngine;
 import com.codeloom.executor.model.TestCase;
 import com.codeloom.executor.repository.TestCaseRepository;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +30,9 @@ class SubmissionJudgeTest {
     private final TestCaseRepository testCases = mock(TestCaseRepository.class);
     private final DockerJudgeEngine engine = mock(DockerJudgeEngine.class);
     private final SubmissionStatePublisher publisher = mock(SubmissionStatePublisher.class);
-    private final SubmissionJudge judge = new SubmissionJudge(testCases, engine, publisher);
+    private final LanguageProperties languages = new LanguageProperties(
+            Map.of("python", new LanguageSpec("Python", "python:3.14-slim", null, "main.py", null, "python3 main.py")));
+    private final SubmissionJudge judge = new SubmissionJudge(testCases, engine, publisher, languages);
     private final UUID submissionId = UUID.randomUUID();
     private final TestCase publicCase = testCase(true, "1", "1");
     private final TestCase hiddenCase = testCase(false, "2", "2");

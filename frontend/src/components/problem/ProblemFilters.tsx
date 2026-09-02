@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import type { Difficulty, Topic } from "../../api/problems";
+import { useI18n } from "../../i18n/I18nContext";
 
 const difficulties: Difficulty[] = ["EASY", "MEDIUM", "HARD"];
 
@@ -37,6 +38,7 @@ export default function ProblemFilters({
   hasFilters,
   onClearFilters,
 }: ProblemFiltersProps) {
+  const { t } = useI18n();
   return (
     <Paper sx={{ p: 2, mb: 3 }}>
       <Stack
@@ -46,7 +48,7 @@ export default function ProblemFilters({
       >
         <TextField
           size="small"
-          placeholder="Search by title"
+          placeholder={t('filters.search')}
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
           sx={{ flex: 1, minWidth: 200 }}
@@ -61,10 +63,10 @@ export default function ProblemFilters({
           }}
         />
         <FormControl size="small" sx={{ minWidth: 200 }}>
-          <InputLabel>Difficulty</InputLabel>
+          <InputLabel>{t('filters.difficulty')}</InputLabel>
           <Select<Difficulty[]>
             multiple
-            label="Difficulty"
+            label={t('filters.difficulty')}
             value={selectedDifficulties}
             onChange={(event) =>
               onSelectedDifficultiesChange(event.target.value as Difficulty[])
@@ -72,16 +74,16 @@ export default function ProblemFilters({
           >
             {difficulties.map((difficulty) => (
               <MenuItem key={difficulty} value={difficulty}>
-                {difficulty}
+                {t(`difficulty.${difficulty}`)}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
         <FormControl size="small" sx={{ minWidth: 200 }}>
-          <InputLabel>Topic</InputLabel>
+          <InputLabel>{t('filters.topic')}</InputLabel>
           <Select<string[]>
             multiple
-            label="Topic"
+            label={t('filters.topic')}
             value={selectedTopics}
             onChange={(event) =>
               onSelectedTopicsChange(event.target.value as string[])
@@ -99,7 +101,7 @@ export default function ProblemFilters({
           disabled={!hasFilters}
           onClick={onClearFilters}
         >
-          Clear
+          {t('filters.clear')}
         </Button>
       </Stack>
     </Paper>

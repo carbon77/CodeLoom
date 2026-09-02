@@ -1,7 +1,6 @@
-package com.codeloom.executor.service;
+package com.codeloom.executor.config;
 
-import com.codeloom.executor.config.DockerConstraints;
-import com.codeloom.executor.config.ExecutorProperties;
+import com.codeloom.common.language.LanguageProperties;
 import com.codeloom.executor.engine.DockerContainerPolicy;
 import com.codeloom.executor.engine.DockerImageManager;
 import com.codeloom.executor.engine.DockerJudgeEngine;
@@ -12,11 +11,13 @@ import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 @TestConfiguration
+@EnableConfigurationProperties(LanguageProperties.class)
 @Import({DockerImageManager.class, DockerVolumeFileIO.class, DockerJudgeEngine.class, DockerContainerPolicy.class})
 public class DockerTestConfiguration {
     @Bean

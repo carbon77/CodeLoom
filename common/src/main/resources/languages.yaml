@@ -1,0 +1,18 @@
+codeloom:
+  languages:
+    java:
+      image: eclipse-temurin:21-jdk
+      source-file: Main.java
+      compile-command: javac Main.java
+      run-command: java Main
+
+    cpp:
+      image: gcc:15
+      source-file: main.cpp
+      compile-command: g++ -std=c++20 -O2 -o main main.cpp
+      run-command: ./main
+
+    python:
+      image: python:3.14-slim
+      source-file: main.py
+      run-command: python3 main.py

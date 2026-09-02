@@ -3,7 +3,7 @@ package com.codeloom.executor.service;
 import com.codeloom.common.SubmissionKafkaEvent;
 import com.codeloom.common.SubmissionState;
 import com.codeloom.common.event.TestCaseResultDto;
-import com.codeloom.common.language.LanguageSpec;
+import com.codeloom.common.language.LanguageProperties;
 import com.codeloom.executor.dto.CompilationResult;
 import com.codeloom.executor.dto.RunResult;
 import com.codeloom.executor.dto.SubmissionContext;
@@ -22,11 +22,12 @@ public class SubmissionJudge {
     private final TestCaseRepository testCaseRepository;
     private final DockerJudgeEngine dockerJudgeEngine;
     private final SubmissionStatePublisher statePublisher;
+    private final LanguageProperties languageProperties;
 
     public void judge(SubmissionKafkaEvent event) {
         SubmissionContext context = context(event);
         try {
-            context = context.withLanguage(LanguageSpec.fromString(event.language()));
+            context = context.withLanguage(languageProperties.require(event.language()));
             List<TestCase> testCases = testCaseRepository.findByProblemId(event.problemId());
             if (testCases.isEmpty()) {
                 publish(context.withError("No test cases found"), SubmissionState.SYSTEM_ERROR);

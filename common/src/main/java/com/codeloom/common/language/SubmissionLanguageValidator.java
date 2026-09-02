@@ -2,16 +2,14 @@ package com.codeloom.common.language;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class SubmissionLanguageValidator implements ConstraintValidator<ValidLanguage, String> {
+    private final LanguageProperties languageProperties;
+
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        if (value == null) return false;
-        try {
-            LanguageSpec.fromString(value);
-            return true;
-        } catch (InvalidLanguageException ignored) {
-            return false;
-        }
+        return languageProperties.supports(value);
     }
 }

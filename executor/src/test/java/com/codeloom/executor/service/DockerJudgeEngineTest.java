@@ -3,7 +3,6 @@ package com.codeloom.executor.service;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.codeloom.common.SubmissionState;
-import com.codeloom.common.language.LanguageSpec;
 import com.codeloom.executor.dto.SubmissionContext;
 import com.codeloom.executor.model.TestCase;
 import java.nio.charset.StandardCharsets;
@@ -18,13 +17,13 @@ class DockerJudgeEngineTest extends DockerTestBase {
         dockerClient.removeVolumeCmd("submission-" + submissionId).exec();
     }
 
-    SubmissionContext context(LanguageSpec language, String code) {
+    SubmissionContext context(String language, String code) {
         return SubmissionContext.builder()
                 .submissionId(submissionId)
                 .userId(UUID.randomUUID())
                 .problemId(1)
                 .code(code)
-                .language(language)
+                .language(languageProperties.require(language))
                 .executionTimeLimitMs(null)
                 .memoryUsageLimitMb(null)
                 .build();
@@ -34,7 +33,7 @@ class DockerJudgeEngineTest extends DockerTestBase {
     class Compile {
         @Test
         void correctPythonNeedsNoCompilation() {
-            var r = dockerJudgeEngine.compile(context(LanguageSpec.PYTHON, "print('Hello world')"));
+            var r = dockerJudgeEngine.compile(context("python", "print('Hello world')"));
             assertTrue(r.isSuccessful());
             assertEquals("", r.stderr());
         }
@@ -42,21 +41,21 @@ class DockerJudgeEngineTest extends DockerTestBase {
         @Test
         void correctJavaCompiles() {
             var r = dockerJudgeEngine.compile(context(
-                    LanguageSpec.JAVA,
+                    "java",
                     "public class Main { public static void main(String[] a){System.out.println(\"Hello\");}}"));
             assertTrue(r.isSuccessful());
         }
 
         @Test
         void incorrectJavaFails() {
-            var r = dockerJudgeEngine.compile(context(LanguageSpec.JAVA, "public class Main { broken"));
+            var r = dockerJudgeEngine.compile(context("java", "public class Main { broken"));
             assertFalse(r.isSuccessful());
             assertNotEquals("", r.stderr());
         }
 
         @Test
         void correctCppCompiles() {
-            var r = dockerJudgeEngine.compile(context(LanguageSpec.CPP, "#include <iostream>\nint main(){return 0;}"));
+            var r = dockerJudgeEngine.compile(context("cpp", "#include <iostream>\nint main(){return 0;}"));
             assertTrue(r.isSuccessful());
         }
     }
@@ -73,7 +72,7 @@ class DockerJudgeEngineTest extends DockerTestBase {
 
         @Test
         void pythonReturnsOutput() {
-            var context = context(LanguageSpec.PYTHON, "print(sum(map(int,input().split())),end='')");
+            var context = context("python", "print(sum(map(int,input().split())),end='')");
             dockerJudgeEngine.compile(context);
             var result = dockerJudgeEngine.runTestCase(context, test);
             assertEquals(0, result.exitCode());
@@ -84,7 +83,7 @@ class DockerJudgeEngineTest extends DockerTestBase {
         @Test
         void javaReturnsOutput() {
             var context = context(
-                    LanguageSpec.JAVA,
+                    "java",
                     "import java.util.*; public class Main {public static void main(String[]a){Scanner s=new Scanner(System.in);System.out.print(s.nextInt()+s.nextInt());}}");
             assertTrue(dockerJudgeEngine.compile(context).isSuccessful());
             assertEquals("5", dockerJudgeEngine.runTestCase(context, test).stdout());
@@ -92,16 +91,14 @@ class DockerJudgeEngineTest extends DockerTestBase {
 
         @Test
         void cppReturnsOutput() {
-            var context = context(
-                    LanguageSpec.CPP, "#include <iostream>\nint main(){int a,b;std::cin>>a>>b;std::cout<<a+b;}");
+            var context = context("cpp", "#include <iostream>\nint main(){int a,b;std::cin>>a>>b;std::cout<<a+b;}");
             assertTrue(dockerJudgeEngine.compile(context).isSuccessful());
             assertEquals("5", dockerJudgeEngine.runTestCase(context, test).stdout());
         }
 
         @Test
         void stdoutFloodIsStoppedAndBounded() {
-            var context = context(LanguageSpec.PYTHON, "while True: print('x' * 1000)")
-                    .withState(SubmissionState.RUNNING);
+            var context = context("python", "while True: print('x' * 1000)").withState(SubmissionState.RUNNING);
             dockerJudgeEngine.compile(context);
             var result = dockerJudgeEngine.runTestCase(context, test);
             assertEquals(SubmissionState.RUNTIME_ERROR, result.stateFromExitCode());
@@ -111,9 +108,7 @@ class DockerJudgeEngineTest extends DockerTestBase {
 
         @Test
         void stderrFloodIsStoppedAndBounded() {
-            var context = context(
-                            LanguageSpec.PYTHON,
-                            "import sys\nwhile True: sys.stderr.write('x' * 1000); sys.stderr.flush()")
+            var context = context("python", "import sys\nwhile True: sys.stderr.write('x' * 1000); sys.stderr.flush()")
                     .withState(SubmissionState.RUNNING);
             dockerJudgeEngine.compile(context);
             var result = dockerJudgeEngine.runTestCase(context, test);

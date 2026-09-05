@@ -1,0 +1,54 @@
+@layer pages {
+.languageField {
+  min-width: 140px;
+}
+
+.spacer {
+  flex-grow: 1;
+}
+
+.toolbar {
+  flex-direction: row;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  border-color: var(--border);
+}
+
+.editor {
+  flex: none;
+  min-height: 0px;
+  height: 480px;
+}
+
+.submitSuccess {
+  margin: 12px;
+}
+
+.loadError {
+  margin: 12px;
+}
+
+.submitError {
+  margin: 12px;
+}
+
+.panel {
+  min-width: 0px;
+  min-height: 0px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.panel {
+  flex: 1 0 auto;
+}
+
+@media (min-width: 1024px) { .panel {
+  flex: 1 1 auto;
+}
+ .editor { flex: 1; height: auto; }
+ }
+}

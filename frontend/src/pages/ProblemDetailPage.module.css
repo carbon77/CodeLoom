@@ -1,0 +1,39 @@
+@layer pages {
+.resizer {
+  width: 8px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  background: var(--border);
+  border-radius: 8px;
+  align-self: stretch;
+  touch-action: none;
+}
+.resizer {
+  display: none;
+}
+
+@media (min-width: 1024px) { .resizer {
+  display: block;
+}
+ }
+.resizer:hover {
+  background: var(--accent);
+}
+.resizer[data-dragging="true"] { background: var(--accent); }
+
+.workspace {
+  display: flex;
+  gap: 16px;
+  min-height: 600px;
+}
+.workspace {
+  flex-direction: column;
+}
+
+@media (min-width: 1024px) { .workspace {
+  flex-direction: row;
+  height: calc(100dvh - 136px);
+  min-height: 480px;
+}
+ }
+}

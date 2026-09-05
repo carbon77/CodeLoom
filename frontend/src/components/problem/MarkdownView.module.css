@@ -1,0 +1,15 @@
+@layer components {
+  .markdown { color: var(--text); line-height: 1.8; overflow-wrap: anywhere; }
+  .markdown h1 { font-size: 1.5rem; } .markdown h2 { font-size: 1.2rem; } .markdown h3 { font-size: 1rem; }
+  .markdown h1, .markdown h2, .markdown h3, .markdown h4 { margin: 24px 0 10px; }
+  .markdown p, .markdown ul, .markdown ol { margin: 0 0 16px; }
+  .markdown ul, .markdown ol { padding-left: 24px; }
+  .markdown code { background: var(--raised); border-radius: 4px; padding: 2px 5px; font-size: .87em; }
+  .markdown pre { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 16px 0; }
+  .markdown pre code { padding: 0; background: transparent; }
+  .markdown blockquote { margin: 16px 0; padding-left: 16px; border-left: 3px solid var(--accent); color: var(--muted); }
+  .markdown img { max-width: 100%; height: auto; }
+  .tableScroll { overflow-x: auto; margin: 16px 0; }
+  .markdown table { border-collapse: collapse; width: 100%; }
+  .markdown th, .markdown td { text-align: left; padding: 8px 12px; border: 1px solid var(--border); }
+}

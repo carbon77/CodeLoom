@@ -1,22 +1,17 @@
-import { Navigate, Outlet } from 'react-router-dom'
-import { Box, CircularProgress } from '@mui/material'
-import { isAdmin } from '../auth/roles'
-import { useAuth } from '../auth/useAuth'
-
+import { Spinner } from './ui/Controls'
+import styles from './RequireAdmin.module.css'
+import { Navigate, Outlet } from 'react-router-dom';
+import { isAdmin } from '../auth/roles';
+import { useAuth } from '../auth/useAuth';
 export default function RequireAdmin() {
-  const user = useAuth()
-
+  const user = useAuth();
   if (user === undefined) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
-    )
+    return (<div className={styles.loading}>
+      <Spinner />
+    </div>);
   }
-
   if (user === null || !isAdmin(user)) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/" replace />;
   }
-
-  return <Outlet />
+  return <Outlet />;
 }

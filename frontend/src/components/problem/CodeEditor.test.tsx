@@ -26,7 +26,7 @@ describe('CodeEditor theme', () => {
 
     expect(screen.getByTestId('monaco-theme')).toHaveTextContent('vs-dark')
     await user.click(screen.getByRole('button', { name: 'Editor settings' }))
-    await user.click(screen.getByRole('menuitem', { name: 'Light' }))
+    await user.click(screen.getByRole('menuitemradio', { name: 'Light' }))
     expect(screen.getByTestId('monaco-theme')).toHaveTextContent('vs')
   })
 })

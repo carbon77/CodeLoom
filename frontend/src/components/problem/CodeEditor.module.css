@@ -1,0 +1,20 @@
+@layer pages {
+.copyButton {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.copyButton:hover {
+  background: var(--hover);
+}
+
+.editor {
+  height: var(--editor-height);
+  min-height: 0px;
+  position: relative;
+}
+
+}

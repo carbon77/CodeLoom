@@ -1,0 +1,58 @@
+@layer pages {
+.loading {
+  display: flex;
+  justify-content: center;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  font-size: 28px;
+}
+
+.username {
+  color: var(--muted);
+}
+
+.identity {
+  flex-direction: row;
+  gap: 24px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.email {
+  margin-bottom: 16px;
+}
+
+.rolesTitle {
+  margin-bottom: 8px;
+}
+
+.roles {
+  flex-direction: row;
+  gap: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.permissions {
+  margin-bottom: 16px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.profile {
+  max-width: 720px;
+  margin: 0 auto;
+  overflow-wrap: anywhere;
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+}

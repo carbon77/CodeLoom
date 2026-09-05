@@ -1,129 +1,90 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import {
-  Alert,
-  Autocomplete,
-  Box,
-  Button,
-  Checkbox,
-  CircularProgress,
-  Divider,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Select,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import DeleteIcon from '@mui/icons-material/Delete'
-import {
-  createProblem,
-  createTestCase,
-  deleteTestCase,
-  fetchProblem,
-  fetchProblemBySlug,
-  fetchTestCases,
-  fetchTopics,
-  updateTestCase as updateTestCaseApi,
-  updateProblem,
-  type Difficulty,
-  type TestCase,
-  type Topic,
-} from '../../api/problems'
-import { errorMessage } from '../../api/client'
-import { serializeTopics } from './topicSerialization'
-
+import { Spinner, Notice, Field, SelectField, Button, IconButton, TopicPicker } from '../../components/ui/Controls'
+import { Add as AddIcon, Delete as DeleteIcon } from '../../components/ui/Icons'
+import ui from '../../components/ui/ui.module.css'
+import styles from './ProblemFormPage.module.css'
+import PageHeading from '../../components/ui/PageHeading'
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createProblem, createTestCase, deleteTestCase, fetchProblem, fetchProblemBySlug, fetchTestCases, fetchTopics, updateTestCase as updateTestCaseApi, updateProblem, type Difficulty, type TestCase, type Topic, } from '../../api/problems';
+import { errorMessage } from '../../api/client';
+import { serializeTopics } from './topicSerialization';
 function deriveSlug(title: string): string {
-  return title.toLowerCase().replaceAll(' ', '_')
+  return title.toLowerCase().replaceAll(' ', '_');
 }
-
 function toNullableNumber(value: string): number | null {
-  return value.trim() === '' ? null : Number(value)
+  return value.trim() === '' ? null : Number(value);
 }
-
 export default function ProblemFormPage() {
-  const { problemId } = useParams()
-  const navigate = useNavigate()
-  const isEdit = problemId !== undefined
-
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const [title, setTitle] = useState('')
-  const [slug, setSlug] = useState('')
-  const [slugTouched, setSlugTouched] = useState(false)
-  const [description, setDescription] = useState('')
-  const [difficulty, setDifficulty] = useState<Difficulty>('EASY')
-  const [executionTimeLimitMs, setExecutionTimeLimitMs] = useState('')
-  const [memoryUsageLimitMb, setMemoryUsageLimitMb] = useState('')
-  const [hints, setHints] = useState<string[]>([])
-  const [testCases, setTestCases] = useState<TestCase[]>([])
-  const [initialTestCases, setInitialTestCases] = useState<TestCase[]>([])
-  const [topics, setTopics] = useState<Topic[]>([])
-  const [selectedTopics, setSelectedTopics] = useState<Array<Topic | string>>([])
-
+  const { problemId } = useParams();
+  const navigate = useNavigate();
+  const isEdit = problemId !== undefined;
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [title, setTitle] = useState('');
+  const [slug, setSlug] = useState('');
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [description, setDescription] = useState('');
+  const [difficulty, setDifficulty] = useState<Difficulty>('EASY');
+  const [executionTimeLimitMs, setExecutionTimeLimitMs] = useState('');
+  const [memoryUsageLimitMb, setMemoryUsageLimitMb] = useState('');
+  const [hints, setHints] = useState<string[]>([]);
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [initialTestCases, setInitialTestCases] = useState<TestCase[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [selectedTopics, setSelectedTopics] = useState<Array<Topic | string>>([]);
   useEffect(() => {
-    let active = true
-    const id = Number(problemId)
+    let active = true;
+    const id = Number(problemId);
     const problemPromise = isEdit
       ? fetchProblem(id).then((raw) => fetchProblemBySlug(raw.slug))
-      : Promise.resolve(null)
+      : Promise.resolve(null);
     Promise.all([fetchTopics(), problemPromise, isEdit ? fetchTestCases(id) : Promise.resolve([])])
       .then(([loadedTopics, problem, loadedTestCases]) => {
         if (!active) {
-          return
+          return;
         }
-        setTopics(loadedTopics)
-        if (!problem) return
-        setTitle(problem.title)
-        setSlug(problem.slug)
-        setDescription(problem.description)
-        setDifficulty(problem.difficulty)
-        setExecutionTimeLimitMs(problem.constraints?.executionTimeLimitMs?.toString() ?? '')
-        setMemoryUsageLimitMb(problem.constraints?.memoryUsageLimitMb?.toString() ?? '')
-        setHints(problem.hints)
-        setTestCases(loadedTestCases)
-        setInitialTestCases(loadedTestCases)
-        setSelectedTopics(problem.topics)
+        setTopics(loadedTopics);
+        if (!problem)
+          return;
+        setTitle(problem.title);
+        setSlug(problem.slug);
+        setDescription(problem.description);
+        setDifficulty(problem.difficulty);
+        setExecutionTimeLimitMs(problem.constraints?.executionTimeLimitMs?.toString() ?? '');
+        setMemoryUsageLimitMb(problem.constraints?.memoryUsageLimitMb?.toString() ?? '');
+        setHints(problem.hints);
+        setTestCases(loadedTestCases);
+        setInitialTestCases(loadedTestCases);
+        setSelectedTopics(problem.topics);
       })
       .catch((cause: unknown) => {
         if (active) {
-          setError(errorMessage(cause, 'Unable to load problem data. Please try again.'))
+          setError(errorMessage(cause, 'Unable to load problem data. Please try again.'));
         }
       })
       .finally(() => {
         if (active) {
-          setLoading(false)
+          setLoading(false);
         }
-      })
+      });
     return () => {
-      active = false
-    }
-  }, [isEdit, problemId])
-
+      active = false;
+    };
+  }, [isEdit, problemId]);
   function updateHint(index: number, value: string): void {
-    setHints((items) => items.map((item, i) => (i === index ? value : item)))
+    setHints((items) => items.map((item, i) => (i === index ? value : item)));
   }
-
   function updateTestCase(index: number, patch: Partial<TestCase>): void {
-    setTestCases((cases) =>
-      cases.map((testCase, i) => (i === index ? { ...testCase, ...patch } : testCase)),
-    )
+    setTestCases((cases) => cases.map((testCase, i) => (i === index ? { ...testCase, ...patch } : testCase)));
   }
-
   async function handleSave(): Promise<void> {
     if (title.trim() === '') {
-      setError('Title is mandatory.')
-      return
+      setError('Title is mandatory.');
+      return;
     }
-    setSaving(true)
-    setError(null)
+    setSaving(true);
+    setError(null);
     const payload = {
       title: title.trim(),
       slug: slug.trim() === '' ? deriveSlug(title.trim()) : slug.trim(),
@@ -135,21 +96,17 @@ export default function ProblemFormPage() {
       },
       hints,
       topics: serializeTopics(selectedTopics, topics),
-    }
+    };
     try {
       if (isEdit) {
-        const id = Number(problemId)
-        await updateProblem(id, payload)
-        const currentIds = new Set(
-          testCases
-            .map((testCase) => testCase.id)
-            .filter((value): value is string => value !== undefined),
-        )
-        const removed = initialTestCases.filter(
-          (testCase) => testCase.id !== undefined && !currentIds.has(testCase.id),
-        )
+        const id = Number(problemId);
+        await updateProblem(id, payload);
+        const currentIds = new Set(testCases
+          .map((testCase) => testCase.id)
+          .filter((value): value is string => value !== undefined));
+        const removed = initialTestCases.filter((testCase) => testCase.id !== undefined && !currentIds.has(testCase.id));
         for (const testCase of removed) {
-          await deleteTestCase(testCase.id as string)
+          await deleteTestCase(testCase.id as string);
         }
         for (const testCase of testCases) {
           if (testCase.id) {
@@ -159,227 +116,125 @@ export default function ProblemFormPage() {
               expectedOutput: testCase.expectedOutput,
               isPublic: testCase.isPublic,
               explanation: testCase.explanation,
-            })
-          } else {
-            await createTestCase({ ...testCase, problemId: id })
+            });
+          }
+          else {
+            await createTestCase({ ...testCase, problemId: id });
           }
         }
-      } else {
-        const created = await createProblem(payload.title)
-        await updateProblem(created.id, payload)
+      }
+      else {
+        const created = await createProblem(payload.title);
+        await updateProblem(created.id, payload);
         for (const testCase of testCases) {
-          await createTestCase({ ...testCase, problemId: created.id })
+          await createTestCase({ ...testCase, problemId: created.id });
         }
       }
-      navigate('/admin/problems')
-    } catch (cause) {
-      setError(errorMessage(cause, 'Unable to save problem. Please check the values and try again.'))
-      setSaving(false)
+      navigate('/admin/problems');
+    }
+    catch (cause) {
+      setError(errorMessage(cause, 'Unable to save problem. Please check the values and try again.'));
+      setSaving(false);
     }
   }
-
   if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
-    )
+    return (<div className={styles.loading}>
+      <Spinner />
+    </div>);
   }
+  return (<form noValidate onSubmit={(event) => { event.preventDefault(); if (!saving) void handleSave(); }} className={styles.form}>
+    <PageHeading eyebrow="Content studio / Editor" title={isEdit ? 'Edit Problem' : 'New Problem'} description="Shape the challenge, define its limits, and add the tests that make it work." />
 
-  return (
-    <Box sx={{ maxWidth: 900 }}>
-      <Typography variant="h4" component="h1" sx={{ mb: 3 }}>
-        {isEdit ? 'Edit Problem' : 'New Problem'}
-      </Typography>
+    {error && (<Notice tone="error" className={styles.error}>
+      {error}
+    </Notice>)}
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+    <fieldset disabled={saving} className={styles.fields}>
+      <div className={[ui.panel, styles.problemSection].join(" ")}>
+        <h2 className={styles.sectionTitle}>
           Problem
-        </Typography>
-        <Stack spacing={2}>
-          <TextField
-            label="Title"
-            required
-            value={title}
-            onChange={(event) => {
-              setTitle(event.target.value)
-              if (!slugTouched) {
-                setSlug(deriveSlug(event.target.value))
-              }
-            }}
-          />
-          <TextField
-            label="Slug"
-            value={slug}
-            onChange={(event) => {
-              setSlugTouched(true)
-              setSlug(event.target.value)
-            }}
-          />
-          <TextField
-            label="Description"
-            multiline
-            minRows={4}
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-          />
-          <FormControl>
-            <InputLabel>Difficulty</InputLabel>
-            <Select
-              label="Difficulty"
-              value={difficulty}
-              onChange={(event) => setDifficulty(event.target.value as Difficulty)}
-            >
-              <MenuItem value="EASY">Easy</MenuItem>
-              <MenuItem value="MEDIUM">Medium</MenuItem>
-              <MenuItem value="HARD">Hard</MenuItem>
-            </Select>
-          </FormControl>
-          <Autocomplete
-            multiple
-            freeSolo
-            options={topics}
-            value={selectedTopics}
-            getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
-            isOptionEqualToValue={(option, value) =>
-              typeof option !== 'string' && typeof value !== 'string' && option.id === value.id
+        </h2>
+        <div className={[ui.stack, styles.problemFields].join(" ")}>
+          <Field label="Title" required value={title} onChange={(event) => {
+            setTitle(event.target.value);
+            if (!slugTouched) {
+              setSlug(deriveSlug(event.target.value));
             }
-            onChange={(_, values) => setSelectedTopics(values)}
-            renderInput={(params) => (
-              <TextField {...params} label="Topics" helperText="Select existing topics or type a new one and press Enter" />
-            )}
-          />
-          <Stack direction="row" spacing={2}>
-            <TextField
-              label="Time limit (ms)"
-              type="number"
-              value={executionTimeLimitMs}
-              onChange={(event) => setExecutionTimeLimitMs(event.target.value)}
-              sx={{ flexGrow: 1 }}
-            />
-            <TextField
-              label="Memory limit (MB)"
-              type="number"
-              value={memoryUsageLimitMb}
-              onChange={(event) => setMemoryUsageLimitMb(event.target.value)}
-              sx={{ flexGrow: 1 }}
-            />
-          </Stack>
+          }} />
+          <Field label="Slug" value={slug} onChange={(event) => {
+            setSlugTouched(true);
+            setSlug(event.target.value);
+          }} />
+          <Field label="Description" multiline rows={4} value={description} onChange={(event) => setDescription(event.target.value)} />
+          <div>
 
-          <Divider />
+            <SelectField label="Difficulty" value={difficulty} onChange={(event) => setDifficulty(event.target.value as Difficulty)}>
+              <option value="EASY">Easy</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HARD">Hard</option>
+            </SelectField>
+          </div>
+          <TopicPicker options={topics} value={selectedTopics} onChange={setSelectedTopics} />
+          <div className={[ui.stack, styles.limits].join(" ")}>
+            <Field label="Time limit (ms)" type="number" value={executionTimeLimitMs} onChange={(event) => setExecutionTimeLimitMs(event.target.value)} className={styles.timeLimit} />
+            <Field label="Memory limit (MB)" type="number" value={memoryUsageLimitMb} onChange={(event) => setMemoryUsageLimitMb(event.target.value)} className={styles.memoryLimit} />
+          </div>
 
-          <Stack direction="row" sx={{ alignItems: 'center' }}>
-            <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
+          <hr />
+
+          <div className={[ui.stack, styles.hintsHeader].join(" ")}>
+            <h3 className={styles.hintsTitle}>
               Hints
-            </Typography>
-            <Button size="small" startIcon={<AddIcon />} onClick={() => setHints((items) => [...items, ''])}>
+            </h3>
+            <Button icon={<AddIcon />} onClick={() => setHints((items) => [...items, ''])}>
               Add hint
             </Button>
-          </Stack>
-          {hints.map((hint, index) => (
-            <Stack key={index} direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-              <TextField
-                label={`Hint ${index + 1}`}
-                value={hint}
-                onChange={(event) => updateHint(index, event.target.value)}
-                sx={{ flexGrow: 1 }}
-              />
-              <IconButton
-                aria-label="Remove hint"
-                color="error"
-                onClick={() => setHints((items) => items.filter((_, i) => i !== index))}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Stack>
-          ))}
-        </Stack>
-      </Paper>
+          </div>
+          {hints.map((hint, index) => (<div key={index} className={[ui.stack, styles.hintRow].join(" ")}>
+            <Field label={`Hint ${index + 1}`} value={hint} onChange={(event) => updateHint(index, event.target.value)} className={styles.hintField} />
+            <IconButton aria-label="Remove hint" tone="error" onClick={() => setHints((items) => items.filter((_, i) => i !== index))}>
+              <DeleteIcon />
+            </IconButton>
+          </div>))}
+        </div>
+      </div>
 
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Stack direction="row" sx={{ alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
+      <div className={[ui.panel, styles.testsSection].join(" ")}>
+        <div className={[ui.stack, styles.testsHeader].join(" ")}>
+          <h2 className={styles.testsTitle}>
             Test Cases
-          </Typography>
-          <Button
-            size="small"
-            startIcon={<AddIcon />}
-            onClick={() =>
-              setTestCases((cases) => [
-                ...cases,
-                { input: '', expectedOutput: '', isPublic: false, explanation: '' },
-              ])
-            }
-          >
+          </h2>
+          <Button icon={<AddIcon />} onClick={() => setTestCases((cases) => [
+            ...cases,
+            { input: '', expectedOutput: '', isPublic: false, explanation: '' },
+          ])}>
             Add test case
           </Button>
-        </Stack>
-        {testCases.length === 0 && (
-          <Typography color="text.secondary">
-            No test cases. Add at least one so the problem can be judged.
-          </Typography>
-        )}
-        <Stack spacing={2}>
-          {testCases.map((testCase, index) => (
-            <Stack key={testCase.id ?? `new-${index}`} direction="row" spacing={2} sx={{ alignItems: 'flex-start' }}>
-              <TextField
-                label="Input"
-                multiline
-                value={testCase.input}
-                onChange={(event) => updateTestCase(index, { input: event.target.value })}
-                sx={{ flexGrow: 1 }}
-              />
-              <TextField
-                label="Expected output"
-                multiline
-                value={testCase.expectedOutput}
-                onChange={(event) => updateTestCase(index, { expectedOutput: event.target.value })}
-                sx={{ flexGrow: 1 }}
-              />
-              <TextField
-                label="Explanation"
-                value={testCase.explanation ?? ''}
-                onChange={(event) => updateTestCase(index, { explanation: event.target.value })}
-                sx={{ flexGrow: 1 }}
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={testCase.isPublic}
-                    onChange={(event) => updateTestCase(index, { isPublic: event.target.checked })}
-                  />
-                }
-                label="Public"
-                sx={{ mt: 1 }}
-              />
-              <IconButton
-                aria-label="Remove test case"
-                color="error"
-                onClick={() =>
-                  setTestCases((cases) => cases.filter((_, i) => i !== index))
-                }
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Stack>
-          ))}
-        </Stack>
-      </Paper>
+        </div>
+        {testCases.length === 0 && (<p className={styles.emptyTests}>
+          No test cases. Add at least one so the problem can be judged.
+        </p>)}
+        <div className={[ui.stack, styles.testCases].join(" ")}>
+          {testCases.map((testCase, index) => (<div key={testCase.id ?? `new-${index}`} className={[ui.stack, styles.testCase].join(" ")}>
+            <Field label="Input" multiline value={testCase.input} onChange={(event) => updateTestCase(index, { input: event.target.value })} className={styles.testInput} />
+            <Field label="Expected output" multiline value={testCase.expectedOutput} onChange={(event) => updateTestCase(index, { expectedOutput: event.target.value })} className={styles.testOutput} />
+            <Field label="Explanation" value={testCase.explanation ?? ''} onChange={(event) => updateTestCase(index, { explanation: event.target.value })} className={styles.testExplanation} />
+            <label className={[ui.checkbox, styles.testPublic].join(" ")}><input checked={testCase.isPublic} onChange={(event) => updateTestCase(index, { isPublic: event.target.checked })} type="checkbox" />{"Public"}</label>
+            <IconButton aria-label="Remove test case" tone="error" onClick={() => setTestCases((cases) => cases.filter((_, i) => i !== index))}>
+              <DeleteIcon />
+            </IconButton>
+          </div>))}
+        </div>
+      </div>
 
-      <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
-        <Button onClick={() => navigate('/admin/problems')} disabled={saving}>
-          Cancel
-        </Button>
-        <Button variant="contained" disabled={saving || loading} onClick={() => void handleSave()}>
-          {saving ? 'Saving…' : 'Save'}
-        </Button>
-      </Stack>
-    </Box>
-  )
+    </fieldset>
+    <div className={[ui.stack, styles.actions].join(" ")}>
+      <Button onClick={() => navigate('/admin/problems')} disabled={saving}>
+        Cancel
+      </Button>
+      <Button type="submit" appearance="primary" disabled={saving || loading}>
+        {saving ? 'Saving…' : 'Save'}
+      </Button>
+    </div>
+  </form>);
 }

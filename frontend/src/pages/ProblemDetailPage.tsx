@@ -1,17 +1,11 @@
+import styles from './ProblemDetailPage.module.css'
 import { useEffect, useRef, useState } from "react";
-import { Box } from "@mui/material";
 import { useRouteLoaderData } from "react-router-dom";
 import type { ProblemDetail } from "../api/problems";
-import {
-  fetchSubmissions,
-  subscribeToSubmissionStates,
-  type Submission,
-  type SubmissionState,
-} from "../api/submissions";
+import { fetchSubmissions, subscribeToSubmissionStates, type Submission, type SubmissionState, } from "../api/submissions";
 import ProblemTabs from "../components/problem/ProblemTabs";
 import CodeEditorPanel from "../components/problem/CodeEditorPanel";
 import { errorMessage } from "../api/client";
-
 const terminalStates = new Set<SubmissionState>([
   "COMPILE_ERROR",
   "ACCEPTED",
@@ -21,10 +15,8 @@ const terminalStates = new Set<SubmissionState>([
   "MEMORY_LIMIT_EXCEEDED",
   "SYSTEM_ERROR",
 ]);
-
 export default function ProblemDetailPage() {
   const problem = useRouteLoaderData("problem") as ProblemDetail | undefined;
-
   const [activeTab, setActiveTab] = useState(0);
   const [submissions, setSubmissions] = useState<Submission[] | null>(null);
   const [submissionsError, setSubmissionsError] = useState<string | null>(null);
@@ -34,21 +26,17 @@ export default function ProblemDetailPage() {
   const [submissionDetailsRefreshKey, setSubmissionDetailsRefreshKey] = useState(0);
   const selectedSubmissionIdRef = useRef<string | null>(null);
   const lastSubmittedIdRef = useRef<string | null>(null);
-
   const [leftWidth, setLeftWidth] = useState(42);
   const [dragging, setDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
-
   const problemId = problem?.id ?? null;
   selectedSubmissionIdRef.current = selectedSubmissionId;
-
   useEffect(() => {
     setSelectedSubmissionId(null);
     setActiveTab(0);
     setSubmissions(null);
     lastSubmittedIdRef.current = null;
   }, [problemId]);
-
   useEffect(() => {
     if (!dragging) {
       return;
@@ -69,7 +57,6 @@ export default function ProblemDetailPage() {
       window.removeEventListener("pointerup", handleUp);
     };
   }, [dragging]);
-
   useEffect(() => {
     if (activeTab !== 1 || problemId === null) {
       return;
@@ -79,15 +66,10 @@ export default function ProblemDetailPage() {
     fetchSubmissions(problemId)
       .then((items) => {
         if (active) {
-          const sorted = [...items].sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-          );
+          const sorted = [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
           setSubmissions(sorted);
           const lastSubmittedId = lastSubmittedIdRef.current;
-          const lastSubmission = sorted.find(
-            (item) => item.submissionId === lastSubmittedId,
-          );
+          const lastSubmission = sorted.find((item) => item.submissionId === lastSubmittedId);
           if (lastSubmission && terminalStates.has(lastSubmission.state)) {
             lastSubmittedIdRef.current = null;
             setSelectedSubmissionId(lastSubmission.submissionId);
@@ -105,9 +87,9 @@ export default function ProblemDetailPage() {
       active = false;
     };
   }, [activeTab, problemId, refreshKey]);
-
   useEffect(() => {
-    if (problemId === null) return;
+    if (problemId === null)
+      return;
     const controller = new AbortController();
     setLiveUpdatesError(null);
     void subscribeToSubmissionStates({
@@ -120,20 +102,14 @@ export default function ProblemDetailPage() {
         }
       },
       onState: (state) => {
-        setSubmissions((items) =>
-          items?.map((item) =>
-            item.submissionId === state.submissionId
-              ? { ...item, state: state.state }
-              : item,
-          ) ?? null,
-        );
+        setSubmissions((items) => items?.map((item) => item.submissionId === state.submissionId
+          ? { ...item, state: state.state }
+          : item) ?? null);
         if (selectedSubmissionIdRef.current === state.submissionId) {
           setSubmissionDetailsRefreshKey((key) => key + 1);
         }
-        if (
-          lastSubmittedIdRef.current === state.submissionId &&
-          terminalStates.has(state.state)
-        ) {
+        if (lastSubmittedIdRef.current === state.submissionId &&
+          terminalStates.has(state.state)) {
           lastSubmittedIdRef.current = null;
           setSelectedSubmissionId(state.submissionId);
           setSubmissionDetailsRefreshKey((key) => key + 1);
@@ -142,73 +118,33 @@ export default function ProblemDetailPage() {
       },
     }).catch(() => {
       if (!controller.signal.aborted) {
-        setLiveUpdatesError(
-          "Live submission updates are unavailable. Use refresh to get the latest state.",
-        );
+        setLiveUpdatesError("Live submission updates are unavailable. Use refresh to get the latest state.");
       }
     });
     return () => controller.abort();
   }, [problemId]);
-
   const selectSubmission = (submissionId: string) => {
     setSelectedSubmissionId(submissionId);
     setActiveTab(2);
   };
-
   const closeSubmission = () => {
     setSelectedSubmissionId(null);
     setActiveTab(1);
   };
-
-  return (
-    <Box
-      ref={containerRef}
-      sx={{
-        display: "flex",
-        flexDirection: { xs: "column", lg: "row" },
-        gap: 2,
-        height: "calc(100dvh - 112px)",
-      }}
-    >
-      <ProblemTabs
-        problem={problem ?? null}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        submissions={submissions}
-        submissionsError={submissionsError}
-        liveUpdatesError={liveUpdatesError}
-        onRefreshSubmissions={() => setRefreshKey((key) => key + 1)}
-        selectedSubmissionId={selectedSubmissionId}
-        submissionDetailsRefreshKey={submissionDetailsRefreshKey}
-        onSelectSubmission={selectSubmission}
-        onCloseSubmission={closeSubmission}
-        width={leftWidth}
-      />
-      <Box
-        onPointerDown={(event) => {
-          event.preventDefault();
-          setDragging(true);
-        }}
-        sx={{
-          display: { xs: "none", lg: "block" },
-          width: 8,
-          flexShrink: 0,
-          cursor: "col-resize",
-          bgcolor: dragging ? "primary.main" : "divider",
-          borderRadius: 1,
-          alignSelf: "stretch",
-          touchAction: "none",
-          "&:hover": { bgcolor: "primary.light" },
-        }}
-      />
-      <CodeEditorPanel
-        problemId={problemId}
-        disabled={problem === undefined}
-        onSubmitted={(submissionId) => {
-          lastSubmittedIdRef.current = submissionId;
-          setRefreshKey((key) => key + 1);
-        }}
-      />
-    </Box>
-  );
+  return (<div ref={containerRef} className={styles.workspace}>
+    <ProblemTabs problem={problem ?? null} activeTab={activeTab} onTabChange={setActiveTab} submissions={submissions} submissionsError={submissionsError} liveUpdatesError={liveUpdatesError} onRefreshSubmissions={() => setRefreshKey((key) => key + 1)} selectedSubmissionId={selectedSubmissionId} submissionDetailsRefreshKey={submissionDetailsRefreshKey} onSelectSubmission={selectSubmission} onCloseSubmission={closeSubmission} width={leftWidth} />
+    <div role="separator" aria-label="Resize problem panel" aria-orientation="vertical" aria-valuemin={20} aria-valuemax={70} aria-valuenow={Math.round(leftWidth)} tabIndex={0} data-dragging={dragging} onKeyDown={(event) => {
+      if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+        event.preventDefault();
+        setLeftWidth((width) => event.key === 'Home' ? 20 : event.key === 'End' ? 70 : Math.min(70, Math.max(20, width + (event.key === 'ArrowLeft' ? -2 : 2))));
+      }
+    }} onPointerCancel={() => setDragging(false)} onPointerDown={(event) => {
+      event.preventDefault();
+      setDragging(true);
+    }} className={styles.resizer} />
+    <CodeEditorPanel problemId={problemId} disabled={problem === undefined} onSubmitted={(submissionId) => {
+      lastSubmittedIdRef.current = submissionId;
+      setRefreshKey((key) => key + 1);
+    }} />
+  </div>);
 }

@@ -1,0 +1,17 @@
+@layer pages {
+.loading {
+  display: flex;
+  justify-content: center;
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+.liveWarning {
+  margin-bottom: 16px;
+}
+
+.submissionRow {
+  cursor: pointer;
+}
+
+}

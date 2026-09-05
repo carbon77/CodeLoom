@@ -1,0 +1,133 @@
+@layer pages {
+.fields { border: 0; padding: 0; margin: 0; min-width: 0px; }
+.loading {
+  display: flex;
+  justify-content: center;
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+.error {
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  margin-bottom: 16px;
+}
+
+.timeLimit {
+  flex-grow: 1;
+}
+
+.memoryLimit {
+  flex-grow: 1;
+}
+
+.limits {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.hintsTitle {
+  flex-grow: 1;
+}
+
+.hintsHeader {
+  flex-direction: row;
+  align-items: center;
+}
+
+.hintField {
+  flex-grow: 1;
+}
+
+.hintRow {
+  flex-direction: row;
+  gap: 16px;
+  align-items: center;
+}
+
+.problemFields {
+  gap: 16px;
+}
+
+.problemSection {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.testsTitle {
+  flex-grow: 1;
+}
+
+.testsHeader {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.emptyTests {
+  color: var(--muted);
+}
+
+.testInput {
+  flex-grow: 1;
+}
+
+.testOutput {
+  flex-grow: 1;
+}
+
+.testExplanation {
+  flex-grow: 1;
+}
+
+.testPublic {
+  margin-top: 8px;
+}
+
+.testCase {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.testCases {
+  gap: 16px;
+}
+
+.testsSection {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.actions {
+  flex-direction: row;
+  gap: 16px;
+  justify-content: flex-end;
+  position: sticky;
+  bottom: 16px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.form {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+@media (max-width: 600px) {
+  .limits, .testCase { grid-template-columns: 1fr; }
+  .problemSection, .testsSection { padding: 18px; }
+  .hintsHeader, .testsHeader { flex-wrap: wrap; }
+}
+
+}

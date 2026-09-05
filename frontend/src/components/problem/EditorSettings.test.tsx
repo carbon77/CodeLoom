@@ -64,9 +64,9 @@ describe('EditorSettings', () => {
 
     await user.click(screen.getByRole('button', { name: 'Editor settings' }))
     expect(screen.getByRole('menu', { name: 'Editor color scheme' })).toBeInTheDocument()
-    expect(screen.getAllByRole('menuitem')).toHaveLength(4)
+    expect(screen.getAllByRole('menuitemradio')).toHaveLength(4)
 
-    await user.click(screen.getByRole('menuitem', { name: /high contrast dark/i }))
+    await user.click(screen.getByRole('menuitemradio', { name: /high contrast dark/i }))
     expect(screen.getByText('hc-black')).toBeInTheDocument()
     expect(window.localStorage.getItem(editorThemeStorageKey)).toBe('hc-black')
   })
@@ -79,7 +79,7 @@ describe('EditorSettings', () => {
 
     expect(screen.getByText('vs-dark')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Editor settings' }))
-    await user.click(screen.getByRole('menuitem', { name: /^light$/i }))
+    await user.click(screen.getByRole('menuitemradio', { name: /^light$/i }))
     expect(screen.getByText('vs')).toBeInTheDocument()
   })
 })

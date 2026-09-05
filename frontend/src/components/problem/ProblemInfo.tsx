@@ -1,154 +1,83 @@
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Chip,
-  Divider,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
-import { ExpandMore } from "@mui/icons-material";
+import { Badge } from '../ui/Controls'
+import ui from '../ui/ui.module.css'
+import styles from './ProblemInfo.module.css'
 import type { Difficulty, ProblemDetail } from "../../api/problems";
 import MarkdownView from "./MarkdownView";
-
 const difficultyColors: Record<Difficulty, "success" | "warning" | "error"> = {
   EASY: "success",
   MEDIUM: "warning",
   HARD: "error",
 };
-
 interface ProblemInfoProps {
   problem: ProblemDetail;
 }
-
 export default function ProblemInfo({ problem }: ProblemInfoProps) {
-  return (
-    <>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-        <Typography variant="h5" component="h1" sx={{ flex: 1 }}>
-          {problem.title}
-        </Typography>
-        <Chip
-          label={problem.difficulty}
-          color={difficultyColors[problem.difficulty]}
-          size="small"
-        />
-      </Box>
-      {problem.topics.length > 0 && (
-        <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 2, flexWrap: "wrap" }}>
-          {problem.topics.map((topic) => <Chip key={topic.id} label={topic.name} size="small" variant="outlined" />)}
-        </Stack>
-      )}
-      <MarkdownView>{problem.description}</MarkdownView>
+  return (<>
+    <div className={styles.heading}>
+      <h1 className={styles.title}>
+        {problem.title}
+      </h1>
+      <Badge tone={difficultyColors[problem.difficulty]}>{problem.difficulty}</Badge>
+    </div>
+    {problem.topics.length > 0 && (<div className={[ui.stack, styles.topics].join(" ")}>
+      {problem.topics.map((topic) => <Badge key={topic.id}>{topic.name}</Badge>)}
+    </div>)}
+    <MarkdownView>{problem.description}</MarkdownView>
 
-      {problem.constraints &&
-        (problem.constraints.executionTimeLimitMs != null ||
-          problem.constraints.memoryUsageLimitMb != null) && (
-          <>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              Constraints
-            </Typography>
-            <Stack spacing={0.5}>
-              {problem.constraints.executionTimeLimitMs != null && (
-                <Typography variant="body2">
-                  Time limit: {problem.constraints.executionTimeLimitMs} ms
-                </Typography>
-              )}
-              {problem.constraints.memoryUsageLimitMb != null && (
-                <Typography variant="body2">
-                  Memory limit: {problem.constraints.memoryUsageLimitMb} MB
-                </Typography>
-              )}
-            </Stack>
-          </>
-        )}
+    {problem.constraints &&
+      (problem.constraints.executionTimeLimitMs != null ||
+        problem.constraints.memoryUsageLimitMb != null) && (<>
+          <hr className={styles.constraintsDivider} />
+          <h2 className={styles.constraintsTitle}>
+            Constraints
+          </h2>
+          <div className={[ui.stack, styles.constraints].join(" ")}>
+            {problem.constraints.executionTimeLimitMs != null && (<p className={ui.body}>
+              Time limit: {problem.constraints.executionTimeLimitMs} ms
+            </p>)}
+            {problem.constraints.memoryUsageLimitMb != null && (<p className={ui.body}>
+              Memory limit: {problem.constraints.memoryUsageLimitMb} MB
+            </p>)}
+          </div>
+        </>)}
 
-      {problem.examples.length ? (
-        <>
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            Examples
-          </Typography>
-          {problem.examples.map((example, index) => (
-            <Paper key={index} variant="outlined" sx={{ p: 1.5, mb: 1.5 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Example {index + 1}
-              </Typography>
-              <Typography
-                component="div"
-                sx={{
-                  fontFamily: "monospace",
-                  fontSize: "0.8rem",
-                  whiteSpace: "pre-wrap",
-                  bgcolor: "action.hover",
-                  p: 1,
-                  borderRadius: 1,
-                  mb: 1,
-                }}
-              >
-                <strong>Input:</strong>
-                {`\n${example.input}`}
-              </Typography>
-              <Typography
-                component="div"
-                sx={{
-                  fontFamily: "monospace",
-                  fontSize: "0.8rem",
-                  whiteSpace: "pre-wrap",
-                  bgcolor: "action.hover",
-                  p: 1,
-                  borderRadius: 1,
-                }}
-              >
-                <strong>Output:</strong>
-                {`\n${example.expectedOutput}`}
-              </Typography>
-              {example.explanation && (
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mt: 1 }}
-                >
-                  {example.explanation}
-                </Typography>
-              )}
-            </Paper>
-          ))}
-        </>
-      ) : null}
+    {problem.examples.length ? (<>
+      <hr className={styles.examplesDivider} />
+      <h2 className={styles.examplesTitle}>
+        Examples
+      </h2>
+      {problem.examples.map((example, index) => (<div key={index} className={[ui.panel, styles.example].join(" ")}>
+        <span className={[ui.subtitle, styles.exampleTitle].join(" ")}>
+          Example {index + 1}
+        </span>
+        <div className={styles.input}>
+          <strong>Input:</strong>
+          {`\n${example.input}`}
+        </div>
+        <div className={styles.output}>
+          <strong>Output:</strong>
+          {`\n${example.expectedOutput}`}
+        </div>
+        {example.explanation && (<p className={[ui.body, styles.explanation].join(" ")}>
+          {example.explanation}
+        </p>)}
+      </div>))}
+    </>) : null}
 
-      {problem.hints.length > 0 && (
-        <>
-          <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-            Hints
-          </Typography>
-          <Stack spacing={1}>
-            {problem.hints.map((hint, index) => (
-              <Accordion
-                key={index}
-                disableGutters
-                sx={{
-                  border: 1,
-                  borderColor: "divider",
-                  borderRadius: 1,
-                  boxShadow: "none",
-                  "&:before": { display: "none" },
-                }}
-              >
-                <AccordionSummary expandIcon={<ExpandMore />}>
-                  <Typography variant="subtitle2">Hint {index + 1}</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Typography variant="body2">{hint}</Typography>
-                </AccordionDetails>
-              </Accordion>
-            ))}
-          </Stack>
-        </>
-      )}
-    </>
-  );
+    {problem.hints.length > 0 && (<>
+      <h2 className={styles.hintsTitle}>
+        Hints
+      </h2>
+      <div className={[ui.stack, styles.hints].join(" ")}>
+        {problem.hints.map((hint, index) => (<details key={index} className={[ui.disclosure, styles.hint].join(" ")}>
+          <summary className={ui.summary}>
+            <span className={ui.subtitle}>Hint {index + 1}</span>
+          </summary>
+          <div className={ui.details}>
+            <p className={ui.body}>{hint}</p>
+          </div>
+        </details>))}
+      </div>
+    </>)}
+  </>);
 }

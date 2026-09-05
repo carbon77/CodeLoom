@@ -1,34 +1,22 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Box, CircularProgress } from '@mui/material'
-import { completeSignOut } from '../auth/keycloak'
-
+import { Spinner } from '../components/ui/Controls'
+import styles from './LogoutPage.module.css'
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { completeSignOut } from '../auth/keycloak';
 export default function LogoutPage() {
-  const navigate = useNavigate()
-
+  const navigate = useNavigate();
   useEffect(() => {
-    let active = true
+    let active = true;
     void completeSignOut().finally(() => {
       if (active) {
-        navigate('/', { replace: true })
+        navigate('/', { replace: true });
       }
-    })
-
+    });
     return () => {
-      active = false
-    }
-  }, [navigate])
-
-  return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <CircularProgress />
-    </Box>
-  )
+      active = false;
+    };
+  }, [navigate]);
+  return (<div className={styles.screen}>
+    <Spinner />
+  </div>);
 }

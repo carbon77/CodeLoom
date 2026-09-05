@@ -1,0 +1,96 @@
+@layer pages {
+.title {
+  flex: 1;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.topics {
+  flex-direction: row;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.constraintsDivider {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.constraintsTitle {
+  margin-bottom: 8px;
+}
+
+.constraints {
+  gap: 4px;
+}
+
+.examplesDivider {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.examplesTitle {
+  margin-bottom: 8px;
+}
+
+.exampleTitle {
+  margin-bottom: 8px;
+}
+
+.input {
+  font-family: monospace;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--raised);
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.output {
+  font-family: monospace;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--raised);
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.explanation {
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+.example {
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.hintsTitle {
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.hint {
+  border: 1px solid var(--border);
+  border-color: var(--border);
+  border-radius: 8px;
+  box-shadow: none;
+}
+.hint:before {
+  display: none;
+}
+
+.hints {
+  gap: 8px;
+}
+
+}

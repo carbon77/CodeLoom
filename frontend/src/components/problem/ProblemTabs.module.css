@@ -1,0 +1,50 @@
+@layer pages {
+.tabs { display: flex; flex: 1; min-width: 0px; overflow-x: auto; align-self: stretch; }
+.tabs button { background: transparent; color: var(--muted); padding: 16px 12px; white-space: nowrap; border: 0; border-bottom: 2px solid transparent; font-size: .8rem; font-weight: 600; }
+.tabs button[aria-selected="true"] { border-color: var(--accent); color: var(--accent); }
+.toolbar {
+  flex-direction: row;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  border-color: var(--border);
+  padding-left: 8px;
+  padding-right: 8px;
+  gap: 4px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+.content {
+  flex: 1;
+  min-height: 0px;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.panel {
+  min-width: 0px;
+  min-height: 0px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 75dvh;
+}
+.panel {
+  flex: 1 1 50%;
+}
+
+@media (min-width: 1024px) { .panel {
+  flex: 0 0 auto;
+  max-height: none;
+}
+ }
+@media (min-width: 1024px) { .panel {
+  width: var(--panel-width);
+}
+ }
+}

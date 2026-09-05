@@ -1,31 +1,12 @@
+import { Spinner, Notice, Badge } from '../ui/Controls'
+import { CheckCircle, Cancel } from '../ui/Icons'
+import ui from '../ui/ui.module.css'
+import styles from './SubmissionDetails.module.css'
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Chip,
-  CircularProgress,
-  Divider,
-  Stack,
-  Typography,
-  alpha,
-} from "@mui/material";
-import { CheckCircle, ExpandMore, Cancel } from "@mui/icons-material";
-import {
-  fetchSubmissionDetails,
-  type SubmissionDetails as SubmissionDetailsDto,
-  type SubmissionState,
-  type TestCaseResult,
-} from "../../api/submissions";
+import { fetchSubmissionDetails, type SubmissionDetails as SubmissionDetailsDto, type SubmissionState, type TestCaseResult, } from "../../api/submissions";
 import { errorMessage } from "../../api/client";
 import CodeEditor from "./CodeEditor";
-
-const stateColors: Record<
-  SubmissionState,
-  "success" | "warning" | "error" | "info" | "default"
-> = {
+const stateColors: Record<SubmissionState, "success" | "warning" | "error" | "info" | "default"> = {
   PENDING: "info",
   COMPILING: "info",
   COMPILE_ERROR: "error",
@@ -37,106 +18,71 @@ const stateColors: Record<
   MEMORY_LIMIT_EXCEEDED: "warning",
   SYSTEM_ERROR: "error",
 };
-
 const activeStates = new Set<SubmissionState>([
   "PENDING",
   "COMPILING",
   "RUNNING",
 ]);
-
 function output(value: string | null): string {
   return value === null || value === "" ? "—" : value;
 }
-
-function ResultField({ label, value }: { label: string; value: string | null }) {
-  return (
-    <Box sx={{ minWidth: 0 }}>
-      <Typography variant="caption" color="text.secondary">
-        {label}
-      </Typography>
-      <Box
-        component="pre"
-        sx={{
-          m: 0,
-          mt: 0.25,
-          fontSize: "0.8rem",
-          lineHeight: 1.35,
-          whiteSpace: "pre-wrap",
-          overflowWrap: "anywhere",
-        }}
-      >
-        {output(value)}
-      </Box>
-    </Box>
-  );
+function ResultField({ label, value }: {
+  label: string;
+  value: string | null;
+}) {
+  return (<div className={styles.field}>
+    <span className={[ui.caption, styles.label].join(" ")}>
+      {label}
+    </span>
+    <pre className={styles.value}>
+      {output(value)}
+    </pre>
+  </div>);
 }
-
-function TestResult({ result, index }: { result: TestCaseResult; index: number }) {
+function TestResult({ result, index }: {
+  result: TestCaseResult;
+  index: number;
+}) {
   const passed = result.stdout?.trim() === result.expectedOutput?.trim();
-  const color = passed ? "success" : "error";
 
-  return (
-    <Accordion
-      disableGutters
-      elevation={0}
-      sx={{
-        border: 1,
-        borderColor: `${color}.main`,
-        bgcolor: (theme) => alpha(theme.palette[color].main, 0.08),
-        "&:before": { display: "none" },
-      }}
-    >
-      <AccordionSummary
-        expandIcon={<ExpandMore />}
-        aria-controls={`test-result-${index}-content`}
-        id={`test-result-${index}-header`}
-        sx={{ minHeight: 40, "& .MuiAccordionSummary-content": { my: 0.5 } }}
-      >
-        <Stack direction="row" spacing={1} sx={{ width: "100%", alignItems: "center" }}>
-          {passed ? <CheckCircle color="success" fontSize="small" /> : <Cancel color="error" fontSize="small" />}
-          <Typography variant="subtitle2">Test case {index + 1}</Typography>
-          <Typography variant="caption" color={`${color}.dark`} sx={{ fontWeight: 600 }}>
-            {passed ? "Passed" : "Failed"}
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ ml: "auto !important" }}>
-            {result.executionTimeMs === null ? "—" : `${result.executionTimeMs} ms`}
-            {" · "}
-            {result.bytesUsed === null ? "—" : `${result.bytesUsed} bytes`}
-          </Typography>
-        </Stack>
-      </AccordionSummary>
-      <AccordionDetails
-        id={`test-result-${index}-content`}
-        sx={{ pt: 0.5, pb: 1, display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, columnGap: 1.5, rowGap: 0.75 }}
-      >
-        <ResultField label="Input" value={result.input} />
-        <ResultField label="Expected output" value={result.expectedOutput} />
-        <ResultField label="Standard output" value={result.stdout} />
-        <ResultField label="Standard error" value={result.stderr} />
-      </AccordionDetails>
-    </Accordion>
-  );
+  return (<details data-passed={passed} className={[ui.disclosure, styles.result].join(" ")}>
+    <summary aria-controls={`test-result-${index}-content`} id={`test-result-${index}-header`} className={[ui.summary, styles.resultSummary].join(" ")}>
+      <div className={[ui.stack, styles.resultHeader].join(" ")}>
+        {passed ? <CheckCircle /> : <Cancel />}
+        <span className={ui.subtitle}>Test case {index + 1}</span>
+        <span className={[ui.caption, styles.verdict].join(" ")}>
+          {passed ? "Passed" : "Failed"}
+        </span>
+        <span className={[ui.caption, styles.timing].join(" ")}>
+          {result.executionTimeMs === null ? "—" : `${result.executionTimeMs} ms`}
+          {" · "}
+          {result.bytesUsed === null ? "—" : `${result.bytesUsed} bytes`}
+        </span>
+      </div>
+    </summary>
+    <div id={`test-result-${index}-content`} className={[ui.details, styles.resultFields].join(" ")}>
+      <ResultField label="Input" value={result.input} />
+      <ResultField label="Expected output" value={result.expectedOutput} />
+      <ResultField label="Standard output" value={result.stdout} />
+      <ResultField label="Standard error" value={result.stderr} />
+    </div>
+  </details>);
 }
-
 interface SubmissionDetailsProps {
   submissionId: string;
   refreshKey: number;
 }
-
-export default function SubmissionDetails({
-  submissionId,
-  refreshKey,
-}: SubmissionDetailsProps) {
+export default function SubmissionDetails({ submissionId, refreshKey, }: SubmissionDetailsProps) {
   const [details, setDetails] = useState<SubmissionDetailsDto | null>(null);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     let active = true;
     setDetails(null);
     setError(null);
     fetchSubmissionDetails(submissionId)
       .then((value) => {
-        if (active) setDetails(value);
+        if (active)
+          setDetails(value);
       })
       .catch((cause: unknown) => {
         if (active) {
@@ -147,55 +93,39 @@ export default function SubmissionDetails({
       active = false;
     };
   }, [submissionId, refreshKey]);
-
   if (details === null && error === null) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return (<div className={styles.loading}>
+      <Spinner />
+    </div>);
   }
-  if (error !== null) return <Alert severity="error">{error}</Alert>;
-  if (details === null) return null;
+  if (error !== null)
+    return <Notice tone="error">{error}</Notice>;
+  if (details === null)
+    return null;
+  return (<div className={[ui.stack, styles.content].join(" ")}>
+    <div className={[ui.stack, styles.metadata].join(" ")}>
+      <Badge tone={stateColors[details.state]}>{details.state}</Badge>
+      <p className={ui.body}>{details.language.toUpperCase()}</p>
+      <p className={[ui.body, styles.timestamp].join(" ")}>
+        {new Date(details.createdAt).toLocaleString()}
+      </p>
+    </div>
 
-  return (
-    <Stack spacing={1.25}>
-      <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: "center", flexWrap: "wrap" }}>
-        <Chip label={details.state} color={stateColors[details.state]} size="small" />
-        <Typography variant="body2">{details.language.toUpperCase()}</Typography>
-        <Typography variant="body2" color="text.secondary">
-          {new Date(details.createdAt).toLocaleString()}
-        </Typography>
-      </Stack>
+    {details.errorMessage && <Notice tone="error">{details.errorMessage}</Notice>}
 
-      {details.errorMessage && <Alert severity="error">{details.errorMessage}</Alert>}
+    <div>
+      <h2 className={styles.sourceTitle}>Source code</h2>
+      <CodeEditor language={details.language} value={details.code} readOnly copyable height={280} />
+    </div>
 
-      <Box>
-        <Typography variant="h6" sx={{ mb: 1 }}>Source code</Typography>
-        <CodeEditor
-          language={details.language}
-          value={details.code}
-          readOnly
-          copyable
-          height={280}
-        />
-      </Box>
-
-      <Divider />
-      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-        Test results
-      </Typography>
-      {details.results.length === 0 ? (
-        <Alert severity="info">
-          {activeStates.has(details.state)
-            ? "This submission is still being processed."
-            : "No test-case results are available for this submission."}
-        </Alert>
-      ) : (
-        details.results.map((result, index) => (
-          <TestResult key={index} result={result} index={index} />
-        ))
-      )}
-    </Stack>
-  );
+    <hr />
+    <h3 className={styles.resultsTitle}>
+      Test results
+    </h3>
+    {details.results.length === 0 ? (<Notice tone="info">
+      {activeStates.has(details.state)
+        ? "This submission is still being processed."
+        : "No test-case results are available for this submission."}
+    </Notice>) : (details.results.map((result, index) => (<TestResult key={index} result={result} index={index} />)))}
+  </div>);
 }

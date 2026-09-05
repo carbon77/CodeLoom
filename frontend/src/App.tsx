@@ -1,44 +1,33 @@
-import { lazy, Suspense } from 'react'
-import {
-  createBrowserRouter,
-  Navigate,
-  RouterProvider,
-  useRouteError,
-  type LoaderFunctionArgs,
-} from 'react-router-dom'
-import { Alert, Box, CircularProgress, CssBaseline, ThemeProvider } from '@mui/material'
-import theme from './theme'
-import RequireAuth from './components/RequireAuth'
-import RequireAdmin from './components/RequireAdmin'
-import AppLayout from './components/AppLayout'
-import CallbackPage from './pages/CallbackPage'
-import LogoutPage from './pages/LogoutPage'
-import ProfilePage from './pages/ProfilePage'
-import ProblemListPage from './pages/ProblemListPage'
-import LanguagesPage from './pages/LanguagesPage'
-import AdminProblemListPage from './pages/admin/AdminProblemListPage'
-import ProblemFormPage from './pages/admin/ProblemFormPage'
-import { fetchProblemBySlug, type ProblemDetail } from './api/problems'
-import { EditorSettingsProvider } from './editor/EditorSettingsContext'
-
-const ProblemDetailPage = lazy(() => import('./pages/ProblemDetailPage'))
-
+import { Notice, Spinner } from './components/ui/Controls'
+import styles from './App.module.css'
+import { lazy, Suspense } from 'react';
+import { createBrowserRouter, Navigate, RouterProvider, useRouteError, type LoaderFunctionArgs, } from 'react-router-dom';
+import { AppThemeProvider } from './theme/AppTheme';
+import RequireAuth from './components/RequireAuth';
+import RequireAdmin from './components/RequireAdmin';
+import AppLayout from './components/AppLayout';
+import CallbackPage from './pages/CallbackPage';
+import LogoutPage from './pages/LogoutPage';
+import ProfilePage from './pages/ProfilePage';
+import ProblemListPage from './pages/ProblemListPage';
+import LanguagesPage from './pages/LanguagesPage';
+import AdminProblemListPage from './pages/admin/AdminProblemListPage';
+import ProblemFormPage from './pages/admin/ProblemFormPage';
+import { fetchProblemBySlug, type ProblemDetail } from './api/problems';
+import { EditorSettingsProvider } from './editor/EditorSettingsContext';
+const ProblemDetailPage = lazy(() => import('./pages/ProblemDetailPage'));
 async function problemLoader({ params }: LoaderFunctionArgs): Promise<ProblemDetail> {
   if (!params.problemSlug) {
-    throw new Error('Problem slug is missing')
+    throw new Error('Problem slug is missing');
   }
-  return fetchProblemBySlug(params.problemSlug)
+  return fetchProblemBySlug(params.problemSlug);
 }
-
 function ProblemDetailError() {
-  const error = useRouteError()
-  return (
-    <Alert severity="error">
-      {error instanceof Error ? error.message : 'Unable to load problem.'}
-    </Alert>
-  )
+  const error = useRouteError();
+  return (<Notice tone="error">
+    {error instanceof Error ? error.message : 'Unable to load problem.'}
+  </Notice>);
 }
-
 const router = createBrowserRouter([
   { path: '/callback', element: <CallbackPage /> },
   { path: '/logout', element: <LogoutPage /> },
@@ -57,17 +46,11 @@ const router = createBrowserRouter([
             id: 'problem',
             loader: problemLoader,
             errorElement: <ProblemDetailError />,
-            element: (
-              <Suspense
-                fallback={
-                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                    <CircularProgress />
-                  </Box>
-                }
-              >
-                <ProblemDetailPage />
-              </Suspense>
-            ),
+            element: (<Suspense fallback={<div className={styles.loading}>
+              <Spinner />
+            </div>}>
+              <ProblemDetailPage />
+            </Suspense>),
           },
           {
             path: 'admin',
@@ -84,15 +67,11 @@ const router = createBrowserRouter([
     ],
   },
   { path: '*', element: <Navigate to="/" replace /> },
-])
-
+]);
 export default function App() {
-  return (
-    <EditorSettingsProvider>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <RouterProvider router={router} />
-      </ThemeProvider>
-    </EditorSettingsProvider>
-  )
+  return (<EditorSettingsProvider>
+    <AppThemeProvider>
+      <RouterProvider router={router} />
+    </AppThemeProvider>
+  </EditorSettingsProvider>);
 }

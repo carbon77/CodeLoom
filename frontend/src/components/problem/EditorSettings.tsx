@@ -1,75 +1,27 @@
-import { useState, type MouseEvent } from "react";
-import { Settings } from "@mui/icons-material";
-import {
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  MenuItem,
-  MenuList,
-  Popover,
-  Radio,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import {
-  editorThemes,
-  useEditorSettings,
-} from "../../editor/EditorSettingsContext";
+import { useId, useState } from 'react'
+import { editorThemes, useEditorSettings } from '../../editor/EditorSettingsContext'
+import { IconButton, useDismiss } from '../ui/Controls'
+import { Check, Settings } from '../ui/Icons'
+import s from '../ui/ui.module.css'
 
 export default function EditorSettings() {
-  const { theme, setTheme } = useEditorSettings();
-  const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
-
-  const openSettings = (event: MouseEvent<HTMLElement>) => {
-    setAnchorElement(event.currentTarget);
-  };
-
-  return (
-    <>
-      <Tooltip title="Editor settings">
-        <IconButton
-          aria-label="Editor settings"
-          aria-controls={anchorElement ? "editor-settings-menu" : undefined}
-          aria-haspopup="menu"
-          aria-expanded={anchorElement ? "true" : undefined}
-          onClick={openSettings}
-        >
-          <Settings />
-        </IconButton>
-      </Tooltip>
-      <Popover
-        open={anchorElement !== null}
-        anchorEl={anchorElement}
-        onClose={() => setAnchorElement(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <Typography variant="subtitle2" sx={{ px: 2, pt: 1.5 }}>
-          Color scheme
-        </Typography>
-        <MenuList id="editor-settings-menu" aria-label="Editor color scheme">
-          {editorThemes.map((option) => (
-            <MenuItem
-              key={option.value}
-              aria-label={option.label}
-              selected={theme === option.value}
-              onClick={() => {
-                setTheme(option.value);
-                setAnchorElement(null);
-              }}
-            >
-              <ListItemIcon>
-                <Radio
-                  checked={theme === option.value}
-                  size="small"
-                  slotProps={{ input: { "aria-label": option.label } }}
-                />
-              </ListItemIcon>
-              <ListItemText>{option.label}</ListItemText>
-            </MenuItem>
-          ))}
-        </MenuList>
-      </Popover>
-    </>
-  );
+  const { theme, setTheme } = useEditorSettings()
+  const [open, setOpen] = useState(false)
+  const root = useDismiss(open, () => setOpen(false))
+  const id = useId()
+  const close = () => { setOpen(false); root.current?.querySelector('button')?.focus() }
+  return <div className={s.popoverRoot} ref={root} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }}>
+    <IconButton aria-label="Editor settings" aria-haspopup="menu" aria-expanded={open} aria-controls={open ? id : undefined} onClick={() => setOpen(!open)}><Settings /></IconButton>
+    {open && <div className={`${s.popover} ${s.popoverRight}`}>
+      <p className={s.label}>Editor color scheme</p>
+      <div id={id} role="menu" aria-label="Editor color scheme" onKeyDown={(event) => {
+        const buttons = [...event.currentTarget.querySelectorAll<HTMLButtonElement>('button')]
+        const current = buttons.indexOf(document.activeElement as HTMLButtonElement)
+        const index = event.key === 'ArrowDown' ? (current + 1) % buttons.length : event.key === 'ArrowUp' ? (current + buttons.length - 1) % buttons.length : event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : -1
+        if (index >= 0) { event.preventDefault(); buttons[index].focus() }
+      }}>
+        {editorThemes.map((option) => <button key={option.value} type="button" role="menuitemradio" aria-checked={theme === option.value} autoFocus={theme === option.value} className={s.option} onClick={() => { setTheme(option.value); close() }}>{theme === option.value && <Check />}{option.label}</button>)}
+      </div>
+    </div>}
+  </div>
 }

@@ -1,48 +1,28 @@
+import { Spinner, Notice } from '../components/ui/Controls'
+import ui from '../components/ui/ui.module.css'
+import styles from './LanguagesPage.module.css'
+import PageHeading from '../components/ui/PageHeading'
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  CircularProgress,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
-import {
-  fetchLanguageDisplay,
-  fetchLanguageSystem,
-  type LanguageDisplay,
-  type LanguageSystem,
-} from "../api/languages";
+import { fetchLanguageDisplay, fetchLanguageSystem, type LanguageDisplay, type LanguageSystem, } from "../api/languages";
 import { errorMessage } from "../api/client";
-
 interface LanguageRow extends LanguageDisplay {
   compileCommand: string | null;
   runCommand: string;
 }
-
 export default function LanguagesPage() {
   const [languages, setLanguages] = useState<LanguageRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     let active = true;
     Promise.all([fetchLanguageDisplay(), fetchLanguageSystem()])
       .then(([display, system]) => {
-        if (!active) return;
-        const systemByKey = new Map<string, LanguageSystem>(
-          system.map((language) => [language.key, language]),
-        );
-        setLanguages(
-          display.flatMap((language) => {
-            const details = systemByKey.get(language.key);
-            return details ? [{ ...language, ...details }] : [];
-          }),
-        );
+        if (!active)
+          return;
+        const systemByKey = new Map<string, LanguageSystem>(system.map((language) => [language.key, language]));
+        setLanguages(display.flatMap((language) => {
+          const details = systemByKey.get(language.key);
+          return details ? [{ ...language, ...details }] : [];
+        }));
       })
       .catch((cause) => {
         if (active) {
@@ -53,53 +33,37 @@ export default function LanguagesPage() {
       active = false;
     };
   }, []);
+  return (<div>
+    <PageHeading eyebrow="Your toolkit" title="Languages" description="Choose your language. See how your code is compiled and run in the judge." />
 
-  return (
-    <Box>
-      <Typography variant="h4" component="h1" sx={{ mb: 3 }}>
-        Languages
-      </Typography>
-
-      {languages === null && error === null && (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-          <CircularProgress />
-        </Box>
-      )}
-      {error && <Alert severity="error">{error}</Alert>}
-      {languages?.length === 0 && (
-        <Alert severity="info">No languages are currently available.</Alert>
-      )}
-      {languages && languages.length > 0 && (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Key</TableCell>
-                <TableCell>Commands</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {languages.map((language) => (
-                <TableRow key={language.key}>
-                  <TableCell>{language.name}</TableCell>
-                  <TableCell>{language.key}</TableCell>
-                  <TableCell>
-                    <Box
-                      component="pre"
-                      sx={{ m: 0, fontFamily: "monospace", whiteSpace: "pre-wrap" }}
-                    >
-                      {[language.compileCommand, language.runCommand]
-                        .filter((command): command is string => command !== null)
-                        .join("\n")}
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
-    </Box>
-  );
+    {languages === null && error === null && (<div className={styles.loading}>
+      <Spinner />
+    </div>)}
+    {error && <Notice tone="error">{error}</Notice>}
+    {languages?.length === 0 && (<Notice tone="info">No languages are currently available.</Notice>)}
+    {languages && languages.length > 0 && (<div className={ui.tableContainer}>
+      <table className={ui.table}>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Key</th>
+            <th>Commands</th>
+          </tr>
+        </thead>
+        <tbody>
+          {languages.map((language) => (<tr key={language.key}>
+            <td>{language.name}</td>
+            <td>{language.key}</td>
+            <td>
+              <pre className={styles.commands}>
+                {[language.compileCommand, language.runCommand]
+                  .filter((command): command is string => command !== null)
+                  .join("\n")}
+              </pre>
+            </td>
+          </tr>))}
+        </tbody>
+      </table>
+    </div>)}
+  </div>);
 }

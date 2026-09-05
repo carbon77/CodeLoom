@@ -1,0 +1,5 @@
+@layer components {
+  .filters { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 28px 0 20px; }
+  .search { flex: 1; min-width: 200px; }
+  @media (max-width: 600px) { .search { flex-basis: 100%; } }
+}
